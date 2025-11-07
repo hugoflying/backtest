@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Bilan Trading</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-100 p-4">
+  <div class="max-w-2xl mx-auto bg-white p-6 rounded-2xl shadow-lg">
+    <h1 class="text-2xl font-bold mb-4 text-center">Bilan Trading du Jour</h1>
+    
+    <form id="tradeForm" class="space-y-4">
+      <!-- Date -->
+      <div>
+        <label class="block font-medium">Date</label>
+        <input type="date" id="date" class="w-full border rounded p-2">
+      </div>
+
+      <!-- Heure d'entrée -->
+      <div>
+        <label class="block font-medium">Heure d'entrée</label>
+        <input type="time" id="heure" class="w-full border rounded p-2">
+      </div>
+
+      <!-- Actif -->
+      <div>
+        <label class="block font-medium">Actif</label>
+        <select id="actif" class="w-full border rounded p-2">
+          <option>Gold</option>
+          <option>XXXUSD</option>
+        </select>
+      </div>
+
+      <!-- Direction -->
+      <div>
+        <label class="block font-medium">Direction</label>
+        <select id="direction" class="w-full border rounded p-2">
+          <option>Buy</option>
+          <option>Sell</option>
+        </select>
+      </div>
+
+      <!-- Timeframe -->
+      <div>
+        <label class="block font-medium">Timeframe</label>
+        <select id="timeframe" class="w-full border rounded p-2">
+          <option>5</option>
+          <option>10</option>
+        </select>
+      </div>
+
+      <!-- Setup -->
+      <div>
+        <label class="block font-medium">Setup</label>
+        <select id="setup" class="w-full border rounded p-2">
+          <option>Double RSI</option>
+          <option>Courbes sens tendance</option>
+          <option>Englobante</option>
+          <option>Unicorn</option>
+          <option>Stop hunt</option>
+          <option>DIV SMT</option>
+          <option>BRK</option>
+          <option>PO3</option>
+          <option>MSS</option>
+          <option>PDL</option>
+          <option>IFVG</option>
+          <option>BPR</option>
+          <option>CISD</option>
+          <option>FVG</option>
+          <option>OB</option>
+        </select>
+      </div>
+
+      <!-- Confiance -->
+      <div>
+        <label class="block font-medium">Confiance (%)</label>
+        <input type="number" id="confiance" class="w-full border rounded p-2" min="0" max="100">
+      </div>
+
+      <!-- Résultat -->
+      <div>
+        <label class="block font-medium">Résultat (€)</label>
+        <input type="number" id="resultat" class="w-full border rounded p-2">
+      </div>
+
+      <!-- Risque -->
+      <div>
+        <label class="block font-medium">Risque (€)</label>
+        <input type="number" id="risque" class="w-full border rounded p-2">
+      </div>
+
+      <!-- RR -->
+      <div>
+        <label class="block font-medium">RR</label>
+        <input type="number" id="rr" class="w-full border rounded p-2" step="0.01">
+      </div>
+
+      <!-- Screenshot -->
+      <div>
+        <label class="block font-medium">Screenshot (URL)</label>
+        <input type="url" id="screenshot" class="w-full border rounded p-2">
+      </div>
+
+      <!-- Type -->
+      <div>
+        <label class="block font-medium">Type</label>
+        <select id="type" class="w-full border rounded p-2">
+          <option>Gagnant</option>
+          <option>Perdant</option>
+        </select>
+      </div>
+
+      <!-- Nombre -->
+      <div>
+        <label class="block font-medium">Nombre</label>
+        <input type="number" id="nombre" class="w-full border rounded p-2" min="1">
+      </div>
+
+      <!-- Password -->
+      <div>
+        <label class="block font-medium">Mot de passe</label>
+        <input type="password" id="password" class="w-full border rounded p-2">
+      </div>
+
+      <button type="submit" id="sendBtn" class="w-full bg-blue-600 text-white py-2 rounded-lg font-semibold hover:bg-blue-700">
+        Envoyer sur Excel
+      </button>
+
+      <p id="message" class="text-center text-sm mt-2 font-medium"></p>
+    </form>
+  </div>
+
+  <script>
+    const form = document.getElementById('tradeForm');
+    const msg = document.getElementById('message');
+    let lastSubmit = 0;
+
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const now = Date.now();
+      if (now - lastSubmit < 20000) {
+        msg.textContent = "Attends 20 secondes avant d'envoyer à nouveau.";
+        msg.className = "text-center text-red-600";
+        return;
+      }
+
+      const pass = document.getElementById('password').value;
+      if (pass !== "trading") {
+        msg.textContent = "Mot de passe incorrect.";
+        msg.className = "text-center text-red-600";
+        return;
+      }
+
+      const data = {
+        date: document.getElementById('date').value,
+        heure: document.getElementById('heure').value,
+        actif: document.getElementById('actif').value,
+        direction: document.getElementById('direction').value,
+        timeframe: document.getElementById('timeframe').value,
+        setup: document.getElementById('setup').value,
+        confiance: document.getElementById('confiance').value,
+        resultat: document.getElementById('resultat').value,
+        risque: document.getElementById('risque').value,
+        rr: document.getElementById('rr').value,
+        screenshot: document.getElementById('screenshot').value,
+        type: document.getElementById('type').value,
+        nombre: document.getElementById('nombre').value,
+      };
+
+      // ICI : envoie vers ton Google Apps Script
+      // Exemple :
+      // await fetch("TON_URL_SCRIPT_APPS_SCRIPT", {
+      //   method: "POST",
+      //   headers: {"Content-Type": "application/json"},
+      //   body: JSON.stringify(data)
+      // });
+
+      lastSubmit = now;
+      msg.textContent = "Bilan envoyé avec succès !";
+      msg.className = "text-center text-green-600";
+      form.reset();
+    });
+  </script>
+</body>
+</html>
