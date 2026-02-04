@@ -13,6 +13,7 @@
     label { display:block; margin-top: 10px; font-weight: 600; }
   </style>
 </head>
+
 <body>
   <h1>Flight Docs</h1>
 
@@ -49,11 +50,12 @@
   <script type="module">
     import { PDFDocument, StandardFonts } from "https://cdn.skypack.dev/pdf-lib@1.17.1";
 
-    // ⚠️ METS ICI TON URL PUBLIQUE R2 VERS LE PDF
-    const TEMPLATE_URL = "MET_ICI_L_URL_PUBLIQUE_R2/templates/ryanair/lauda-lir.pdf";
+    // URL publique R2 (ton bucket)
+    const BASE = "https://pub-3195f8ee765845da8b31664781a24b78.r2.dev";
+    const TEMPLATE_URL = `${BASE}/templates/ryanair/lauda-lir.pdf`;
 
     // Coordonnées (en mm depuis le haut) que tu as mesurées
-    const pageHeightMm = 210;
+    const pageHeightMm = 210; // A4 paysage: hauteur = 210mm
     const MM_TO_PT = 2.834645669;
     const mmToPtX = (mm) => mm * MM_TO_PT;
     const mmTopToPtY = (yFromTopMm) => (pageHeightMm - yFromTopMm) * MM_TO_PT;
@@ -79,7 +81,7 @@
 
       const draw = (key, value) => {
         const f = fieldsMm[key];
-        page.drawText(value, {
+        page.drawText(String(value ?? ""), {
           x: mmToPtX(f.x),
           y: mmTopToPtY(f.yFromTop),
           size: f.fontSize,
