@@ -10,156 +10,225 @@
 
   <style>
     :root{
-      --c-fromto:#111827;
-      --c-sta:#cfe0ff;
-      --c-std:#d9f3d6;
-      --c-ctot:#ffd0d0;
-      --c-standarr:#dbe7ff;
-      --c-standdep:#dbf4d6;
-      --c-cell:#f7f7f7;
-      --c-border:#d1d5db;
+      --bg0:#070A12;
+      --bg1:#0B1220;
+      --panel:rgba(255,255,255,.06);
+      --panel2:rgba(255,255,255,.08);
+      --stroke:rgba(255,255,255,.12);
+      --stroke2:rgba(255,255,255,.16);
+      --text:#e5e7eb;
+      --muted:#9ca3af;
+
+      /* accents */
+      --fromto:#111827;
+      --sta:#9CC6FF;
+      --std:#A7F3D0;
+      --ctot:#FFB4B4;
+      --arr:#BFD7FF;
+      --dep:#C9F7B8;
+      --neutral:#ffffff;
+
+      --inputBg:#ffffff;
+      --inputBorder:#e5e7eb;
+      --inputText:#0f172a;
+
+      --radius:16px;
+      --radius2:14px;
+      --shadow: 0 18px 40px rgba(0,0,0,.35);
     }
 
-    body{ background:#0b1220; }
-    .app{ max-width:1400px; margin:0 auto; padding:24px; }
+    html,body{ height:100%; }
+    body{
+      background:
+        radial-gradient(1200px 700px at 20% 0%, rgba(96,165,250,.18), transparent 60%),
+        radial-gradient(1200px 700px at 100% 40%, rgba(16,185,129,.14), transparent 60%),
+        radial-gradient(900px 600px at 40% 100%, rgba(244,114,182,.10), transparent 60%),
+        linear-gradient(180deg, var(--bg0), var(--bg1));
+      color: var(--text);
+    }
 
-    .toolbar{
-      position: sticky; top: 0;
-      z-index: 5;
-      background: rgba(11,18,32,0.85);
-      backdrop-filter: blur(8px);
-      padding: 14px 0 18px 0;
-      border-bottom: 1px solid rgba(255,255,255,0.08);
+    .app{
+      max-width: 1480px;
+      margin: 0 auto;
+      padding: 28px 18px 42px;
+    }
+
+    .header{
+      display:flex;
+      align-items:flex-end;
+      justify-content:space-between;
+      gap: 18px;
       margin-bottom: 18px;
     }
 
-    .card-shell{
-      background: rgba(255,255,255,0.06);
-      border: 1px solid rgba(255,255,255,0.10);
-      border-radius: 16px;
+    .title{
+      font-size: 26px;
+      font-weight: 800;
+      letter-spacing: .2px;
+      line-height: 1.1;
+    }
+    .subtitle{
+      color: var(--muted);
+      margin-top: 6px;
+      font-size: 14px;
+    }
+
+    .surface{
+      background: linear-gradient(180deg, var(--panel), rgba(255,255,255,.04));
+      border: 1px solid var(--stroke);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
       padding: 18px;
     }
 
     .grid4{
       display:grid;
-      grid-template-columns: repeat(4, minmax(240px, 1fr));
+      grid-template-columns: repeat(4, minmax(260px, 1fr));
       gap: 16px;
+    }
+    @media (max-width: 1200px){
+      .grid4{ grid-template-columns: repeat(2, minmax(260px, 1fr)); }
+    }
+    @media (max-width: 720px){
+      .grid4{ grid-template-columns: 1fr; }
     }
 
     .slot{
-      background:#ffffff;
-      border: 1px solid var(--c-border);
-      border-radius: 14px;
-      overflow:hidden;
-      box-shadow: 0 10px 24px rgba(0,0,0,0.10);
+      background: rgba(255,255,255,.92);
+      border: 1px solid rgba(255,255,255,.35);
+      border-radius: var(--radius2);
+      overflow: hidden;
+      box-shadow: 0 14px 30px rgba(0,0,0,.22);
+    }
+
+    .slotTop{
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      padding: 10px 12px;
+      background: rgba(15,23,42,.06);
+      border-bottom: 1px solid rgba(15,23,42,.10);
+    }
+    .slotTop .chip{
+      font-size: 12px;
+      font-weight: 800;
+      color: #0f172a;
+      background: rgba(15,23,42,.08);
+      border: 1px solid rgba(15,23,42,.12);
+      padding: 6px 10px;
+      border-radius: 999px;
+      letter-spacing: .03em;
+    }
+    .slotTop .hint{
+      font-size: 12px;
+      color: rgba(15,23,42,.58);
+      font-weight: 600;
     }
 
     .row{
       display:grid;
-      grid-template-columns: 92px 1fr 1fr;
-      border-bottom: 1px solid var(--c-border);
-      min-height: 46px;
+      grid-template-columns: 86px 1fr 1fr;
+      border-bottom: 1px solid rgba(15,23,42,.12);
+      min-height: 54px;
     }
 
-    .labelSide{
+    .side{
       display:flex;
       align-items:center;
       justify-content:center;
-      font-weight: 700;
+      font-weight: 900;
+      letter-spacing: .06em;
+      text-transform: uppercase;
+      font-size: 12px;
       color:#fff;
-      background: var(--c-fromto);
+      background: var(--fromto);
+    }
+
+    .labelFull{
+      grid-column: 1 / span 3;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      font-weight: 900;
       letter-spacing: .04em;
       text-transform: uppercase;
       font-size: 12px;
+      color: #0f172a;
+      border-bottom: 1px solid rgba(15,23,42,.10);
+      padding: 10px 12px;
     }
 
-    .labelWide{
-      grid-column: 1 / span 2;
-      display:flex;
-      align-items:center;
-      justify-content:center;
-      font-weight: 700;
-      color:#0f172a;
-      border-right: 1px solid var(--c-border);
-      text-transform: uppercase;
-      font-size: 13px;
-    }
-
-    .labelWide.full{
-      grid-column: 1 / span 3;
-      border-right: none;
-    }
+    .labelFull.sta{ background: rgba(156,198,255,.55); }
+    .labelFull.std{ background: rgba(167,243,208,.55); }
+    .labelFull.ctot{ background: rgba(255,180,180,.62); }
+    .labelFull.arr{ background: rgba(191,215,255,.55); }
+    .labelFull.dep{ background: rgba(201,247,184,.60); }
+    .labelFull.neutral{ background: rgba(255,255,255,.70); }
 
     .cell{
-      background: var(--c-cell);
-      padding: 8px 10px;
+      padding: 10px 12px;
       display:flex;
+      gap: 10px;
       align-items:center;
-      gap: 8px;
-      border-right: 1px solid var(--c-border);
+      border-right: 1px solid rgba(15,23,42,.12);
+      background: rgba(255,255,255,.70);
     }
     .cell:last-child{ border-right:none; }
 
-    .cell .help{
-      margin:0;
+    .miniLabel{
       font-size: 11px;
-      color:#6b7280;
-      white-space:nowrap;
+      font-weight: 900;
+      letter-spacing: .02em;
+      color: rgba(15,23,42,.55);
+      width: 66px;
+      flex: 0 0 auto;
+      text-transform: uppercase;
     }
 
-    .cell input{
-      width:100%;
-      border: none;
-      background: transparent;
-      outline: none;
+    .field{
+      width: 100%;
+    }
+
+    /* VRAIES CASES (boxed inputs) */
+    .input.boxed{
+      background: var(--inputBg);
+      border: 1px solid var(--inputBorder);
+      border-radius: 10px;
+      box-shadow: 0 1px 0 rgba(15,23,42,.06);
+      color: var(--inputText);
+      font-weight: 800;
+      height: 38px;
+      padding: 8px 10px;
+    }
+    .input.boxed::placeholder{
+      color: rgba(15,23,42,.35);
       font-weight: 700;
-      color:#111827;
-      font-size: 14px;
+    }
+    .input.boxed:focus{
+      border-color: rgba(59,130,246,.55);
+      box-shadow: 0 0 0 4px rgba(59,130,246,.15);
     }
 
-    .bg-sta .labelWide{ background: var(--c-sta); }
-    .bg-std .labelWide{ background: var(--c-std); }
-    .bg-ctot .labelWide{ background: var(--c-ctot); }
-    .bg-standarr .labelWide{ background: var(--c-standarr); }
-    .bg-standdep .labelWide{ background: var(--c-standdep); }
-    .bg-neutral .labelWide{ background: #ffffff; }
-
-    .slotFooter{
-      display:flex;
-      gap: 8px;
-      padding: 10px;
-      background:#f3f4f6;
-      border-top: 1px solid var(--c-border);
-      justify-content: space-between;
-      flex-wrap: wrap;
+    /* Full width lines (STA/REG/...) with one big input */
+    .line{
+      display:grid;
+      grid-template-columns: 1fr;
+      padding: 10px 12px 14px;
+      background: rgba(255,255,255,.70);
+      border-bottom: 1px solid rgba(15,23,42,.12);
     }
+    .line .input.boxed{ height: 40px; font-size: 14px; }
 
-    .slotFooter .buttons{
-      margin:0;
-    }
+    .row:last-child{ border-bottom:none; }
 
-    .printArea{
-      background:#e5e7eb;
-      border-radius: 18px;
-      padding: 18px;
-    }
-
-    /* PRINT */
+    /* Print: blanc simple */
     @media print{
       body{ background:#fff !important; }
-      .toolbar{ display:none !important; }
       .app{ padding:0 !important; }
-      .card-shell{ border:none !important; background:transparent !important; padding:0 !important; }
-      .printArea{ background:#fff !important; padding:0 !important; border-radius:0 !important; }
-      .slot{ box-shadow:none !important; }
+      .header{ display:none !important; }
+      .surface{ border:none !important; box-shadow:none !important; padding:0 !important; background:transparent !important; }
+      .slot{ box-shadow:none !important; border: 1px solid #cbd5e1 !important; }
       @page { size: A4 landscape; margin: 8mm; }
-    }
-
-    @media (max-width: 1100px){
-      .grid4{ grid-template-columns: repeat(2, minmax(240px, 1fr)); }
-    }
-    @media (max-width: 650px){
-      .grid4{ grid-template-columns: 1fr; }
     }
   </style>
 </head>
@@ -167,230 +236,362 @@
 <body>
   <div class="app">
 
-    <!-- TOP TOOLBAR -->
-    <div class="toolbar">
-      <div class="level">
-        <div class="level-left">
-          <div>
-            <p class="has-text-white has-text-weight-semibold is-size-4">Flight Cards</p>
-            <p class="has-text-grey-light">4 slots — mêmes champs que ton Excel — prêt pour l’API</p>
-          </div>
-        </div>
-
-        <div class="level-right">
-          <div class="buttons">
-            <button class="button is-light" id="demoFill">Remplir démo</button>
-            <button class="button is-warning" id="clearAll">Vider</button>
-            <button class="button is-primary" id="print">Imprimer</button>
-          </div>
-        </div>
+    <div class="header">
+      <div>
+        <div class="title">Flight Cards</div>
+        <div class="subtitle">4 slots — champs identiques à ton Excel (remplissage API après)</div>
+      </div>
+      <div class="has-text-grey-light is-size-7">
+        Version UI uniquement (sans boutons)
       </div>
     </div>
 
-    <div class="card-shell">
-      <div class="printArea">
-        <div class="grid4" id="grid"></div>
+    <div class="surface">
+      <div class="grid4">
 
-        <div class="mt-4">
-          <div class="buttons is-justify-content-center">
-            <button class="button is-link is-light" data-action="timing">TIMING 1-4</button>
-            <button class="button is-info is-light" data-action="autoc12">AUTOCONTROLE 1-2</button>
-            <button class="button is-info is-light" data-action="night12">NIGHT STOP 1-2</button>
-            <button class="button is-info is-light" data-action="first12">FIRST WAVE 1-2</button>
-            <button class="button is-info is-light" data-action="autoc34">AUTOCONTROLE 3-4</button>
-            <button class="button is-info is-light" data-action="night34">NIGHT STOP 3-4</button>
+        <!-- SLOT 1 -->
+        <section class="slot">
+          <div class="slotTop">
+            <span class="chip">SLOT 1</span>
+            <span class="hint">Arrivée → Départ</span>
           </div>
-          <p class="has-text-centered has-text-grey is-size-7 mt-2">
-            (Les boutons du bas pourront déclencher des “modes” plus tard — pour l’instant c’est visuel.)
-          </p>
-        </div>
+
+          <div class="row">
+            <div class="side">FROM</div>
+            <div class="cell">
+              <div class="miniLabel">Flight</div>
+              <div class="field">
+                <input class="input boxed" placeholder="FR1234" data-slot="1" data-field="from_flight_no">
+              </div>
+            </div>
+            <div class="cell">
+              <div class="miniLabel">IATA</div>
+              <div class="field">
+                <input class="input boxed" placeholder="OPO" data-slot="1" data-field="from_iata">
+              </div>
+            </div>
+          </div>
+
+          <div class="labelFull sta">STA</div>
+          <div class="line">
+            <input class="input boxed" placeholder="10:25" data-slot="1" data-field="sta">
+          </div>
+
+          <div class="labelFull neutral">REGISTRATION</div>
+          <div class="line">
+            <input class="input boxed" placeholder="EI-ABC" data-slot="1" data-field="registration">
+          </div>
+
+          <div class="labelFull neutral">A/C TYPE</div>
+          <div class="line">
+            <input class="input boxed" placeholder="B738" data-slot="1" data-field="ac_type">
+          </div>
+
+          <div class="row">
+            <div class="side">TO</div>
+            <div class="cell">
+              <div class="miniLabel">Flight</div>
+              <div class="field">
+                <input class="input boxed" placeholder="FR5678" data-slot="1" data-field="to_flight_no">
+              </div>
+            </div>
+            <div class="cell">
+              <div class="miniLabel">IATA</div>
+              <div class="field">
+                <input class="input boxed" placeholder="DUB" data-slot="1" data-field="to_iata">
+              </div>
+            </div>
+          </div>
+
+          <div class="labelFull std">STD</div>
+          <div class="line">
+            <input class="input boxed" placeholder="11:10" data-slot="1" data-field="std">
+          </div>
+
+          <div class="labelFull ctot">CTOT</div>
+          <div class="line">
+            <input class="input boxed" placeholder="11:25" data-slot="1" data-field="ctot">
+          </div>
+
+          <div class="labelFull arr">STAND ARR</div>
+          <div class="line">
+            <input class="input boxed" placeholder="B12" data-slot="1" data-field="stand_arr">
+          </div>
+
+          <div class="labelFull arr">TERMINAL ARR</div>
+          <div class="line">
+            <input class="input boxed" placeholder="T1" data-slot="1" data-field="terminal_arr">
+          </div>
+
+          <div class="labelFull dep">STAND DEP</div>
+          <div class="line">
+            <input class="input boxed" placeholder="C03" data-slot="1" data-field="stand_dep">
+          </div>
+
+          <div class="labelFull dep" style="border-bottom:none;">TERMINAL DEP</div>
+          <div class="line" style="border-bottom:none;">
+            <input class="input boxed" placeholder="T2" data-slot="1" data-field="terminal_dep">
+          </div>
+        </section>
+
+        <!-- SLOT 2 -->
+        <section class="slot">
+          <div class="slotTop">
+            <span class="chip">SLOT 2</span>
+            <span class="hint">Arrivée → Départ</span>
+          </div>
+
+          <div class="row">
+            <div class="side">FROM</div>
+            <div class="cell">
+              <div class="miniLabel">Flight</div>
+              <div class="field">
+                <input class="input boxed" placeholder="FR1234" data-slot="2" data-field="from_flight_no">
+              </div>
+            </div>
+            <div class="cell">
+              <div class="miniLabel">IATA</div>
+              <div class="field">
+                <input class="input boxed" placeholder="OPO" data-slot="2" data-field="from_iata">
+              </div>
+            </div>
+          </div>
+
+          <div class="labelFull sta">STA</div>
+          <div class="line">
+            <input class="input boxed" placeholder="10:25" data-slot="2" data-field="sta">
+          </div>
+
+          <div class="labelFull neutral">REGISTRATION</div>
+          <div class="line">
+            <input class="input boxed" placeholder="EI-ABC" data-slot="2" data-field="registration">
+          </div>
+
+          <div class="labelFull neutral">A/C TYPE</div>
+          <div class="line">
+            <input class="input boxed" placeholder="B738" data-slot="2" data-field="ac_type">
+          </div>
+
+          <div class="row">
+            <div class="side">TO</div>
+            <div class="cell">
+              <div class="miniLabel">Flight</div>
+              <div class="field">
+                <input class="input boxed" placeholder="FR5678" data-slot="2" data-field="to_flight_no">
+              </div>
+            </div>
+            <div class="cell">
+              <div class="miniLabel">IATA</div>
+              <div class="field">
+                <input class="input boxed" placeholder="DUB" data-slot="2" data-field="to_iata">
+              </div>
+            </div>
+          </div>
+
+          <div class="labelFull std">STD</div>
+          <div class="line">
+            <input class="input boxed" placeholder="11:10" data-slot="2" data-field="std">
+          </div>
+
+          <div class="labelFull ctot">CTOT</div>
+          <div class="line">
+            <input class="input boxed" placeholder="11:25" data-slot="2" data-field="ctot">
+          </div>
+
+          <div class="labelFull arr">STAND ARR</div>
+          <div class="line">
+            <input class="input boxed" placeholder="B12" data-slot="2" data-field="stand_arr">
+          </div>
+
+          <div class="labelFull arr">TERMINAL ARR</div>
+          <div class="line">
+            <input class="input boxed" placeholder="T1" data-slot="2" data-field="terminal_arr">
+          </div>
+
+          <div class="labelFull dep">STAND DEP</div>
+          <div class="line">
+            <input class="input boxed" placeholder="C03" data-slot="2" data-field="stand_dep">
+          </div>
+
+          <div class="labelFull dep" style="border-bottom:none;">TERMINAL DEP</div>
+          <div class="line" style="border-bottom:none;">
+            <input class="input boxed" placeholder="T2" data-slot="2" data-field="terminal_dep">
+          </div>
+        </section>
+
+        <!-- SLOT 3 -->
+        <section class="slot">
+          <div class="slotTop">
+            <span class="chip">SLOT 3</span>
+            <span class="hint">Arrivée → Départ</span>
+          </div>
+
+          <div class="row">
+            <div class="side">FROM</div>
+            <div class="cell">
+              <div class="miniLabel">Flight</div>
+              <div class="field">
+                <input class="input boxed" placeholder="FR1234" data-slot="3" data-field="from_flight_no">
+              </div>
+            </div>
+            <div class="cell">
+              <div class="miniLabel">IATA</div>
+              <div class="field">
+                <input class="input boxed" placeholder="OPO" data-slot="3" data-field="from_iata">
+              </div>
+            </div>
+          </div>
+
+          <div class="labelFull sta">STA</div>
+          <div class="line">
+            <input class="input boxed" placeholder="10:25" data-slot="3" data-field="sta">
+          </div>
+
+          <div class="labelFull neutral">REGISTRATION</div>
+          <div class="line">
+            <input class="input boxed" placeholder="EI-ABC" data-slot="3" data-field="registration">
+          </div>
+
+          <div class="labelFull neutral">A/C TYPE</div>
+          <div class="line">
+            <input class="input boxed" placeholder="B738" data-slot="3" data-field="ac_type">
+          </div>
+
+          <div class="row">
+            <div class="side">TO</div>
+            <div class="cell">
+              <div class="miniLabel">Flight</div>
+              <div class="field">
+                <input class="input boxed" placeholder="FR5678" data-slot="3" data-field="to_flight_no">
+              </div>
+            </div>
+            <div class="cell">
+              <div class="miniLabel">IATA</div>
+              <div class="field">
+                <input class="input boxed" placeholder="DUB" data-slot="3" data-field="to_iata">
+              </div>
+            </div>
+          </div>
+
+          <div class="labelFull std">STD</div>
+          <div class="line">
+            <input class="input boxed" placeholder="11:10" data-slot="3" data-field="std">
+          </div>
+
+          <div class="labelFull ctot">CTOT</div>
+          <div class="line">
+            <input class="input boxed" placeholder="11:25" data-slot="3" data-field="ctot">
+          </div>
+
+          <div class="labelFull arr">STAND ARR</div>
+          <div class="line">
+            <input class="input boxed" placeholder="B12" data-slot="3" data-field="stand_arr">
+          </div>
+
+          <div class="labelFull arr">TERMINAL ARR</div>
+          <div class="line">
+            <input class="input boxed" placeholder="T1" data-slot="3" data-field="terminal_arr">
+          </div>
+
+          <div class="labelFull dep">STAND DEP</div>
+          <div class="line">
+            <input class="input boxed" placeholder="C03" data-slot="3" data-field="stand_dep">
+          </div>
+
+          <div class="labelFull dep" style="border-bottom:none;">TERMINAL DEP</div>
+          <div class="line" style="border-bottom:none;">
+            <input class="input boxed" placeholder="T2" data-slot="3" data-field="terminal_dep">
+          </div>
+        </section>
+
+        <!-- SLOT 4 -->
+        <section class="slot">
+          <div class="slotTop">
+            <span class="chip">SLOT 4</span>
+            <span class="hint">Arrivée → Départ</span>
+          </div>
+
+          <div class="row">
+            <div class="side">FROM</div>
+            <div class="cell">
+              <div class="miniLabel">Flight</div>
+              <div class="field">
+                <input class="input boxed" placeholder="FR1234" data-slot="4" data-field="from_flight_no">
+              </div>
+            </div>
+            <div class="cell">
+              <div class="miniLabel">IATA</div>
+              <div class="field">
+                <input class="input boxed" placeholder="OPO" data-slot="4" data-field="from_iata">
+              </div>
+            </div>
+          </div>
+
+          <div class="labelFull sta">STA</div>
+          <div class="line">
+            <input class="input boxed" placeholder="10:25" data-slot="4" data-field="sta">
+          </div>
+
+          <div class="labelFull neutral">REGISTRATION</div>
+          <div class="line">
+            <input class="input boxed" placeholder="EI-ABC" data-slot="4" data-field="registration">
+          </div>
+
+          <div class="labelFull neutral">A/C TYPE</div>
+          <div class="line">
+            <input class="input boxed" placeholder="B738" data-slot="4" data-field="ac_type">
+          </div>
+
+          <div class="row">
+            <div class="side">TO</div>
+            <div class="cell">
+              <div class="miniLabel">Flight</div>
+              <div class="field">
+                <input class="input boxed" placeholder="FR5678" data-slot="4" data-field="to_flight_no">
+              </div>
+            </div>
+            <div class="cell">
+              <div class="miniLabel">IATA</div>
+              <div class="field">
+                <input class="input boxed" placeholder="DUB" data-slot="4" data-field="to_iata">
+              </div>
+            </div>
+          </div>
+
+          <div class="labelFull std">STD</div>
+          <div class="line">
+            <input class="input boxed" placeholder="11:10" data-slot="4" data-field="std">
+          </div>
+
+          <div class="labelFull ctot">CTOT</div>
+          <div class="line">
+            <input class="input boxed" placeholder="11:25" data-slot="4" data-field="ctot">
+          </div>
+
+          <div class="labelFull arr">STAND ARR</div>
+          <div class="line">
+            <input class="input boxed" placeholder="B12" data-slot="4" data-field="stand_arr">
+          </div>
+
+          <div class="labelFull arr">TERMINAL ARR</div>
+          <div class="line">
+            <input class="input boxed" placeholder="T1" data-slot="4" data-field="terminal_arr">
+          </div>
+
+          <div class="labelFull dep">STAND DEP</div>
+          <div class="line">
+            <input class="input boxed" placeholder="C03" data-slot="4" data-field="stand_dep">
+          </div>
+
+          <div class="labelFull dep" style="border-bottom:none;">TERMINAL DEP</div>
+          <div class="line" style="border-bottom:none;">
+            <input class="input boxed" placeholder="T2" data-slot="4" data-field="terminal_dep">
+          </div>
+        </section>
+
       </div>
     </div>
 
   </div>
-
-<script>
-  const FIELDS = [
-    // FROM block
-    { key:'from_flight_no', label:'Flight No' },
-    { key:'from_iata',      label:'IATA' },
-
-    // STA / REG / A/C TYPE
-    { key:'sta',            label:'STA', rowType:'sta' },
-    { key:'registration',   label:'REGISTRATION', rowType:'neutral' },
-    { key:'ac_type',        label:'A/C TYPE', rowType:'neutral' },
-
-    // TO block
-    { key:'to_flight_no',   label:'Flight No', toBlock:true },
-    { key:'to_iata',        label:'IATA', toBlock:true },
-
-    // STD / CTOT / stands
-    { key:'std',            label:'STD', rowType:'std' },
-    { key:'ctot',           label:'CTOT', rowType:'ctot' },
-    { key:'stand_arr',      label:'STAND ARR', rowType:'standarr' },
-    { key:'terminal_arr',   label:'TERMINAL ARR', rowType:'standarr' },
-    { key:'stand_dep',      label:'STAND DEP', rowType:'standdep' },
-    { key:'terminal_dep',   label:'TERMINAL DEP', rowType:'standdep' },
-  ];
-
-  const grid = document.getElementById('grid');
-
-  function slotTemplate(i){
-    const slotId = `slot${i}`;
-    return `
-      <div class="slot" data-slot="${i}">
-        <!-- FROM -->
-        <div class="row">
-          <div class="labelSide">FROM</div>
-          <div class="cell">
-            <p class="help">Flight No</p>
-            <input data-slot="${i}" data-field="from_flight_no" placeholder="ex: FR1234">
-          </div>
-          <div class="cell">
-            <p class="help">IATA</p>
-            <input data-slot="${i}" data-field="from_iata" placeholder="ex: OPO">
-          </div>
-        </div>
-
-        <!-- STA -->
-        <div class="row bg-sta">
-          <div class="labelWide full">STA</div>
-          <div class="cell" style="grid-column:1 / span 3; border-right:none;">
-            <input data-slot="${i}" data-field="sta" placeholder="ex: 10:25">
-          </div>
-        </div>
-
-        <!-- REG -->
-        <div class="row bg-neutral">
-          <div class="labelWide full">REGISTRATION</div>
-          <div class="cell" style="grid-column:1 / span 3; border-right:none;">
-            <input data-slot="${i}" data-field="registration" placeholder="ex: EI-ABC">
-          </div>
-        </div>
-
-        <!-- AC TYPE -->
-        <div class="row bg-neutral">
-          <div class="labelWide full">A/C TYPE</div>
-          <div class="cell" style="grid-column:1 / span 3; border-right:none;">
-            <input data-slot="${i}" data-field="ac_type" placeholder="ex: B738">
-          </div>
-        </div>
-
-        <!-- TO -->
-        <div class="row">
-          <div class="labelSide">TO</div>
-          <div class="cell">
-            <p class="help">Flight No</p>
-            <input data-slot="${i}" data-field="to_flight_no" placeholder="ex: FR5678">
-          </div>
-          <div class="cell">
-            <p class="help">IATA</p>
-            <input data-slot="${i}" data-field="to_iata" placeholder="ex: DUB">
-          </div>
-        </div>
-
-        <!-- STD -->
-        <div class="row bg-std">
-          <div class="labelWide full">STD</div>
-          <div class="cell" style="grid-column:1 / span 3; border-right:none;">
-            <input data-slot="${i}" data-field="std" placeholder="ex: 11:10">
-          </div>
-        </div>
-
-        <!-- CTOT -->
-        <div class="row bg-ctot">
-          <div class="labelWide full">CTOT</div>
-          <div class="cell" style="grid-column:1 / span 3; border-right:none;">
-            <input data-slot="${i}" data-field="ctot" placeholder="ex: 11:25">
-          </div>
-        </div>
-
-        <!-- STAND ARR -->
-        <div class="row bg-standarr">
-          <div class="labelWide full">STAND ARR</div>
-          <div class="cell" style="grid-column:1 / span 3; border-right:none;">
-            <input data-slot="${i}" data-field="stand_arr" placeholder="ex: B12">
-          </div>
-        </div>
-
-        <!-- TERMINAL ARR -->
-        <div class="row bg-standarr">
-          <div class="labelWide full">TERMINAL ARR</div>
-          <div class="cell" style="grid-column:1 / span 3; border-right:none;">
-            <input data-slot="${i}" data-field="terminal_arr" placeholder="ex: T1">
-          </div>
-        </div>
-
-        <!-- STAND DEP -->
-        <div class="row bg-standdep">
-          <div class="labelWide full">STAND DEP</div>
-          <div class="cell" style="grid-column:1 / span 3; border-right:none;">
-            <input data-slot="${i}" data-field="stand_dep" placeholder="ex: C03">
-          </div>
-        </div>
-
-        <!-- TERMINAL DEP -->
-        <div class="row bg-standdep" style="border-bottom:none;">
-          <div class="labelWide full">TERMINAL DEP</div>
-          <div class="cell" style="grid-column:1 / span 3; border-right:none;">
-            <input data-slot="${i}" data-field="terminal_dep" placeholder="ex: T2">
-          </div>
-        </div>
-
-        <div class="slotFooter">
-          <div class="buttons are-small">
-            <button class="button is-dark is-light" type="button" data-mode="bingo" data-slot="${i}">BINGO ${i}</button>
-            <button class="button is-dark is-light" type="button" data-mode="lir_ryanair" data-slot="${i}">LIR RYANAIR ${i}</button>
-            <button class="button is-dark is-light" type="button" data-mode="lir_lauda" data-slot="${i}">LIR LAUDA ${i}</button>
-          </div>
-          <span class="tag is-light">Slot ${i}</span>
-        </div>
-      </div>
-    `;
-  }
-
-  // Render 4 slots
-  grid.innerHTML = [1,2,3,4].map(slotTemplate).join('');
-
-  // Toolbar actions
-  document.getElementById('print').onclick = () => window.print();
-
-  document.getElementById('clearAll').onclick = () => {
-    document.querySelectorAll('input[data-field]').forEach(i => i.value = '');
-  };
-
-  document.getElementById('demoFill').onclick = () => {
-    const demo = [
-      { from_flight_no:'FR1234', from_iata:'OPO', sta:'10:25', registration:'EI-ABC', ac_type:'B738', to_flight_no:'FR5678', to_iata:'DUB', std:'11:10', ctot:'11:25', stand_arr:'B12', terminal_arr:'T1', stand_dep:'C03', terminal_dep:'T2' },
-      { from_flight_no:'VY4321', from_iata:'BCN', sta:'12:05', registration:'EC-MAA', ac_type:'A320', to_flight_no:'VY9876', to_iata:'ORY', std:'12:55', ctot:'13:05', stand_arr:'A07', terminal_arr:'T2', stand_dep:'A09', terminal_dep:'T2' },
-      { from_flight_no:'TP1111', from_iata:'LIS', sta:'14:10', registration:'CS-TTA', ac_type:'A321', to_flight_no:'TP2222', to_iata:'FNC', std:'15:00', ctot:'15:10', stand_arr:'D21', terminal_arr:'T1', stand_dep:'D20', terminal_dep:'T1' },
-      { from_flight_no:'AF3333', from_iata:'CDG', sta:'16:40', registration:'F-GKXS', ac_type:'A220', to_flight_no:'AF4444', to_iata:'NCE', std:'17:25', ctot:'17:40', stand_arr:'E05', terminal_arr:'T1', stand_dep:'E06', terminal_dep:'T1' },
-    ];
-
-    demo.forEach((flight, idx) => {
-      const slot = idx + 1;
-      Object.entries(flight).forEach(([k,v]) => {
-        const input = document.querySelector(`input[data-slot="${slot}"][data-field="${k}"]`);
-        if (input) input.value = v;
-      });
-    });
-  };
-
-  // Bottom mode buttons (placeholder)
-  document.addEventListener('click', (e) => {
-    const btn = e.target.closest('button[data-mode]');
-    if (!btn) return;
-    const slot = btn.dataset.slot;
-    const mode = btn.dataset.mode;
-    alert(`Mode "${mode}" sur slot ${slot} (on branchera ça après)`);
-  });
-
-  // Global bottom buttons (placeholder)
-  document.addEventListener('click', (e) => {
-    const b = e.target.closest('button[data-action]');
-    if (!b) return;
-    alert(`Action "${b.dataset.action}" (on branchera ça après)`);
-  });
-</script>
 </body>
 </html>
