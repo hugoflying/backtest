@@ -1,100 +1,63 @@
-<script type="module">
-  import { PDFDocument, StandardFonts, rgb } from "https://cdn.skypack.dev/pdf-lib@1.17.1";
+<!doctype html>
+<html>
+  <head><meta charset="utf-8" /></head>
+  <body>
+    <input type="file" id="pdf" accept="application/pdf" />
+    <button id="gen">Générer</button>
 
-  const BASE = "https://pub-3195f8ee765845da8b31664781a24b78.r2.dev";
-  const TEMPLATE_URL = `${BASE}/templates/ryanair/lauda-lir.pdf`;
+    <script type="module">
+      import { PDFDocument } from "https://cdn.skypack.dev/pdf-lib";
 
-  // Mets false quand c'est bon
-  const DEBUG_BOXES = true;
+      const flight = {
+        station: "BOD",
+        arrFlightNumber: "W6 1234",
+        arrDate: "04/02/2026",
+        reg: "HA-LWK",
+        arrivalInspector: "Hugo",
+        depFlightNumber: "W6 5678",
+        depDate: "04/02/2026",
+        departureInspector: "Hugo",
+      };
 
-  // A4 paysage théorique (tes mesures viennent de ça)
-  const A4_W_MM = 297;
-  const A4_H_MM = 210;
-  const MM_TO_PT = 2.834645669;
+      async function fill(templateBytes, data) {
+        const pdfDoc = await PDFDocument.load(templateBytes);
+        const form = pdfDoc.getForm();
 
-  // TES MESURES (mm depuis le haut) + tailles des cases (mm)
-  const fieldsMm = {
-    flightNumber: { x: 65.65,  yFromTop: 152.76, w: 35.54, h: 8.29, fontSize: 14 },
-    registration: { x: 131.52, yFromTop: 152.76, w: 29.54, h: 8.29, fontSize: 14 },
-    date:         { x: 179.14, yFromTop: 152.76, w: 28.66, h: 8.29, fontSize: 14 },
-    from:         { x: 227.78, yFromTop: 152.76, w: 26.98, h: 8.29, fontSize: 14 },
-    to:           { x: 271.47, yFromTop: 152.76, w: 31.13, h: 8.29, fontSize: 14 }
-  };
+        form.getTextField("station").setText(data.station);
+        form.getTextField("Arival flihht number").setText(data.arrFlightNumber);
+        form.getTextField("date x").setText(data.arrDate);
+        form.getTextField("reg").setText(data.reg);
 
-  const getVal = (id) => document.getElementById(id)?.value ?? "";
+        form.getTextField("nam x").setText(data.arrivalInspector);
 
-  // Conversion mm(A4) -> points PDF réels (avec scale automatique)
-  function mmToPt(page, xMm, yFromTopMm) {
-    const { width, height } = page.getSize(); // points
+        form.getTextField("departure").setText(data.depFlightNumber);
+        form.getTextField("date x2").setText(data.depDate);
+        form.getTextField("nam x 1").setText(data.departureInspector);
 
-    // facteur d'échelle (corrige CropBox/rotation interne)
-    const scaleX = width  / (A4_W_MM * MM_TO_PT);
-    const scaleY = height / (A4_H_MM * MM_TO_PT);
+        // Pour imprimer sans soucis (texte “figé”)
+        form.flatten();
 
-    const x = xMm * MM_TO_PT * scaleX;
-    const y = height - (yFromTopMm * MM_TO_PT * scaleY);
-
-    return { x, y, scaleX, scaleY, width, height };
-  }
-
-  async function generate() {
-    const r = await fetch(TEMPLATE_URL);
-    if (!r.ok) throw new Error("Impossible de télécharger le template PDF");
-    const templateBytes = await r.arrayBuffer();
-
-    const pdfDoc = await PDFDocument.load(templateBytes);
-    const page = pdfDoc.getPages()[0];
-    const font = await pdfDoc.embedFont(StandardFonts.Helvetica);
-
-    const { width, height } = page.getSize();
-    console.log("PDF size (pt):", width, height);
-
-    // Écrit la taille en haut à gauche pour que tu me l'envoies
-    page.drawText(`W=${width.toFixed(2)} H=${height.toFixed(2)}`, {
-      x: 10, y: height - 20, size: 10, font, color: rgb(1,0,0)
-    });
-
-    // DEBUG : dessine les rectangles là où on pense que sont les champs
-    if (DEBUG_BOXES) {
-      for (const [k, f] of Object.entries(fieldsMm)) {
-        const { x, y, scaleX, scaleY } = mmToPt(page, f.x, f.yFromTop);
-        const w = f.w * MM_TO_PT * scaleX;
-        const h = f.h * MM_TO_PT * scaleY;
-
-        page.drawRectangle({
-          x,
-          y: y - h,           // rectangle sous la ligne de texte
-          width: w,
-          height: h,
-          borderWidth: 1,
-          borderColor: rgb(1,0,0),
-        });
-
-        page.drawText(k, { x, y: y + 2, size: 6, font, color: rgb(1,0,0) });
+        return await pdfDoc.save();
       }
-    }
 
-    // Écrit le texte (pour test)
-    const draw = (key, value) => {
-      const f = fieldsMm[key];
-      const { x, y } = mmToPt(page, f.x, f.yFromTop);
-      page.drawText(String(value ?? ""), { x: x + 2, y: y - 10, size: f.fontSize, font, color: rgb(0,0,0) });
-    };
+      function download(bytes, filename) {
+        const blob = new Blob([bytes], { type: "application/pdf" });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = filename;
+        a.click();
+        URL.revokeObjectURL(url);
+      }
 
-    draw("flightNumber", getVal("flightNumber") || "FR1234");
-    draw("registration", getVal("registration") || "EI-ABC");
-    draw("date",         getVal("date") || "04 FEB 2026");
-    draw("from",         getVal("from") || "OPO");
-    draw("to",           getVal("to") || "DUB");
+      document.getElementById("gen").onclick = async () => {
+        const file = document.getElementById("pdf").files?.[0];
+        if (!file) return alert("Choisis le PDF template.");
 
-    const out = await pdfDoc.save();
-    const blob = new Blob([out], { type: "application/pdf" });
-    const url = URL.createObjectURL(blob);
-    window.open(url, "_blank");
-  }
-
-  // bouton existant
-  document.getElementById("btnLirLauda")?.addEventListener("click", () => {
-    generate().catch(e => alert(e.message));
-  });
-</script>
+        const bytes = await file.arrayBuffer();
+        const out = await fill(bytes, flight);
+        download(out, "WAIF_filled.pdf");
+      };
+    </script>
+  </body>
+</html>
