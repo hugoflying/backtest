@@ -1,108 +1,91 @@
-<!doctype html>
-<html lang="fr">
-<head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Flight Docs</title>
-  <style>
-    body { font-family: system-ui, sans-serif; padding: 24px; max-width: 900px; margin: auto; }
-    .row { display: flex; gap: 12px; flex-wrap: wrap; }
-    button { padding: 10px 14px; cursor: pointer; }
-    input { padding: 10px; width: 160px; }
-    .card { border: 1px solid #ddd; border-radius: 12px; padding: 16px; margin-top: 16px; }
-    label { display:block; margin-top: 10px; font-weight: 600; }
-  </style>
-</head>
-
-<body>
-  <h1>Flight Docs</h1>
-
-  <div class="card">
-    <h2>LIR Lauda</h2>
-    <div class="row">
-      <div>
-        <label>Flight number</label>
-        <input id="flightNumber" value="FR1234">
-      </div>
-      <div>
-        <label>Registration</label>
-        <input id="registration" value="EI-ABC">
-      </div>
-      <div>
-        <label>Date</label>
-        <input id="date" value="04 FEB 2026">
-      </div>
-      <div>
-        <label>From</label>
-        <input id="from" value="OPO">
-      </div>
-      <div>
-        <label>To</label>
-        <input id="to" value="DUB">
-      </div>
-    </div>
-
-    <div style="margin-top:16px">
-      <button id="btnLirLauda">Générer + Ouvrir PDF</button>
-    </div>
-  </div>
-
 <script type="module">
   import { PDFDocument, StandardFonts, rgb } from "https://cdn.skypack.dev/pdf-lib@1.17.1";
 
   const BASE = "https://pub-3195f8ee765845da8b31664781a24b78.r2.dev";
   const TEMPLATE_URL = `${BASE}/templates/ryanair/lauda-lir.pdf`;
 
-  // 👉 Mets true pour afficher une image + cliquer pour récupérer les coords
-  const CALIBRATE = true;
+  // Mets false quand c'est bon
+  const DEBUG_BOXES = true;
 
-  // Valeurs à écrire
-  const flight = {
-    flightNumber: "FR1234",
-    registration: "EI-ABC",
-    date: "04 FEB 2026",
-    from: "OPO",
-    to: "DUB"
+  // A4 paysage théorique (tes mesures viennent de ça)
+  const A4_W_MM = 297;
+  const A4_H_MM = 210;
+  const MM_TO_PT = 2.834645669;
+
+  // TES MESURES (mm depuis le haut) + tailles des cases (mm)
+  const fieldsMm = {
+    flightNumber: { x: 65.65,  yFromTop: 152.76, w: 35.54, h: 8.29, fontSize: 14 },
+    registration: { x: 131.52, yFromTop: 152.76, w: 29.54, h: 8.29, fontSize: 14 },
+    date:         { x: 179.14, yFromTop: 152.76, w: 28.66, h: 8.29, fontSize: 14 },
+    from:         { x: 227.78, yFromTop: 152.76, w: 26.98, h: 8.29, fontSize: 14 },
+    to:           { x: 271.47, yFromTop: 152.76, w: 31.13, h: 8.29, fontSize: 14 }
   };
 
-  // Champs (on va les remplir après calibration)
-  const fieldsPT = {
-    flightNumber: { x: 0, y: 0, size: 14 },
-    registration: { x: 0, y: 0, size: 14 },
-    date:         { x: 0, y: 0, size: 14 },
-    from:         { x: 0, y: 0, size: 14 },
-    to:           { x: 0, y: 0, size: 14 }
-  };
+  const getVal = (id) => document.getElementById(id)?.value ?? "";
 
-  async function loadPdf() {
-    const r = await fetch(TEMPLATE_URL);
-    if (!r.ok) throw new Error("Téléchargement PDF impossible");
-    const bytes = await r.arrayBuffer();
-    return PDFDocument.load(bytes);
+  // Conversion mm(A4) -> points PDF réels (avec scale automatique)
+  function mmToPt(page, xMm, yFromTopMm) {
+    const { width, height } = page.getSize(); // points
+
+    // facteur d'échelle (corrige CropBox/rotation interne)
+    const scaleX = width  / (A4_W_MM * MM_TO_PT);
+    const scaleY = height / (A4_H_MM * MM_TO_PT);
+
+    const x = xMm * MM_TO_PT * scaleX;
+    const y = height - (yFromTopMm * MM_TO_PT * scaleY);
+
+    return { x, y, scaleX, scaleY, width, height };
   }
 
-  async function renderPdf() {
-    const pdfDoc = await loadPdf();
+  async function generate() {
+    const r = await fetch(TEMPLATE_URL);
+    if (!r.ok) throw new Error("Impossible de télécharger le template PDF");
+    const templateBytes = await r.arrayBuffer();
+
+    const pdfDoc = await PDFDocument.load(templateBytes);
     const page = pdfDoc.getPages()[0];
     const font = await pdfDoc.embedFont(StandardFonts.Helvetica);
 
-    // écrit (quand on aura les coords)
+    const { width, height } = page.getSize();
+    console.log("PDF size (pt):", width, height);
+
+    // Écrit la taille en haut à gauche pour que tu me l'envoies
+    page.drawText(`W=${width.toFixed(2)} H=${height.toFixed(2)}`, {
+      x: 10, y: height - 20, size: 10, font, color: rgb(1,0,0)
+    });
+
+    // DEBUG : dessine les rectangles là où on pense que sont les champs
+    if (DEBUG_BOXES) {
+      for (const [k, f] of Object.entries(fieldsMm)) {
+        const { x, y, scaleX, scaleY } = mmToPt(page, f.x, f.yFromTop);
+        const w = f.w * MM_TO_PT * scaleX;
+        const h = f.h * MM_TO_PT * scaleY;
+
+        page.drawRectangle({
+          x,
+          y: y - h,           // rectangle sous la ligne de texte
+          width: w,
+          height: h,
+          borderWidth: 1,
+          borderColor: rgb(1,0,0),
+        });
+
+        page.drawText(k, { x, y: y + 2, size: 6, font, color: rgb(1,0,0) });
+      }
+    }
+
+    // Écrit le texte (pour test)
     const draw = (key, value) => {
-      const f = fieldsPT[key];
-      page.drawText(String(value ?? ""), {
-        x: f.x,
-        y: f.y,
-        size: f.size,
-        font,
-        color: rgb(0,0,0),
-      });
+      const f = fieldsMm[key];
+      const { x, y } = mmToPt(page, f.x, f.yFromTop);
+      page.drawText(String(value ?? ""), { x: x + 2, y: y - 10, size: f.fontSize, font, color: rgb(0,0,0) });
     };
 
-    draw("flightNumber", flight.flightNumber);
-    draw("registration", flight.registration);
-    draw("date", flight.date);
-    draw("from", flight.from);
-    draw("to", flight.to);
+    draw("flightNumber", getVal("flightNumber") || "FR1234");
+    draw("registration", getVal("registration") || "EI-ABC");
+    draw("date",         getVal("date") || "04 FEB 2026");
+    draw("from",         getVal("from") || "OPO");
+    draw("to",           getVal("to") || "DUB");
 
     const out = await pdfDoc.save();
     const blob = new Blob([out], { type: "application/pdf" });
@@ -110,55 +93,8 @@
     window.open(url, "_blank");
   }
 
-  // --- MODE CALIBRATION ---
-  async function calibrate() {
-    const pdfDoc = await loadPdf();
-    const page = pdfDoc.getPages()[0];
-    const { width, height } = page.getSize();
-
-    // On génère un PDF avec une croix visible à un point connu
-    page.drawText(`W=${Math.round(width)} H=${Math.round(height)}`, {
-      x: 20, y: height - 30, size: 12,
-      font: await pdfDoc.embedFont(StandardFonts.Helvetica),
-      color: rgb(1,0,0)
-    });
-
-    const out = await pdfDoc.save();
-    const blob = new Blob([out], { type: "application/pdf" });
-    const url = URL.createObjectURL(blob);
-
-    // Affiche le PDF dans un iframe + overlay clic
-    document.body.innerHTML = `
-      <h2>Calibration (clique à l'endroit où tu veux écrire)</h2>
-      <p>Chaque clic te donne les coordonnées PDF (x,y) en bas de page.</p>
-      <div style="position:relative; width:100%; height:85vh; border:1px solid #ccc;">
-        <iframe id="pdf" src="${url}" style="width:100%; height:100%;"></iframe>
-      </div>
-      <pre id="out" style="padding:12px; background:#111; color:#0f0; overflow:auto;"></pre>
-    `;
-
-    // IMPORTANT : on ne peut pas capter les clics dans l’iframe PDF.
-    // Donc on te donne une autre méthode qui marche à 100% :
-    // on met un canevas de calibration avec positions relatives.
-    const pre = document.getElementById("out");
-    pre.textContent =
-`⚠️ Les PDF dans iframe ne renvoient pas les clics.
-Donc on fait calibration par "ratio".
-
-Taille PDF: width=${width.toFixed(2)} pt, height=${height.toFixed(2)} pt.
-
-Donne-moi :
-- la position X en % depuis la gauche
-- la position Y en % depuis le haut
-(je te donne une méthode juste après)`;
-  }
-
-  if (CALIBRATE) {
-    calibrate();
-  } else {
-    renderPdf();
-  }
+  // bouton existant
+  document.getElementById("btnLirLauda")?.addEventListener("click", () => {
+    generate().catch(e => alert(e.message));
+  });
 </script>
-
-</body>
-</html>
