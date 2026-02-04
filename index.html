@@ -1,55 +1,396 @@
 <!doctype html>
-<html>
+<html lang="fr">
 <head>
-  <meta charset="utf-8">
-  <title>Flight docs</title>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Flight Cards</title>
+
+  <!-- Bulma -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bulma@1.0.2/css/bulma.min.css">
+
+  <style>
+    :root{
+      --c-fromto:#111827;
+      --c-sta:#cfe0ff;
+      --c-std:#d9f3d6;
+      --c-ctot:#ffd0d0;
+      --c-standarr:#dbe7ff;
+      --c-standdep:#dbf4d6;
+      --c-cell:#f7f7f7;
+      --c-border:#d1d5db;
+    }
+
+    body{ background:#0b1220; }
+    .app{ max-width:1400px; margin:0 auto; padding:24px; }
+
+    .toolbar{
+      position: sticky; top: 0;
+      z-index: 5;
+      background: rgba(11,18,32,0.85);
+      backdrop-filter: blur(8px);
+      padding: 14px 0 18px 0;
+      border-bottom: 1px solid rgba(255,255,255,0.08);
+      margin-bottom: 18px;
+    }
+
+    .card-shell{
+      background: rgba(255,255,255,0.06);
+      border: 1px solid rgba(255,255,255,0.10);
+      border-radius: 16px;
+      padding: 18px;
+    }
+
+    .grid4{
+      display:grid;
+      grid-template-columns: repeat(4, minmax(240px, 1fr));
+      gap: 16px;
+    }
+
+    .slot{
+      background:#ffffff;
+      border: 1px solid var(--c-border);
+      border-radius: 14px;
+      overflow:hidden;
+      box-shadow: 0 10px 24px rgba(0,0,0,0.10);
+    }
+
+    .row{
+      display:grid;
+      grid-template-columns: 92px 1fr 1fr;
+      border-bottom: 1px solid var(--c-border);
+      min-height: 46px;
+    }
+
+    .labelSide{
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      font-weight: 700;
+      color:#fff;
+      background: var(--c-fromto);
+      letter-spacing: .04em;
+      text-transform: uppercase;
+      font-size: 12px;
+    }
+
+    .labelWide{
+      grid-column: 1 / span 2;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      font-weight: 700;
+      color:#0f172a;
+      border-right: 1px solid var(--c-border);
+      text-transform: uppercase;
+      font-size: 13px;
+    }
+
+    .labelWide.full{
+      grid-column: 1 / span 3;
+      border-right: none;
+    }
+
+    .cell{
+      background: var(--c-cell);
+      padding: 8px 10px;
+      display:flex;
+      align-items:center;
+      gap: 8px;
+      border-right: 1px solid var(--c-border);
+    }
+    .cell:last-child{ border-right:none; }
+
+    .cell .help{
+      margin:0;
+      font-size: 11px;
+      color:#6b7280;
+      white-space:nowrap;
+    }
+
+    .cell input{
+      width:100%;
+      border: none;
+      background: transparent;
+      outline: none;
+      font-weight: 700;
+      color:#111827;
+      font-size: 14px;
+    }
+
+    .bg-sta .labelWide{ background: var(--c-sta); }
+    .bg-std .labelWide{ background: var(--c-std); }
+    .bg-ctot .labelWide{ background: var(--c-ctot); }
+    .bg-standarr .labelWide{ background: var(--c-standarr); }
+    .bg-standdep .labelWide{ background: var(--c-standdep); }
+    .bg-neutral .labelWide{ background: #ffffff; }
+
+    .slotFooter{
+      display:flex;
+      gap: 8px;
+      padding: 10px;
+      background:#f3f4f6;
+      border-top: 1px solid var(--c-border);
+      justify-content: space-between;
+      flex-wrap: wrap;
+    }
+
+    .slotFooter .buttons{
+      margin:0;
+    }
+
+    .printArea{
+      background:#e5e7eb;
+      border-radius: 18px;
+      padding: 18px;
+    }
+
+    /* PRINT */
+    @media print{
+      body{ background:#fff !important; }
+      .toolbar{ display:none !important; }
+      .app{ padding:0 !important; }
+      .card-shell{ border:none !important; background:transparent !important; padding:0 !important; }
+      .printArea{ background:#fff !important; padding:0 !important; border-radius:0 !important; }
+      .slot{ box-shadow:none !important; }
+      @page { size: A4 landscape; margin: 8mm; }
+    }
+
+    @media (max-width: 1100px){
+      .grid4{ grid-template-columns: repeat(2, minmax(240px, 1fr)); }
+    }
+    @media (max-width: 650px){
+      .grid4{ grid-template-columns: 1fr; }
+    }
+  </style>
 </head>
+
 <body>
+  <div class="app">
 
-<button id="gen">Générer WAIF</button>
+    <!-- TOP TOOLBAR -->
+    <div class="toolbar">
+      <div class="level">
+        <div class="level-left">
+          <div>
+            <p class="has-text-white has-text-weight-semibold is-size-4">Flight Cards</p>
+            <p class="has-text-grey-light">4 slots — mêmes champs que ton Excel — prêt pour l’API</p>
+          </div>
+        </div>
 
-<script type="module">
-import { PDFDocument } from "https://cdn.skypack.dev/pdf-lib";
+        <div class="level-right">
+          <div class="buttons">
+            <button class="button is-light" id="demoFill">Remplir démo</button>
+            <button class="button is-warning" id="clearAll">Vider</button>
+            <button class="button is-primary" id="print">Imprimer</button>
+          </div>
+        </div>
+      </div>
+    </div>
 
-const flight = {
-  station: "BOD",
-  arrFlightNumber: "W6 1234",
-  arrDate: "04/02/2026",
-  reg: "HA-LWK",
-  arrivalInspector: "Hugo",
-  depFlightNumber: "W6 5678",
-  depDate: "04/02/2026",
-  departureInspector: "Hugo",
-};
+    <div class="card-shell">
+      <div class="printArea">
+        <div class="grid4" id="grid"></div>
 
-async function generateWAIF() {
+        <div class="mt-4">
+          <div class="buttons is-justify-content-center">
+            <button class="button is-link is-light" data-action="timing">TIMING 1-4</button>
+            <button class="button is-info is-light" data-action="autoc12">AUTOCONTROLE 1-2</button>
+            <button class="button is-info is-light" data-action="night12">NIGHT STOP 1-2</button>
+            <button class="button is-info is-light" data-action="first12">FIRST WAVE 1-2</button>
+            <button class="button is-info is-light" data-action="autoc34">AUTOCONTROLE 3-4</button>
+            <button class="button is-info is-light" data-action="night34">NIGHT STOP 3-4</button>
+          </div>
+          <p class="has-text-centered has-text-grey is-size-7 mt-2">
+            (Les boutons du bas pourront déclencher des “modes” plus tard — pour l’instant c’est visuel.)
+          </p>
+        </div>
+      </div>
+    </div>
 
-  const templateBytes = await fetch("./templates/WAIF_Jun2021_Rev1.1_ WALKAROUND INSPECTION FORM.pdf")
-      .then(res => res.arrayBuffer());
+  </div>
 
-  const pdfDoc = await PDFDocument.load(templateBytes);
-  const form = pdfDoc.getForm();
+<script>
+  const FIELDS = [
+    // FROM block
+    { key:'from_flight_no', label:'Flight No' },
+    { key:'from_iata',      label:'IATA' },
 
-  form.getTextField("station").setText(flight.station);
-  form.getTextField("Arival flihht number").setText(flight.arrFlightNumber);
-  form.getTextField("date x").setText(flight.arrDate);
-  form.getTextField("reg").setText(flight.reg);
-  form.getTextField("nam x").setText(flight.arrivalInspector);
-  form.getTextField("departure").setText(flight.depFlightNumber);
-  form.getTextField("date x2").setText(flight.depDate);
-  form.getTextField("nam x 1").setText(flight.departureInspector);
+    // STA / REG / A/C TYPE
+    { key:'sta',            label:'STA', rowType:'sta' },
+    { key:'registration',   label:'REGISTRATION', rowType:'neutral' },
+    { key:'ac_type',        label:'A/C TYPE', rowType:'neutral' },
 
-  form.flatten();
+    // TO block
+    { key:'to_flight_no',   label:'Flight No', toBlock:true },
+    { key:'to_iata',        label:'IATA', toBlock:true },
 
-  const pdfBytes = await pdfDoc.save();
+    // STD / CTOT / stands
+    { key:'std',            label:'STD', rowType:'std' },
+    { key:'ctot',           label:'CTOT', rowType:'ctot' },
+    { key:'stand_arr',      label:'STAND ARR', rowType:'standarr' },
+    { key:'terminal_arr',   label:'TERMINAL ARR', rowType:'standarr' },
+    { key:'stand_dep',      label:'STAND DEP', rowType:'standdep' },
+    { key:'terminal_dep',   label:'TERMINAL DEP', rowType:'standdep' },
+  ];
 
-  const blob = new Blob([pdfBytes], { type: "application/pdf" });
-  const url = URL.createObjectURL(blob);
-  window.open(url);
-}
+  const grid = document.getElementById('grid');
 
-document.getElementById("gen").onclick = generateWAIF;
+  function slotTemplate(i){
+    const slotId = `slot${i}`;
+    return `
+      <div class="slot" data-slot="${i}">
+        <!-- FROM -->
+        <div class="row">
+          <div class="labelSide">FROM</div>
+          <div class="cell">
+            <p class="help">Flight No</p>
+            <input data-slot="${i}" data-field="from_flight_no" placeholder="ex: FR1234">
+          </div>
+          <div class="cell">
+            <p class="help">IATA</p>
+            <input data-slot="${i}" data-field="from_iata" placeholder="ex: OPO">
+          </div>
+        </div>
+
+        <!-- STA -->
+        <div class="row bg-sta">
+          <div class="labelWide full">STA</div>
+          <div class="cell" style="grid-column:1 / span 3; border-right:none;">
+            <input data-slot="${i}" data-field="sta" placeholder="ex: 10:25">
+          </div>
+        </div>
+
+        <!-- REG -->
+        <div class="row bg-neutral">
+          <div class="labelWide full">REGISTRATION</div>
+          <div class="cell" style="grid-column:1 / span 3; border-right:none;">
+            <input data-slot="${i}" data-field="registration" placeholder="ex: EI-ABC">
+          </div>
+        </div>
+
+        <!-- AC TYPE -->
+        <div class="row bg-neutral">
+          <div class="labelWide full">A/C TYPE</div>
+          <div class="cell" style="grid-column:1 / span 3; border-right:none;">
+            <input data-slot="${i}" data-field="ac_type" placeholder="ex: B738">
+          </div>
+        </div>
+
+        <!-- TO -->
+        <div class="row">
+          <div class="labelSide">TO</div>
+          <div class="cell">
+            <p class="help">Flight No</p>
+            <input data-slot="${i}" data-field="to_flight_no" placeholder="ex: FR5678">
+          </div>
+          <div class="cell">
+            <p class="help">IATA</p>
+            <input data-slot="${i}" data-field="to_iata" placeholder="ex: DUB">
+          </div>
+        </div>
+
+        <!-- STD -->
+        <div class="row bg-std">
+          <div class="labelWide full">STD</div>
+          <div class="cell" style="grid-column:1 / span 3; border-right:none;">
+            <input data-slot="${i}" data-field="std" placeholder="ex: 11:10">
+          </div>
+        </div>
+
+        <!-- CTOT -->
+        <div class="row bg-ctot">
+          <div class="labelWide full">CTOT</div>
+          <div class="cell" style="grid-column:1 / span 3; border-right:none;">
+            <input data-slot="${i}" data-field="ctot" placeholder="ex: 11:25">
+          </div>
+        </div>
+
+        <!-- STAND ARR -->
+        <div class="row bg-standarr">
+          <div class="labelWide full">STAND ARR</div>
+          <div class="cell" style="grid-column:1 / span 3; border-right:none;">
+            <input data-slot="${i}" data-field="stand_arr" placeholder="ex: B12">
+          </div>
+        </div>
+
+        <!-- TERMINAL ARR -->
+        <div class="row bg-standarr">
+          <div class="labelWide full">TERMINAL ARR</div>
+          <div class="cell" style="grid-column:1 / span 3; border-right:none;">
+            <input data-slot="${i}" data-field="terminal_arr" placeholder="ex: T1">
+          </div>
+        </div>
+
+        <!-- STAND DEP -->
+        <div class="row bg-standdep">
+          <div class="labelWide full">STAND DEP</div>
+          <div class="cell" style="grid-column:1 / span 3; border-right:none;">
+            <input data-slot="${i}" data-field="stand_dep" placeholder="ex: C03">
+          </div>
+        </div>
+
+        <!-- TERMINAL DEP -->
+        <div class="row bg-standdep" style="border-bottom:none;">
+          <div class="labelWide full">TERMINAL DEP</div>
+          <div class="cell" style="grid-column:1 / span 3; border-right:none;">
+            <input data-slot="${i}" data-field="terminal_dep" placeholder="ex: T2">
+          </div>
+        </div>
+
+        <div class="slotFooter">
+          <div class="buttons are-small">
+            <button class="button is-dark is-light" type="button" data-mode="bingo" data-slot="${i}">BINGO ${i}</button>
+            <button class="button is-dark is-light" type="button" data-mode="lir_ryanair" data-slot="${i}">LIR RYANAIR ${i}</button>
+            <button class="button is-dark is-light" type="button" data-mode="lir_lauda" data-slot="${i}">LIR LAUDA ${i}</button>
+          </div>
+          <span class="tag is-light">Slot ${i}</span>
+        </div>
+      </div>
+    `;
+  }
+
+  // Render 4 slots
+  grid.innerHTML = [1,2,3,4].map(slotTemplate).join('');
+
+  // Toolbar actions
+  document.getElementById('print').onclick = () => window.print();
+
+  document.getElementById('clearAll').onclick = () => {
+    document.querySelectorAll('input[data-field]').forEach(i => i.value = '');
+  };
+
+  document.getElementById('demoFill').onclick = () => {
+    const demo = [
+      { from_flight_no:'FR1234', from_iata:'OPO', sta:'10:25', registration:'EI-ABC', ac_type:'B738', to_flight_no:'FR5678', to_iata:'DUB', std:'11:10', ctot:'11:25', stand_arr:'B12', terminal_arr:'T1', stand_dep:'C03', terminal_dep:'T2' },
+      { from_flight_no:'VY4321', from_iata:'BCN', sta:'12:05', registration:'EC-MAA', ac_type:'A320', to_flight_no:'VY9876', to_iata:'ORY', std:'12:55', ctot:'13:05', stand_arr:'A07', terminal_arr:'T2', stand_dep:'A09', terminal_dep:'T2' },
+      { from_flight_no:'TP1111', from_iata:'LIS', sta:'14:10', registration:'CS-TTA', ac_type:'A321', to_flight_no:'TP2222', to_iata:'FNC', std:'15:00', ctot:'15:10', stand_arr:'D21', terminal_arr:'T1', stand_dep:'D20', terminal_dep:'T1' },
+      { from_flight_no:'AF3333', from_iata:'CDG', sta:'16:40', registration:'F-GKXS', ac_type:'A220', to_flight_no:'AF4444', to_iata:'NCE', std:'17:25', ctot:'17:40', stand_arr:'E05', terminal_arr:'T1', stand_dep:'E06', terminal_dep:'T1' },
+    ];
+
+    demo.forEach((flight, idx) => {
+      const slot = idx + 1;
+      Object.entries(flight).forEach(([k,v]) => {
+        const input = document.querySelector(`input[data-slot="${slot}"][data-field="${k}"]`);
+        if (input) input.value = v;
+      });
+    });
+  };
+
+  // Bottom mode buttons (placeholder)
+  document.addEventListener('click', (e) => {
+    const btn = e.target.closest('button[data-mode]');
+    if (!btn) return;
+    const slot = btn.dataset.slot;
+    const mode = btn.dataset.mode;
+    alert(`Mode "${mode}" sur slot ${slot} (on branchera ça après)`);
+  });
+
+  // Global bottom buttons (placeholder)
+  document.addEventListener('click', (e) => {
+    const b = e.target.closest('button[data-action]');
+    if (!b) return;
+    alert(`Action "${b.dataset.action}" (on branchera ça après)`);
+  });
 </script>
-
 </body>
 </html>
