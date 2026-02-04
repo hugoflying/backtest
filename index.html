@@ -47,63 +47,118 @@
     </div>
   </div>
 
-  <script type="module">
-    import { PDFDocument, StandardFonts } from "https://cdn.skypack.dev/pdf-lib@1.17.1";
+<script type="module">
+  import { PDFDocument, StandardFonts, rgb } from "https://cdn.skypack.dev/pdf-lib@1.17.1";
 
-    // URL publique R2 (ton bucket)
-    const BASE = "https://pub-3195f8ee765845da8b31664781a24b78.r2.dev";
-    const TEMPLATE_URL = `${BASE}/templates/ryanair/lauda-lir.pdf`;
+  const BASE = "https://pub-3195f8ee765845da8b31664781a24b78.r2.dev";
+  const TEMPLATE_URL = `${BASE}/templates/ryanair/lauda-lir.pdf`;
 
-    // Coordonnées (en mm depuis le haut) que tu as mesurées
-    const pageHeightMm = 210; // A4 paysage: hauteur = 210mm
-    const MM_TO_PT = 2.834645669;
-    const mmToPtX = (mm) => mm * MM_TO_PT;
-    const mmTopToPtY = (yFromTopMm) => (pageHeightMm - yFromTopMm) * MM_TO_PT;
+  // 👉 Mets true pour afficher une image + cliquer pour récupérer les coords
+  const CALIBRATE = true;
 
-    const fieldsMm = {
-      flightNumber: { x: 65.65,  yFromTop: 152.76, fontSize: 14 },
-      registration: { x: 131.52, yFromTop: 152.76, fontSize: 14 },
-      date:         { x: 179.14, yFromTop: 152.76, fontSize: 14 },
-      from:         { x: 227.78, yFromTop: 152.76, fontSize: 14 },
-      to:           { x: 271.47, yFromTop: 152.76, fontSize: 14 }
+  // Valeurs à écrire
+  const flight = {
+    flightNumber: "FR1234",
+    registration: "EI-ABC",
+    date: "04 FEB 2026",
+    from: "OPO",
+    to: "DUB"
+  };
+
+  // Champs (on va les remplir après calibration)
+  const fieldsPT = {
+    flightNumber: { x: 0, y: 0, size: 14 },
+    registration: { x: 0, y: 0, size: 14 },
+    date:         { x: 0, y: 0, size: 14 },
+    from:         { x: 0, y: 0, size: 14 },
+    to:           { x: 0, y: 0, size: 14 }
+  };
+
+  async function loadPdf() {
+    const r = await fetch(TEMPLATE_URL);
+    if (!r.ok) throw new Error("Téléchargement PDF impossible");
+    const bytes = await r.arrayBuffer();
+    return PDFDocument.load(bytes);
+  }
+
+  async function renderPdf() {
+    const pdfDoc = await loadPdf();
+    const page = pdfDoc.getPages()[0];
+    const font = await pdfDoc.embedFont(StandardFonts.Helvetica);
+
+    // écrit (quand on aura les coords)
+    const draw = (key, value) => {
+      const f = fieldsPT[key];
+      page.drawText(String(value ?? ""), {
+        x: f.x,
+        y: f.y,
+        size: f.size,
+        font,
+        color: rgb(0,0,0),
+      });
     };
 
-    const getVal = (id) => document.getElementById(id).value ?? "";
+    draw("flightNumber", flight.flightNumber);
+    draw("registration", flight.registration);
+    draw("date", flight.date);
+    draw("from", flight.from);
+    draw("to", flight.to);
 
-    async function generateLirLauda() {
-      const r = await fetch(TEMPLATE_URL);
-      if (!r.ok) throw new Error("Impossible de télécharger le template PDF");
-      const templateBytes = await r.arrayBuffer();
+    const out = await pdfDoc.save();
+    const blob = new Blob([out], { type: "application/pdf" });
+    const url = URL.createObjectURL(blob);
+    window.open(url, "_blank");
+  }
 
-      const pdfDoc = await PDFDocument.load(templateBytes);
-      const page = pdfDoc.getPage(0);
-      const font = await pdfDoc.embedFont(StandardFonts.Helvetica);
+  // --- MODE CALIBRATION ---
+  async function calibrate() {
+    const pdfDoc = await loadPdf();
+    const page = pdfDoc.getPages()[0];
+    const { width, height } = page.getSize();
 
-      const draw = (key, value) => {
-        const f = fieldsMm[key];
-        page.drawText(String(value ?? ""), {
-          x: mmToPtX(f.x),
-          y: mmTopToPtY(f.yFromTop),
-          size: f.fontSize,
-          font
-        });
-      };
-
-      draw("flightNumber", getVal("flightNumber"));
-      draw("registration", getVal("registration"));
-      draw("date", getVal("date"));
-      draw("from", getVal("from"));
-      draw("to", getVal("to"));
-
-      const out = await pdfDoc.save();
-      const blob = new Blob([out], { type: "application/pdf" });
-      const url = URL.createObjectURL(blob);
-      window.open(url, "_blank");
-    }
-
-    document.getElementById("btnLirLauda").addEventListener("click", () => {
-      generateLirLauda().catch(err => alert(err.message));
+    // On génère un PDF avec une croix visible à un point connu
+    page.drawText(`W=${Math.round(width)} H=${Math.round(height)}`, {
+      x: 20, y: height - 30, size: 12,
+      font: await pdfDoc.embedFont(StandardFonts.Helvetica),
+      color: rgb(1,0,0)
     });
-  </script>
+
+    const out = await pdfDoc.save();
+    const blob = new Blob([out], { type: "application/pdf" });
+    const url = URL.createObjectURL(blob);
+
+    // Affiche le PDF dans un iframe + overlay clic
+    document.body.innerHTML = `
+      <h2>Calibration (clique à l'endroit où tu veux écrire)</h2>
+      <p>Chaque clic te donne les coordonnées PDF (x,y) en bas de page.</p>
+      <div style="position:relative; width:100%; height:85vh; border:1px solid #ccc;">
+        <iframe id="pdf" src="${url}" style="width:100%; height:100%;"></iframe>
+      </div>
+      <pre id="out" style="padding:12px; background:#111; color:#0f0; overflow:auto;"></pre>
+    `;
+
+    // IMPORTANT : on ne peut pas capter les clics dans l’iframe PDF.
+    // Donc on te donne une autre méthode qui marche à 100% :
+    // on met un canevas de calibration avec positions relatives.
+    const pre = document.getElementById("out");
+    pre.textContent =
+`⚠️ Les PDF dans iframe ne renvoient pas les clics.
+Donc on fait calibration par "ratio".
+
+Taille PDF: width=${width.toFixed(2)} pt, height=${height.toFixed(2)} pt.
+
+Donne-moi :
+- la position X en % depuis la gauche
+- la position Y en % depuis le haut
+(je te donne une méthode juste après)`;
+  }
+
+  if (CALIBRATE) {
+    calibrate();
+  } else {
+    renderPdf();
+  }
+</script>
+
 </body>
 </html>
