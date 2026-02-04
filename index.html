@@ -1,63 +1,55 @@
 <!doctype html>
 <html>
-  <head><meta charset="utf-8" /></head>
-  <body>
-    <input type="file" id="pdf" accept="application/pdf" />
-    <button id="gen">Générer</button>
+<head>
+  <meta charset="utf-8">
+  <title>Flight docs</title>
+</head>
+<body>
 
-    <script type="module">
-      import { PDFDocument } from "https://cdn.skypack.dev/pdf-lib";
+<button id="gen">Générer WAIF</button>
 
-      const flight = {
-        station: "BOD",
-        arrFlightNumber: "W6 1234",
-        arrDate: "04/02/2026",
-        reg: "HA-LWK",
-        arrivalInspector: "Hugo",
-        depFlightNumber: "W6 5678",
-        depDate: "04/02/2026",
-        departureInspector: "Hugo",
-      };
+<script type="module">
+import { PDFDocument } from "https://cdn.skypack.dev/pdf-lib";
 
-      async function fill(templateBytes, data) {
-        const pdfDoc = await PDFDocument.load(templateBytes);
-        const form = pdfDoc.getForm();
+const flight = {
+  station: "BOD",
+  arrFlightNumber: "W6 1234",
+  arrDate: "04/02/2026",
+  reg: "HA-LWK",
+  arrivalInspector: "Hugo",
+  depFlightNumber: "W6 5678",
+  depDate: "04/02/2026",
+  departureInspector: "Hugo",
+};
 
-        form.getTextField("station").setText(data.station);
-        form.getTextField("Arival flihht number").setText(data.arrFlightNumber);
-        form.getTextField("date x").setText(data.arrDate);
-        form.getTextField("reg").setText(data.reg);
+async function generateWAIF() {
 
-        form.getTextField("nam x").setText(data.arrivalInspector);
+  const templateBytes = await fetch("./templates/WAIF_Jun2021_Rev1.1_ WALKAROUND INSPECTION FORM.pdf")
+      .then(res => res.arrayBuffer());
 
-        form.getTextField("departure").setText(data.depFlightNumber);
-        form.getTextField("date x2").setText(data.depDate);
-        form.getTextField("nam x 1").setText(data.departureInspector);
+  const pdfDoc = await PDFDocument.load(templateBytes);
+  const form = pdfDoc.getForm();
 
-        // Pour imprimer sans soucis (texte “figé”)
-        form.flatten();
+  form.getTextField("station").setText(flight.station);
+  form.getTextField("Arival flihht number").setText(flight.arrFlightNumber);
+  form.getTextField("date x").setText(flight.arrDate);
+  form.getTextField("reg").setText(flight.reg);
+  form.getTextField("nam x").setText(flight.arrivalInspector);
+  form.getTextField("departure").setText(flight.depFlightNumber);
+  form.getTextField("date x2").setText(flight.depDate);
+  form.getTextField("nam x 1").setText(flight.departureInspector);
 
-        return await pdfDoc.save();
-      }
+  form.flatten();
 
-      function download(bytes, filename) {
-        const blob = new Blob([bytes], { type: "application/pdf" });
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement("a");
-        a.href = url;
-        a.download = filename;
-        a.click();
-        URL.revokeObjectURL(url);
-      }
+  const pdfBytes = await pdfDoc.save();
 
-      document.getElementById("gen").onclick = async () => {
-        const file = document.getElementById("pdf").files?.[0];
-        if (!file) return alert("Choisis le PDF template.");
+  const blob = new Blob([pdfBytes], { type: "application/pdf" });
+  const url = URL.createObjectURL(blob);
+  window.open(url);
+}
 
-        const bytes = await file.arrayBuffer();
-        const out = await fill(bytes, flight);
-        download(out, "WAIF_filled.pdf");
-      };
-    </script>
-  </body>
+document.getElementById("gen").onclick = generateWAIF;
+</script>
+
+</body>
 </html>
