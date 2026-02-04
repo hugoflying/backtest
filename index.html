@@ -3,14 +3,13 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Flight Slot</title>
+  <title>Flight Slots</title>
 
   <!-- Bulma -->
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bulma@1.0.2/css/bulma.min.css">
 
   <style>
     :root{
-      /* dark app */
       --bg0:#05060A;
       --bg1:#0A1020;
       --panel:rgba(255,255,255,.06);
@@ -18,80 +17,60 @@
       --text:#EAF0FF;
       --muted:#A9B3C7;
 
-      /* slot */
       --paper:#ffffff;
       --paperStroke:#E6EAF2;
-      --shadow: 0 22px 55px rgba(0,0,0,.40);
-      --radius:18px;
+      --shadow: 0 14px 28px rgba(0,0,0,.35);
+      --r:14px;
 
-      /* accents (nouvelle palette) */
-      --accent:#7C3AED;      /* violet */
-      --accent2:#06B6D4;     /* cyan */
-      --accent3:#22C55E;     /* green */
-      --danger:#F97316;      /* orange */
+      /* palette */
+      --accent:#7C3AED;   /* violet */
+      --cyan:#06B6D4;
+      --green:#22C55E;
       --ink:#0B1220;
 
-      /* field */
       --fieldBg:#FBFCFF;
       --fieldStroke:#D9E0EE;
-      --fieldFocus: rgba(124,58,237,.22);
+      --fieldFocus: rgba(124,58,237,.18);
     }
 
     html,body{ height:100%; }
     body{
       background:
-        radial-gradient(900px 520px at 15% 10%, rgba(124,58,237,.22), transparent 60%),
-        radial-gradient(900px 520px at 85% 25%, rgba(6,182,212,.18), transparent 60%),
-        radial-gradient(900px 520px at 50% 100%, rgba(34,197,94,.10), transparent 60%),
+        radial-gradient(900px 520px at 15% 10%, rgba(124,58,237,.18), transparent 60%),
+        radial-gradient(900px 520px at 85% 25%, rgba(6,182,212,.14), transparent 60%),
         linear-gradient(180deg, var(--bg0), var(--bg1));
       color: var(--text);
     }
 
     .wrap{
-      max-width: 980px;
+      max-width: 1180px;      /* moins large */
       margin: 0 auto;
-      padding: 36px 18px 60px;
+      padding: 18px 14px 28px;
     }
 
-    .top{
-      display:flex;
-      justify-content:space-between;
-      align-items:flex-end;
-      gap: 18px;
-      margin-bottom: 18px;
+    /* 6 par écran (sur un écran standard) : 3 colonnes x 2 lignes */
+    .grid{
+      display:grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 12px;
+    }
+    @media (max-width: 1050px){
+      .grid{ grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    }
+    @media (max-width: 680px){
+      .grid{ grid-template-columns: 1fr; }
     }
 
-    .title{
-      font-size: 28px;
-      font-weight: 900;
-      letter-spacing: .2px;
-      line-height: 1.1;
-    }
-    .subtitle{
-      margin-top: 8px;
-      color: var(--muted);
-      font-size: 14px;
-    }
-
-    .surface{
-      background: linear-gradient(180deg, var(--panel), rgba(255,255,255,.03));
-      border: 1px solid var(--stroke);
-      border-radius: 20px;
-      padding: 18px;
-      box-shadow: 0 18px 60px rgba(0,0,0,.35);
-    }
-
-    /* SLOT CARD */
     .slot{
       background: var(--paper);
       border: 1px solid var(--paperStroke);
-      border-radius: var(--radius);
-      overflow: hidden;
+      border-radius: var(--r);
+      overflow:hidden;
       box-shadow: var(--shadow);
     }
 
-    .slotHead{
-      padding: 16px 18px;
+    .head{
+      padding: 10px 12px;
       background:
         linear-gradient(90deg, rgba(124,58,237,.10), rgba(6,182,212,.10)),
         #fff;
@@ -99,57 +78,55 @@
       display:flex;
       align-items:center;
       justify-content:space-between;
-      gap: 12px;
+      gap: 8px;
     }
 
     .badge{
-      display:inline-flex;
+      display:flex;
       align-items:center;
-      gap: 10px;
+      gap: 8px;
       font-weight: 900;
-      letter-spacing: .06em;
+      letter-spacing: .08em;
       text-transform: uppercase;
       color: var(--ink);
-      font-size: 12px;
+      font-size: 11px;
     }
     .dot{
-      width: 10px; height:10px; border-radius:999px;
-      background: linear-gradient(180deg, var(--accent), var(--accent2));
-      box-shadow: 0 0 0 6px rgba(124,58,237,.10);
+      width: 8px; height:8px; border-radius:999px;
+      background: linear-gradient(180deg, var(--accent), var(--cyan));
+      box-shadow: 0 0 0 5px rgba(124,58,237,.10);
     }
-
-    .headHint{
+    .miniHint{
       color: rgba(11,18,32,.55);
-      font-weight: 700;
-      font-size: 12px;
+      font-weight: 800;
+      font-size: 11px;
+      white-space: nowrap;
     }
 
-    /* layout rows */
-    .block{
-      padding: 16px 18px;
+    .section{
+      padding: 10px 12px;
       border-bottom: 1px solid var(--paperStroke);
     }
-    .block:last-child{ border-bottom:none; }
+    .section:last-child{ border-bottom:none; }
 
-    .blockTitle{
+    .secTitle{
       display:flex;
       align-items:center;
       justify-content:space-between;
-      margin-bottom: 10px;
+      margin-bottom: 8px;
     }
-    .blockTitle h3{
-      margin:0;
-      font-size: 12px;
+    .secTitle span{
+      font-size: 10px;
       font-weight: 1000;
-      letter-spacing: .10em;
+      letter-spacing: .12em;
       text-transform: uppercase;
-      color: rgba(11,18,32,.70);
+      color: rgba(11,18,32,.62);
     }
 
     .pill{
-      font-size: 11px;
-      font-weight: 900;
-      padding: 6px 10px;
+      font-size: 10px;
+      font-weight: 1000;
+      padding: 5px 8px;
       border-radius: 999px;
       color: var(--ink);
       border: 1px solid rgba(11,18,32,.10);
@@ -157,96 +134,66 @@
     }
     .pill.sta{ background: rgba(6,182,212,.14); border-color: rgba(6,182,212,.25); }
     .pill.std{ background: rgba(34,197,94,.14); border-color: rgba(34,197,94,.25); }
-    .pill.ctot{ background: rgba(249,115,22,.16); border-color: rgba(249,115,22,.28); }
 
-    /* fields */
-    .fieldGrid2{
+    .g2{
       display:grid;
-      grid-template-columns: 1fr 140px;
-      gap: 12px;
+      grid-template-columns: 1fr 86px;
+      gap: 10px;
     }
-    @media (max-width: 520px){
-      .fieldGrid2{ grid-template-columns: 1fr; }
-    }
-
-    .fieldGrid3{
+    .g3{
       display:grid;
       grid-template-columns: 1fr 1fr 1fr;
-      gap: 12px;
-    }
-    @media (max-width: 720px){
-      .fieldGrid3{ grid-template-columns: 1fr; }
+      gap: 10px;
     }
 
     .control label{
       display:block;
-      font-size: 11px;
-      font-weight: 900;
-      letter-spacing: .06em;
+      font-size: 10px;
+      font-weight: 1000;
+      letter-spacing: .10em;
       text-transform: uppercase;
-      color: rgba(11,18,32,.55);
-      margin-bottom: 6px;
+      color: rgba(11,18,32,.48);
+      margin-bottom: 5px;
     }
 
     .input.box{
       background: var(--fieldBg);
       border: 1px solid var(--fieldStroke);
-      border-radius: 12px;
-      height: 42px;
-      padding: 10px 12px;
+      border-radius: 10px;
+      height: 34px;           /* plus compact */
+      padding: 7px 9px;
       font-weight: 900;
       color: var(--ink);
+      font-size: 12px;
       box-shadow: 0 1px 0 rgba(11,18,32,.06);
     }
-    .input.box::placeholder{
-      color: rgba(11,18,32,.30);
-      font-weight: 800;
-    }
+    .input.box::placeholder{ color: rgba(11,18,32,.28); font-weight: 800; }
     .input.box:focus{
       border-color: rgba(124,58,237,.55);
-      box-shadow: 0 0 0 5px var(--fieldFocus);
+      box-shadow: 0 0 0 4px var(--fieldFocus);
     }
 
-    /* print */
-    @media print{
-      body{ background:#fff !important; }
-      .wrap{ padding:0 !important; }
-      .top, .surface{ display:none !important; }
-      .slot{ box-shadow:none !important; }
-      @page { size: A4 portrait; margin: 10mm; }
+    @media (max-width: 1050px){
+      .g3{ grid-template-columns: 1fr; }
+      .g2{ grid-template-columns: 1fr 1fr; }
     }
   </style>
 </head>
 
 <body>
   <div class="wrap">
+    <div class="grid">
 
-    <div class="top">
-      <div>
-        <div class="title">Flight Slot</div>
-        <div class="subtitle">1 slot — design moderne — champs identiques à ton Excel</div>
-      </div>
-      <div class="has-text-grey-light is-size-7">UI only</div>
-    </div>
-
-    <div class="surface">
+      <!-- SLOT (duplique ce bloc 6 fois si tu veux) -->
       <section class="slot">
-
-        <div class="slotHead">
-          <div class="badge">
-            <span class="dot"></span>
-            SLOT 1
-          </div>
-          <div class="headHint">Arrivée → Départ</div>
+        <div class="head">
+          <div class="badge"><span class="dot"></span> SLOT 1</div>
+          <div class="miniHint">Arrivée → Départ</div>
         </div>
 
-        <!-- FROM -->
-        <div class="block">
-          <div class="blockTitle">
-            <h3>From</h3>
-          </div>
-
-          <div class="fieldGrid2">
+        <div class="section">
+          <div class="secTitle"><span>From</span></div>
+          <div class="g2">
             <div class="control">
               <label>Flight No</label>
               <input class="input box" placeholder="FR1234" data-field="from_flight_no">
@@ -258,14 +205,9 @@
           </div>
         </div>
 
-        <!-- STA / REG / A/C -->
-        <div class="block">
-          <div class="blockTitle">
-            <h3>Arrival</h3>
-            <span class="pill sta">STA</span>
-          </div>
-
-          <div class="fieldGrid3">
+        <div class="section">
+          <div class="secTitle"><span>Arrival</span><span class="pill sta">STA</span></div>
+          <div class="g3">
             <div class="control">
               <label>STA</label>
               <input class="input box" placeholder="10:25" data-field="sta">
@@ -281,13 +223,9 @@
           </div>
         </div>
 
-        <!-- TO -->
-        <div class="block">
-          <div class="blockTitle">
-            <h3>To</h3>
-          </div>
-
-          <div class="fieldGrid2">
+        <div class="section">
+          <div class="secTitle"><span>To</span></div>
+          <div class="g2">
             <div class="control">
               <label>Flight No</label>
               <input class="input box" placeholder="FR5678" data-field="to_flight_no">
@@ -299,33 +237,24 @@
           </div>
         </div>
 
-        <!-- STD / CTOT + stands -->
-        <div class="block">
-          <div class="blockTitle">
-            <h3>Departure</h3>
-            <span class="pill std">STD</span>
-          </div>
-
-          <div class="fieldGrid3">
+        <div class="section">
+          <div class="secTitle"><span>Departure</span><span class="pill std">STD</span></div>
+          <div class="g3">
             <div class="control">
               <label>STD</label>
               <input class="input box" placeholder="11:10" data-field="std">
             </div>
             <div class="control">
-              <label>CTOT</label>
-              <input class="input box" placeholder="11:25" data-field="ctot">
-            </div>
-            <div class="control">
               <label>Stand ARR</label>
               <input class="input box" placeholder="B12" data-field="stand_arr">
             </div>
-          </div>
-
-          <div class="fieldGrid3" style="margin-top:12px;">
             <div class="control">
               <label>Terminal ARR</label>
               <input class="input box" placeholder="T1" data-field="terminal_arr">
             </div>
+          </div>
+
+          <div class="g2" style="margin-top:10px;">
             <div class="control">
               <label>Stand DEP</label>
               <input class="input box" placeholder="C03" data-field="stand_dep">
@@ -335,16 +264,21 @@
               <input class="input box" placeholder="T2" data-field="terminal_dep">
             </div>
           </div>
-
-          <div class="blockTitle" style="margin-top:12px;">
-            <span class="pill ctot">CTOT</span>
-            <span class="headHint">champs libres</span>
-          </div>
         </div>
-
       </section>
-    </div>
 
+      <!-- exemples de slots vides pour montrer 6 à l'écran -->
+      <section class="slot"><div class="head"><div class="badge"><span class="dot"></span> SLOT 2</div><div class="miniHint">Arrivée → Départ</div></div><div class="section"><div class="secTitle"><span>From</span></div><div class="g2"><div class="control"><label>Flight No</label><input class="input box" placeholder="—"></div><div class="control"><label>IATA</label><input class="input box" placeholder="—"></div></div></div><div class="section"><div class="secTitle"><span>Arrival</span><span class="pill sta">STA</span></div><div class="g3"><div class="control"><label>STA</label><input class="input box" placeholder="—"></div><div class="control"><label>Registration</label><input class="input box" placeholder="—"></div><div class="control"><label>A/C Type</label><input class="input box" placeholder="—"></div></div></div><div class="section"><div class="secTitle"><span>To</span></div><div class="g2"><div class="control"><label>Flight No</label><input class="input box" placeholder="—"></div><div class="control"><label>IATA</label><input class="input box" placeholder="—"></div></div></div><div class="section"><div class="secTitle"><span>Departure</span><span class="pill std">STD</span></div><div class="g3"><div class="control"><label>STD</label><input class="input box" placeholder="—"></div><div class="control"><label>Stand ARR</label><input class="input box" placeholder="—"></div><div class="control"><label>Terminal ARR</label><input class="input box" placeholder="—"></div></div><div class="g2" style="margin-top:10px;"><div class="control"><label>Stand DEP</label><input class="input box" placeholder="—"></div><div class="control"><label>Terminal DEP</label><input class="input box" placeholder="—"></div></div></div></section>
+
+      <section class="slot"><div class="head"><div class="badge"><span class="dot"></span> SLOT 3</div><div class="miniHint">Arrivée → Départ</div></div><div class="section"><div class="secTitle"><span>From</span></div><div class="g2"><div class="control"><label>Flight No</label><input class="input box" placeholder="—"></div><div class="control"><label>IATA</label><input class="input box" placeholder="—"></div></div></div><div class="section"><div class="secTitle"><span>Arrival</span><span class="pill sta">STA</span></div><div class="g3"><div class="control"><label>STA</label><input class="input box" placeholder="—"></div><div class="control"><label>Registration</label><input class="input box" placeholder="—"></div><div class="control"><label>A/C Type</label><input class="input box" placeholder="—"></div></div></div><div class="section"><div class="secTitle"><span>To</span></div><div class="g2"><div class="control"><label>Flight No</label><input class="input box" placeholder="—"></div><div class="control"><label>IATA</label><input class="input box" placeholder="—"></div></div></div><div class="section"><div class="secTitle"><span>Departure</span><span class="pill std">STD</span></div><div class="g3"><div class="control"><label>STD</label><input class="input box" placeholder="—"></div><div class="control"><label>Stand ARR</label><input class="input box" placeholder="—"></div><div class="control"><label>Terminal ARR</label><input class="input box" placeholder="—"></div></div><div class="g2" style="margin-top:10px;"><div class="control"><label>Stand DEP</label><input class="input box" placeholder="—"></div><div class="control"><label>Terminal DEP</label><input class="input box" placeholder="—"></div></div></div></section>
+
+      <section class="slot"><div class="head"><div class="badge"><span class="dot"></span> SLOT 4</div><div class="miniHint">Arrivée → Départ</div></div><div class="section"><div class="secTitle"><span>From</span></div><div class="g2"><div class="control"><label>Flight No</label><input class="input box" placeholder="—"></div><div class="control"><label>IATA</label><input class="input box" placeholder="—"></div></div></div><div class="section"><div class="secTitle"><span>Arrival</span><span class="pill sta">STA</span></div><div class="g3"><div class="control"><label>STA</label><input class="input box" placeholder="—"></div><div class="control"><label>Registration</label><input class="input box" placeholder="—"></div><div class="control"><label>A/C Type</label><input class="input box" placeholder="—"></div></div></div><div class="section"><div class="secTitle"><span>To</span></div><div class="g2"><div class="control"><label>Flight No</label><input class="input box" placeholder="—"></div><div class="control"><label>IATA</label><input class="input box" placeholder="—"></div></div></div><div class="section"><div class="secTitle"><span>Departure</span><span class="pill std">STD</span></div><div class="g3"><div class="control"><label>STD</label><input class="input box" placeholder="—"></div><div class="control"><label>Stand ARR</label><input class="input box" placeholder="—"></div><div class="control"><label>Terminal ARR</label><input class="input box" placeholder="—"></div></div><div class="g2" style="margin-top:10px;"><div class="control"><label>Stand DEP</label><input class="input box" placeholder="—"></div><div class="control"><label>Terminal DEP</label><input class="input box" placeholder="—"></div></div></div></section>
+
+      <section class="slot"><div class="head"><div class="badge"><span class="dot"></span> SLOT 5</div><div class="miniHint">Arrivée → Départ</div></div><div class="section"><div class="secTitle"><span>From</span></div><div class="g2"><div class="control"><label>Flight No</label><input class="input box" placeholder="—"></div><div class="control"><label>IATA</label><input class="input box" placeholder="—"></div></div></div><div class="section"><div class="secTitle"><span>Arrival</span><span class="pill sta">STA</span></div><div class="g3"><div class="control"><label>STA</label><input class="input box" placeholder="—"></div><div class="control"><label>Registration</label><input class="input box" placeholder="—"></div><div class="control"><label>A/C Type</label><input class="input box" placeholder="—"></div></div></div><div class="section"><div class="secTitle"><span>To</span></div><div class="g2"><div class="control"><label>Flight No</label><input class="input box" placeholder="—"></div><div class="control"><label>IATA</label><input class="input box" placeholder="—"></div></div></div><div class="section"><div class="secTitle"><span>Departure</span><span class="pill std">STD</span></div><div class="g3"><div class="control"><label>STD</label><input class="input box" placeholder="—"></div><div class="control"><label>Stand ARR</label><input class="input box" placeholder="—"></div><div class="control"><label>Terminal ARR</label><input class="input box" placeholder="—"></div></div><div class="g2" style="margin-top:10px;"><div class="control"><label>Stand DEP</label><input class="input box" placeholder="—"></div><div class="control"><label>Terminal DEP</label><input class="input box" placeholder="—"></div></div></div></section>
+
+      <section class="slot"><div class="head"><div class="badge"><span class="dot"></span> SLOT 6</div><div class="miniHint">Arrivée → Départ</div></div><div class="section"><div class="secTitle"><span>From</span></div><div class="g2"><div class="control"><label>Flight No</label><input class="input box" placeholder="—"></div><div class="control"><label>IATA</label><input class="input box" placeholder="—"></div></div></div><div class="section"><div class="secTitle"><span>Arrival</span><span class="pill sta">STA</span></div><div class="g3"><div class="control"><label>STA</label><input class="input box" placeholder="—"></div><div class="control"><label>Registration</label><input class="input box" placeholder="—"></div><div class="control"><label>A/C Type</label><input class="input box" placeholder="—"></div></div></div><div class="section"><div class="secTitle"><span>To</span></div><div class="g2"><div class="control"><label>Flight No</label><input class="input box" placeholder="—"></div><div class="control"><label>IATA</label><input class="input box" placeholder="—"></div></div></div><div class="section"><div class="secTitle"><span>Departure</span><span class="pill std">STD</span></div><div class="g3"><div class="control"><label>STD</label><input class="input box" placeholder="—"></div><div class="control"><label>Stand ARR</label><input class="input box" placeholder="—"></div><div class="control"><label>Terminal ARR</label><input class="input box" placeholder="—"></div></div><div class="g2" style="margin-top:10px;"><div class="control"><label>Stand DEP</label><input class="input box" placeholder="—"></div><div class="control"><label>Terminal DEP</label><input class="input box" placeholder="—"></div></div></div></section>
+
+    </div>
   </div>
 </body>
 </html>
