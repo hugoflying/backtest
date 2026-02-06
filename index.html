@@ -5,78 +5,123 @@
   <title>Flight PDF Filler</title>
   <meta name="viewport" content="width=device-width, initial-scale=1">
 
-  <style>
-    body { font-family: Arial; max-width: 1000px; margin: 30px auto; }
-    .grid { display:flex; gap:20px; }
-    .box { border:1px solid #ccc; padding:20px; border-radius:12px; flex:1; }
-    label { display:block; margin-top:10px; font-size:13px; }
-    input, select { width:100%; padding:8px; margin-top:4px; }
-    button { margin-top:12px; padding:10px 14px; cursor:pointer; }
-    h1 { text-align:center; }
-  </style>
+  <!-- BULMA -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bulma@1.0.2/css/bulma.min.css">
 </head>
 
 <body>
 
-<h1>Remplissage automatique PDF vol</h1>
+<section class="section">
+<div class="container">
 
-<label>Compagnie</label>
-<select id="company">
-  <option value="FRRK">FR / RK</option>
-  <option value="W6W4">W6 / W4</option>
-</select>
+  <h1 class="title has-text-centered">Flight PDF Filler</h1>
 
-<div class="grid">
-
+  <!-- COMPANY -->
   <div class="box">
-    <h2>ARRIVÉE</h2>
-
-    <label>Date</label>
-    <input id="arr_date" type="date">
-
-    <label>Flight number</label>
-    <input id="arr_flt">
-
-    <label>From</label>
-    <input id="arr_from">
-
-    <label>Registration</label>
-    <input id="arr_reg">
-
-    <label>A/C type</label>
-    <input id="arr_type">
+    <label class="label">Compagnie</label>
+    <div class="select">
+      <select id="company">
+        <option value="FRRK">FR / RK</option>
+        <option value="W6W4">W6 / W4</option>
+      </select>
+    </div>
   </div>
 
+  <!-- ARR + DEP -->
+  <div class="columns">
+
+    <!-- ARRIVEE -->
+    <div class="column">
+      <div class="box">
+        <h2 class="title is-4">ARRIVÉE</h2>
+
+        <div class="field">
+          <label class="label">Date</label>
+          <div class="control">
+            <input id="arr_date" type="date" class="input">
+          </div>
+        </div>
+
+        <div class="field">
+          <label class="label">Flight number</label>
+          <input id="arr_flt" class="input">
+        </div>
+
+        <div class="field">
+          <label class="label">From</label>
+          <input id="arr_from" class="input">
+        </div>
+
+        <div class="field">
+          <label class="label">Registration</label>
+          <input id="arr_reg" class="input">
+        </div>
+
+        <div class="field">
+          <label class="label">A/C type</label>
+          <input id="arr_type" class="input">
+        </div>
+
+      </div>
+    </div>
+
+    <!-- DEPART -->
+    <div class="column">
+      <div class="box">
+        <h2 class="title is-4">DÉPART</h2>
+
+        <div class="field">
+          <label class="label">Date</label>
+          <input id="dep_date" type="date" class="input">
+        </div>
+
+        <div class="field">
+          <label class="label">Flight number</label>
+          <input id="dep_flt" class="input">
+        </div>
+
+        <div class="field">
+          <label class="label">To</label>
+          <input id="dep_to" class="input">
+        </div>
+
+        <div class="field">
+          <label class="label">Registration</label>
+          <input id="dep_reg" class="input">
+        </div>
+
+        <div class="field">
+          <label class="label">A/C type</label>
+          <input id="dep_type" class="input">
+        </div>
+
+      </div>
+    </div>
+
+  </div>
+
+  <!-- DOCS FR -->
   <div class="box">
-    <h2>DÉPART</h2>
+    <h2 class="title is-4">Documents FR / RK</h2>
+    <div class="buttons">
+      <button class="button is-dark" data-doc="LIR_RYANAIR">LIR Ryanair</button>
+    </div>
+  </div>
 
-    <label>Date</label>
-    <input id="dep_date" type="date">
-
-    <label>Flight number</label>
-    <input id="dep_flt">
-
-    <label>To</label>
-    <input id="dep_to">
-
-    <label>Registration</label>
-    <input id="dep_reg">
-
-    <label>A/C type</label>
-    <input id="dep_type">
+  <!-- DOCS W6 -->
+  <div class="box">
+    <h2 class="title is-4">Documents W6 / W4</h2>
+    <div class="buttons">
+      <button class="button is-link" data-doc="BBCG_GATE">Baggage bingo card gate</button>
+      <button class="button is-link" data-doc="WAIF">Walkaround inspection</button>
+      <button class="button is-link" data-doc="RTB">Ready to board</button>
+    </div>
   </div>
 
 </div>
+</section>
 
-<h2>Documents FR / RK</h2>
-<button data-doc="LIR_RYANAIR">LIR Ryanair</button>
-
-<h2>Documents W6 / W4</h2>
-<button data-doc="BBCG_GATE">Baggage bingo card gate</button>
-<button data-doc="WAIF">Walkaround inspection</button>
-<button data-doc="RTB">Ready to board</button>
-
-<!-- LIB PDF -->
+<!-- PDF LIB -->
 <script src="https://unpkg.com/pdf-lib@1.17.1/dist/pdf-lib.min.js"></script>
 
 <!-- TON SCRIPT -->
