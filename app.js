@@ -265,18 +265,23 @@ async function fillAndPrint(docKey) {
 
     for (const [name, value] of Object.entries(fields)) {
       try {
-        // Checkbox ?
+        // CHECKBOX
         if (typeof value === "boolean") {
           const cb = form.getCheckBox(name);
-          if (value) cb.check();
-          else cb.uncheck();
+          value ? cb.check() : cb.uncheck();
           continue;
         }
 
-        // Text
+        // TEXT FIELD
         const tf = form.getTextField(name);
         tf.setText(String(value ?? ""));
-        tf.setFontSize(16); // provisoire, on ajustera doc par doc
+
+        // 👇 PLUS GROS
+        tf.setFontSize(18);
+
+        // 👇 CENTRÉ
+        tf.setAlignment(PDFLib.TextAlignment.Center);
+
       } catch (e) {
         console.log("Champ introuvable :", name);
       }
@@ -306,7 +311,7 @@ async function fillAndPrint(docKey) {
 
   } catch (err) {
     console.error(err);
-    alert("Erreur PDF. Vérifie le nom exact du fichier dans /templates et le chemin.");
+    alert("Erreur PDF. Vérifie le nom du fichier dans /templates.");
   }
 }
 
