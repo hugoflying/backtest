@@ -1,9 +1,13 @@
 const { PDFDocument, StandardFonts } = PDFLib;
 
+/* =========================
+   UTILS
+========================= */
+
 function isoToDDMMYYYY(iso) {
   if (!iso) return "";
   const [y, m, d] = iso.split("-");
-  if (!y) return "";
+  if (!y || !m || !d) return "";
   return `${d}/${m}/${y}`;
 }
 
@@ -12,7 +16,7 @@ function isoToDDMMYYYY(iso) {
 ========================= */
 
 function getVol(n) {
-  const g = (id) => document.getElementById(`${id}_${n}`).value.trim();
+  const g = (id) => (document.getElementById(`${id}_${n}`)?.value || "").trim();
 
   return {
     arr: {
@@ -45,7 +49,6 @@ function isVolEmpty(vol) {
 ========================= */
 
 const DOCS = {
-
   /* ================= FR / RK ================= */
 
   LIR_RYANAIR: {
@@ -56,6 +59,37 @@ const DOCS = {
       "FLIGHT NUMBER": vol1.dep.flt,
       "DESTINATION": vol1.dep.to,
     }),
+    flatten: true,
+  },
+
+  // Nouveaux FR (mapping à faire)
+  LIR_LAUDA: {
+    file: "./templates/lauda-lir.pdf",
+    fill: ({ vol1 }) => ({}),
+    flatten: true,
+  },
+
+  BINGO_FR: {
+    file: "./templates/BINGO.pdf",
+    fill: ({ vol1 }) => ({}),
+    flatten: true,
+  },
+
+  AUTOCONTROLE: {
+    file: "./templates/Autocontrôle V1 (1).pdf",
+    fill: ({ vol1 }) => ({}),
+    flatten: true,
+  },
+
+  PRESTA_DEP: {
+    file: "./templates/Suivi prestations bases - depart base.pdf",
+    fill: ({ vol1 }) => ({}),
+    flatten: true,
+  },
+
+  PRESTA_RET: {
+    file: "./templates/Suivi prestations bases - retour base.pdf",
+    fill: ({ vol1 }) => ({}),
     flatten: true,
   },
 
@@ -95,8 +129,7 @@ const DOCS = {
     flatten: true,
   },
 
-  /* ========= EXEMPLE PDF 2xA5 (à adapter quand tu upload) ========= */
-
+  /* ========= EXEMPLE PDF 2xA5 (à adapter) ========= */
   TWOUP_EXAMPLE: {
     file: "./templates/DOC_2UP.pdf",
     fill: ({ vol1, vol2 }) => {
@@ -117,8 +150,7 @@ const DOCS = {
       return out;
     },
     flatten: true,
-  }
-
+  },
 };
 
 /* =========================
@@ -135,44 +167,63 @@ async function fillAndPrint(docKey) {
   const vol1 = getVol(1);
   const vol2 = getVol(2);
 
-  const pdfBytes = await fetch(def.file).then(r => r.arrayBuffer());
-  const pdfDoc = await PDFDocument.load(pdfBytes);
-  const form = pdfDoc.getForm();
+  try {
+    const res = await fetch(def.file);
+    if (!res.ok) throw new Error(`Impossible de charger: ${def.file}`);
+    const pdfBytes = await res.arrayBuffer();
 
-  const font = await pdfDoc.embedFont(StandardFonts.Helvetica);
-  form.updateFieldAppearances(font);
+    const pdfDoc = await PDFDocument.load(pdfBytes);
+    const form = pdfDoc.getForm();
 
-  const fields = def.fill({ vol1, vol2 });
+    const font = await pdfDoc.embedFont(StandardFonts.Helvetica);
+    try { form.updateFieldAppearances(font); } catch {}
 
-  for (const [name, value] of Object.entries(fields)) {
-    try {
-      const field = form.getTextField(name);
-      field.setText(value || "");
-      field.setFontSize(16); // taille globale provisoire
-    } catch (e) {
-      console.log("Champ introuvable :", name);
+    const fields = def.fill({ vol1, vol2 });
+
+    for (const [name, value] of Object.entries(fields)) {
+      try {
+        const field = form.getTextField(name);
+        field.setText(value || "");
+        field.setFontSize(16); // taille globale provisoire
+      } catch {
+        console.log("Champ introuvable :", name);
+      }
     }
+
+    if (def.flatten) {
+      try { form.flatten(); } catch {}
+    }
+
+    const bytes = await pdfDoc.save();
+    const blob = new Blob([bytes], { type: "application/pdf" });
+    const url = URL.createObjectURL(blob);
+
+    const iframe = document.createElement("iframe");
+    iframe.style.display = "none";
+    iframe.src = url;
+    document.body.appendChild(iframe);
+
+    iframe.onload = () => {
+      iframe.contentWindow.focus();
+      iframe.contentWindow.print();
+      // nettoyage
+      setTimeout(() => {
+        URL.revokeObjectURL(url);
+        iframe.remove();
+      }, 1500);
+    };
+
+  } catch (err) {
+    console.error(err);
+    alert("Erreur chargement/remplissage PDF. Vérifie les noms de fichiers et le chemin ./templates/...");
   }
-
-  if (def.flatten) form.flatten();
-
-  const bytes = await pdfDoc.save();
-  const blob = new Blob([bytes], { type: "application/pdf" });
-  const url = URL.createObjectURL(blob);
-
-  const iframe = document.createElement("iframe");
-  iframe.style.display = "none";
-  iframe.src = url;
-  document.body.appendChild(iframe);
-
-  iframe.onload = () => iframe.contentWindow.print();
 }
 
 /* =========================
    BOUTONS
 ========================= */
 
-document.addEventListener("click", e => {
+document.addEventListener("click", (e) => {
   const btn = e.target.closest("button[data-doc]");
   if (!btn) return;
   fillAndPrint(btn.dataset.doc);
