@@ -11,6 +11,10 @@ function isoToDDMMYYYY(iso) {
   return `${d}/${m}/${y}`;
 }
 
+function upper(s) {
+  return (s || "").trim().toUpperCase();
+}
+
 /* =========================
    RÉCUPÉRATION DES 2 VOLS
 ========================= */
@@ -44,6 +48,10 @@ function isVolEmpty(vol) {
   return vals.every(v => !v);
 }
 
+function getOptionalValue(id) {
+  return (document.getElementById(id)?.value || "").trim();
+}
+
 /* =========================
    CONFIG DES PDF
 ========================= */
@@ -62,34 +70,132 @@ const DOCS = {
     flatten: true,
   },
 
-  // Nouveaux FR (mapping à faire)
-  LIR_LAUDA: {
-    file: "./templates/lauda-lir.pdf",
-    fill: ({ vol1 }) => ({}),
+  BINGO_FR: {
+    file: "./templates/BINGO.pdf",
+    // Champs réels : BINGO_GEN_DATE / BINGO_GEN_FLIGHT_NUMBER / BINGO_GEN_REGISTRATION / Textbox2 (destination)
+    fill: ({ vol1 }) => ({
+      "BINGO_GEN_DATE": isoToDDMMYYYY(vol1.dep.date),
+      "BINGO_GEN_FLIGHT_NUMBER": vol1.dep.flt,
+      "BINGO_GEN_REGISTRATION": vol1.dep.reg,
+      "Textbox2": vol1.dep.to, // Destination
+    }),
     flatten: true,
   },
 
-  BINGO_FR: {
-    file: "./templates/BINGO.pdf",
-    fill: ({ vol1 }) => ({}),
+  LIR_LAUDA: {
+    file: "./templates/lauda-lir.pdf",
+    // Champs réels : LAUDA_FLIGHT_NUMBER / LAUDA_IMMATRICULATION / LAUDA_DATE / LAUDA_FROM / LAUDA_TO
+    fill: ({ vol1 }) => ({
+      "LAUDA_FLIGHT_NUMBER": vol1.dep.flt,
+      "LAUDA_IMMATRICULATION": vol1.dep.reg,
+      "LAUDA_DATE": isoToDDMMYYYY(vol1.dep.date),
+      "LAUDA_FROM": "BVA",
+      "LAUDA_TO": vol1.dep.to,
+    }),
     flatten: true,
   },
 
   AUTOCONTROLE: {
     file: "./templates/Autocontrôle V1 (1).pdf",
-    fill: ({ vol1 }) => ({}),
+    // Champs réels :
+    // VOL_A_FLIGHT_NUMER / VOL_A_DATE / VOL_A_TO / VOL_A_FULL_NAME
+    // VOL_B_FLIGHT_NUMBER / VOL_B_DATE / VOL_B_TO / VOL_B_FULL_NAME
+    fill: ({ vol1, vol2 }) => {
+      const out = {};
+      const fullName = upper(getOptionalValue("full_name")); // optionnel si tu ajoutes un champ plus tard
+
+      if (!isVolEmpty(vol1)) {
+        out["VOL_A_FLIGHT_NUMER"] = vol1.dep.flt;              // en haut à gauche
+        out["VOL_A_TO"] = vol1.dep.to;                        // destination sous le FLT
+        out["VOL_A_DATE"] = isoToDDMMYYYY(vol1.dep.date);     // en haut à droite
+        out["VOL_A_FULL_NAME"] = fullName;                    // bas
+      }
+
+      if (!isVolEmpty(vol2)) {
+        out["VOL_B_FLIGHT_NUMBER"] = vol2.dep.flt;
+        out["VOL_B_TO"] = vol2.dep.to;
+        out["VOL_B_DATE"] = isoToDDMMYYYY(vol2.dep.date);
+        out["VOL_B_FULL_NAME"] = fullName;
+      }
+
+      return out;
+    },
     flatten: true,
   },
 
   PRESTA_DEP: {
     file: "./templates/Suivi prestations bases - depart base.pdf",
-    fill: ({ vol1 }) => ({}),
+    // Champs réels :
+    // VOL_A_IMMATRICULATION / VOL_A_DATE / VOL_A_PARKING / VOL_A_FLIGHT_NUMBER / VOL_A_FROM
+    // VOL_B_IMMATRICULATION / VOL_B_DATE / VOL_B_PARKING / VOL_B_FLIGHT_NUMBER / VOL_B_FROM
+    // checkboxes : VOL_A_DEPART / VOL_A_GPU / (VOL_A_ARRIVEE existe mais on ne coche pas)
+    //             VOL_B_DEPART / VOL_B_GPU / (VOL_B_ARRIVEE existe mais on ne coche pas)
+    fill: ({ vol1, vol2 }) => {
+      const out = {};
+      const parking1 = getOptionalValue("parking_1"); // optionnel si tu ajoutes un champ plus tard
+      const parking2 = getOptionalValue("parking_2");
+
+      if (!isVolEmpty(vol1)) {
+        out["VOL_A_IMMATRICULATION"] = vol1.dep.reg;
+        out["VOL_A_DATE"] = isoToDDMMYYYY(vol1.dep.date);
+        out["VOL_A_PARKING"] = parking1;
+        out["VOL_A_FLIGHT_NUMBER"] = vol1.dep.flt;
+        out["VOL_A_FROM"] = vol1.arr.from; // provenance
+        out["VOL_A_DEPART"] = true;
+        out["VOL_A_GPU"] = true;
+      }
+
+      if (!isVolEmpty(vol2)) {
+        out["VOL_B_IMMATRICULATION"] = vol2.dep.reg;
+        out["VOL_B_DATE"] = isoToDDMMYYYY(vol2.dep.date);
+        out["VOL_B_PARKING"] = parking2;
+        out["VOL_B_FLIGHT_NUMBER"] = vol2.dep.flt;
+        out["VOL_B_FROM"] = vol2.arr.from;
+        out["VOL_B_DEPART"] = true;
+        out["VOL_B_GPU"] = true;
+      }
+
+      return out;
+    },
     flatten: true,
   },
 
   PRESTA_RET: {
     file: "./templates/Suivi prestations bases - retour base.pdf",
-    fill: ({ vol1 }) => ({}),
+    // Champs réels :
+    // VOL_A_IMMATRICULATION / VOL_A_DATE / VOL_A_PARKING / VOL_A_FLIGHT_NUMBER / VOL_A_FROM
+    // VOL_B_IMMATRICULATION / VOL_B_DATE / VOL_B_PARKING / VOL_B_FLIGHT_NUMBER / VOL_B_FROM
+    // checkboxes : VOL_A_ARRIVEE / VOL_A_MENAGE / VOL_A_GPU
+    //             VOL_B_ARRIVEE / VOL_B_MENAGE / VOL_B_GPU
+    fill: ({ vol1, vol2 }) => {
+      const out = {};
+      const parking1 = getOptionalValue("parking_1");
+      const parking2 = getOptionalValue("parking_2");
+
+      if (!isVolEmpty(vol1)) {
+        out["VOL_A_IMMATRICULATION"] = vol1.arr.reg;
+        out["VOL_A_DATE"] = isoToDDMMYYYY(vol1.arr.date);
+        out["VOL_A_PARKING"] = parking1;
+        out["VOL_A_FLIGHT_NUMBER"] = vol1.arr.flt;
+        out["VOL_A_FROM"] = vol1.arr.from;
+        out["VOL_A_ARRIVEE"] = true;
+        out["VOL_A_MENAGE"] = true;
+        out["VOL_A_GPU"] = true;
+      }
+
+      if (!isVolEmpty(vol2)) {
+        out["VOL_B_IMMATRICULATION"] = vol2.arr.reg;
+        out["VOL_B_DATE"] = isoToDDMMYYYY(vol2.arr.date);
+        out["VOL_B_PARKING"] = parking2;
+        out["VOL_B_FLIGHT_NUMBER"] = vol2.arr.flt;
+        out["VOL_B_FROM"] = vol2.arr.from;
+        out["VOL_B_ARRIVEE"] = true;
+        out["VOL_B_MENAGE"] = true;
+        out["VOL_B_GPU"] = true;
+      }
+
+      return out;
+    },
     flatten: true,
   },
 
@@ -128,29 +234,6 @@ const DOCS = {
     }),
     flatten: true,
   },
-
-  /* ========= EXEMPLE PDF 2xA5 (à adapter) ========= */
-  TWOUP_EXAMPLE: {
-    file: "./templates/DOC_2UP.pdf",
-    fill: ({ vol1, vol2 }) => {
-      const out = {};
-
-      if (!isVolEmpty(vol1)) {
-        out["Date"] = isoToDDMMYYYY(vol1.dep.date);
-        out["Flt Nbr"] = vol1.dep.flt;
-        out["Dest"] = vol1.dep.to;
-      }
-
-      if (!isVolEmpty(vol2)) {
-        out["Date_2"] = isoToDDMMYYYY(vol2.dep.date);
-        out["Flt Nbr_2"] = vol2.dep.flt;
-        out["Dest_2"] = vol2.dep.to;
-      }
-
-      return out;
-    },
-    flatten: true,
-  },
 };
 
 /* =========================
@@ -182,10 +265,19 @@ async function fillAndPrint(docKey) {
 
     for (const [name, value] of Object.entries(fields)) {
       try {
-        const field = form.getTextField(name);
-        field.setText(value || "");
-        field.setFontSize(16); // taille globale provisoire
-      } catch {
+        // Checkbox ?
+        if (typeof value === "boolean") {
+          const cb = form.getCheckBox(name);
+          if (value) cb.check();
+          else cb.uncheck();
+          continue;
+        }
+
+        // Text
+        const tf = form.getTextField(name);
+        tf.setText(String(value ?? ""));
+        tf.setFontSize(16); // provisoire, on ajustera doc par doc
+      } catch (e) {
         console.log("Champ introuvable :", name);
       }
     }
@@ -206,7 +298,6 @@ async function fillAndPrint(docKey) {
     iframe.onload = () => {
       iframe.contentWindow.focus();
       iframe.contentWindow.print();
-      // nettoyage
       setTimeout(() => {
         URL.revokeObjectURL(url);
         iframe.remove();
@@ -215,7 +306,7 @@ async function fillAndPrint(docKey) {
 
   } catch (err) {
     console.error(err);
-    alert("Erreur chargement/remplissage PDF. Vérifie les noms de fichiers et le chemin ./templates/...");
+    alert("Erreur PDF. Vérifie le nom exact du fichier dans /templates et le chemin.");
   }
 }
 
