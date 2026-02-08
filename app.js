@@ -51,16 +51,17 @@ const DOCS = {
   },
 
   WAIF: {
-    file: "./templates/WAIF_Jun2021_Rev1.1_ WALKAROUND INSPECTION FORM.pdf",
-    fill: ({ arr, dep }) => ({
-      "Arival flihht number": arr.flt,
-      "date x": isoToDDMMYYYY(arr.date),
-      "reg": arr.reg,
-      "departure": dep.flt,
-      "date x2": isoToDDMMYYYY(dep.date),
-    }),
-    flatten: true,
-  },
+  file: "./templates/WAIF_Jun2021_Rev1.1_ WALKAROUND INSPECTION FORM.pdf",
+  fill: ({ arr, dep }) => ({
+    "station": "BVA",                // 👈 ajout fixe
+    "Arival flihht number": arr.flt,
+    "date x": isoToDDMMYYYY(arr.date),
+    "reg": arr.reg,
+    "departure": dep.flt,
+    "date x2": isoToDDMMYYYY(dep.date),
+  }),
+  flatten: true,
+},
 
   RTB: {
     file: "./templates/RTB_Mar2025_Rev3_Ready To Board.pdf",
