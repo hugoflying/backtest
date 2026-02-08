@@ -16,7 +16,7 @@
 
   <h1 class="title has-text-centered">Flight PDF Filler</h1>
 
-  <!-- COMPANY -->
+  <!-- COMPAGNIE -->
   <div class="box">
     <label class="label">Compagnie</label>
     <div class="select">
@@ -27,13 +27,18 @@
     </div>
   </div>
 
-  <!-- ===================== -->
-  <!-- ====== VOL 1 ========= -->
-  <!-- ===================== -->
+  <!-- NOM AGENT -->
+  <div class="box">
+    <h2 class="title is-4">Agent</h2>
+    <div class="field">
+      <label class="label">Nom Prénom (Autocontrôle)</label>
+      <input id="full_name" class="input" placeholder="Ex : DUPONT JEAN">
+    </div>
+  </div>
 
+  <!-- ================= VOL 1 ================= -->
   <div class="columns">
 
-    <!-- VOL 1 -->
     <div class="column">
       <div class="box">
         <h2 class="title is-4">VOL 1 — ARRIVÉE</h2>
@@ -83,6 +88,11 @@
         </div>
 
         <div class="field">
+          <label class="label">Parking</label>
+          <input id="parking_1" class="input" placeholder="ex : P12">
+        </div>
+
+        <div class="field">
           <label class="label">Registration</label>
           <input id="dep_reg_1" class="input">
         </div>
@@ -91,10 +101,12 @@
           <label class="label">A/C type</label>
           <input id="dep_type_1" class="input">
         </div>
+
       </div>
     </div>
 
-    <!-- VOL 2 -->
+    <!-- ================= VOL 2 ================= -->
+
     <div class="column">
       <div class="box">
         <h2 class="title is-4">VOL 2 — ARRIVÉE</h2>
@@ -144,6 +156,11 @@
         </div>
 
         <div class="field">
+          <label class="label">Parking</label>
+          <input id="parking_2" class="input" placeholder="ex : P12">
+        </div>
+
+        <div class="field">
           <label class="label">Registration</label>
           <input id="dep_reg_2" class="input">
         </div>
@@ -152,14 +169,13 @@
           <label class="label">A/C type</label>
           <input id="dep_type_2" class="input">
         </div>
+
       </div>
     </div>
 
   </div>
 
-  <!-- ===================== -->
-  <!-- DOCUMENTS FR / RK -->
-  <!-- ===================== -->
+  <!-- ================= DOCUMENTS ================= -->
 
   <div class="box">
     <h2 class="title is-4">Documents FR / RK</h2>
@@ -173,10 +189,6 @@
     </div>
   </div>
 
-  <!-- ===================== -->
-  <!-- DOCUMENTS W6 / W4 -->
-  <!-- ===================== -->
-
   <div class="box">
     <h2 class="title is-4">Documents W6 / W4</h2>
     <div class="buttons">
@@ -189,10 +201,7 @@
 </div>
 </section>
 
-<!-- PDF LIB -->
 <script src="https://unpkg.com/pdf-lib@1.17.1/dist/pdf-lib.min.js"></script>
-
-<!-- APP -->
 <script src="app.js"></script>
 
 </body>
