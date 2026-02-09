@@ -13,23 +13,12 @@
 
   <h1 class="title has-text-centered">Flight PDF Filler</h1>
 
-  <!-- COMPAGNIE -->
-  <div class="box">
-    <label class="label">Compagnie</label>
-    <div class="select">
-      <select id="company">
-        <option value="FRRK">FR / RK</option>
-        <option value="W6W4">W6 / W4</option>
-      </select>
-    </div>
-  </div>
-
   <!-- AGENT -->
   <div class="box">
     <h2 class="title is-4">Agent</h2>
     <div class="field">
-      <label class="label">Nom Prénom (Autocontrôle)</label>
-      <input id="full_name" class="input" placeholder="Ex : DUPONT JEAN">
+      <label class="label">Nom Prénom</label>
+      <input id="full_name" class="input" placeholder="DUPONT JEAN">
     </div>
   </div>
 
@@ -37,169 +26,82 @@
 
     <!-- ================= VOL 1 ================= -->
     <div class="column">
+
       <div class="box">
         <h2 class="title is-4">VOL 1 — ARRIVÉE</h2>
-
-        <div class="field">
-          <label class="label">Date</label>
-          <input id="arr_date_1" type="date" class="input">
-        </div>
-        <div class="field">
-          <label class="label">Flight number</label>
-          <input id="arr_flt_1" class="input">
-        </div>
-        <div class="field">
-          <label class="label">From</label>
-          <input id="arr_from_1" class="input">
-        </div>
-        <div class="field">
-          <label class="label">Registration</label>
-          <input id="arr_reg_1" class="input">
-        </div>
-        <div class="field">
-          <label class="label">A/C type</label>
-          <input id="arr_type_1" class="input">
-        </div>
-
-        <hr>
-
-        <h2 class="title is-4">VOL 1 — DÉPART</h2>
-
-        <div class="field">
-          <label class="label">Date</label>
-          <input id="dep_date_1" type="date" class="input">
-        </div>
-        <div class="field">
-          <label class="label">Flight number</label>
-          <input id="dep_flt_1" class="input">
-        </div>
-        <div class="field">
-          <label class="label">To</label>
-          <input id="dep_to_1" class="input">
-        </div>
-        <div class="field">
-          <label class="label">Parking</label>
-          <input id="parking_1" class="input" placeholder="ex : P12">
-        </div>
-        <div class="field">
-          <label class="label">Registration</label>
-          <input id="dep_reg_1" class="input">
-        </div>
-        <div class="field">
-          <label class="label">A/C type</label>
-          <input id="dep_type_1" class="input">
-        </div>
+        <input id="arr_date_1" type="date" class="input mb-2">
+        <input id="arr_flt_1" class="input mb-2" placeholder="Flight">
+        <input id="arr_from_1" class="input mb-2" placeholder="From">
+        <input id="arr_reg_1" class="input mb-2" placeholder="Registration">
       </div>
 
-      <!-- BOUTONS VOL 1 (DOCS SIMPLES) -->
       <div class="box">
-        <h2 class="title is-5">Documents — VOL 1</h2>
+        <h2 class="title is-4">VOL 1 — DÉPART</h2>
+        <input id="dep_date_1" type="date" class="input mb-2">
+        <input id="dep_flt_1" class="input mb-2" placeholder="Flight">
+        <input id="dep_to_1" class="input mb-2" placeholder="Destination">
+        <input id="parking_1" class="input mb-2" placeholder="Parking">
+        <input id="dep_reg_1" class="input mb-2" placeholder="Registration">
+      </div>
 
-        <p class="has-text-grey is-size-7 mb-2">
-          (Les documents “doubles” sont plus bas)
-        </p>
-
+      <div class="box">
+        <h2 class="title is-5">Documents VOL 1</h2>
         <div class="buttons">
-          <!-- FR/RK simples -->
           <button class="button is-dark" data-doc="LIR_RYANAIR" data-vol="1">LIR Ryanair</button>
           <button class="button is-dark" data-doc="LIR_LAUDA" data-vol="1">LIR Lauda</button>
           <button class="button is-dark" data-doc="BINGO_FR" data-vol="1">Bingo Gate</button>
 
-          <!-- W6/W4 simples -->
           <button class="button is-link" data-doc="BBCG_GATE" data-vol="1">BBCG Gate</button>
           <button class="button is-link" data-doc="WAIF" data-vol="1">Walkaround</button>
           <button class="button is-link" data-doc="RTB" data-vol="1">Ready To Board</button>
         </div>
       </div>
+
     </div>
 
     <!-- ================= VOL 2 ================= -->
     <div class="column">
+
       <div class="box">
         <h2 class="title is-4">VOL 2 — ARRIVÉE</h2>
-
-        <div class="field">
-          <label class="label">Date</label>
-          <input id="arr_date_2" type="date" class="input">
-        </div>
-        <div class="field">
-          <label class="label">Flight number</label>
-          <input id="arr_flt_2" class="input">
-        </div>
-        <div class="field">
-          <label class="label">From</label>
-          <input id="arr_from_2" class="input">
-        </div>
-        <div class="field">
-          <label class="label">Registration</label>
-          <input id="arr_reg_2" class="input">
-        </div>
-        <div class="field">
-          <label class="label">A/C type</label>
-          <input id="arr_type_2" class="input">
-        </div>
-
-        <hr>
-
-        <h2 class="title is-4">VOL 2 — DÉPART</h2>
-
-        <div class="field">
-          <label class="label">Date</label>
-          <input id="dep_date_2" type="date" class="input">
-        </div>
-        <div class="field">
-          <label class="label">Flight number</label>
-          <input id="dep_flt_2" class="input">
-        </div>
-        <div class="field">
-          <label class="label">To</label>
-          <input id="dep_to_2" class="input">
-        </div>
-        <div class="field">
-          <label class="label">Parking</label>
-          <input id="parking_2" class="input" placeholder="ex : P12">
-        </div>
-        <div class="field">
-          <label class="label">Registration</label>
-          <input id="dep_reg_2" class="input">
-        </div>
-        <div class="field">
-          <label class="label">A/C type</label>
-          <input id="dep_type_2" class="input">
-        </div>
+        <input id="arr_date_2" type="date" class="input mb-2">
+        <input id="arr_flt_2" class="input mb-2" placeholder="Flight">
+        <input id="arr_from_2" class="input mb-2" placeholder="From">
+        <input id="arr_reg_2" class="input mb-2" placeholder="Registration">
       </div>
 
-      <!-- BOUTONS VOL 2 (DOCS SIMPLES) -->
       <div class="box">
-        <h2 class="title is-5">Documents — VOL 2</h2>
+        <h2 class="title is-4">VOL 2 — DÉPART</h2>
+        <input id="dep_date_2" type="date" class="input mb-2">
+        <input id="dep_flt_2" class="input mb-2" placeholder="Flight">
+        <input id="dep_to_2" class="input mb-2" placeholder="Destination">
+        <input id="parking_2" class="input mb-2" placeholder="Parking">
+        <input id="dep_reg_2" class="input mb-2" placeholder="Registration">
+      </div>
 
-        <p class="has-text-grey is-size-7 mb-2">
-          (Les documents “doubles” sont plus bas)
-        </p>
-
+      <div class="box">
+        <h2 class="title is-5">Documents VOL 2</h2>
         <div class="buttons">
-          <!-- FR/RK simples -->
           <button class="button is-dark" data-doc="LIR_RYANAIR" data-vol="2">LIR Ryanair</button>
           <button class="button is-dark" data-doc="LIR_LAUDA" data-vol="2">LIR Lauda</button>
           <button class="button is-dark" data-doc="BINGO_FR" data-vol="2">Bingo Gate</button>
 
-          <!-- W6/W4 simples -->
           <button class="button is-link" data-doc="BBCG_GATE" data-vol="2">BBCG Gate</button>
           <button class="button is-link" data-doc="WAIF" data-vol="2">Walkaround</button>
           <button class="button is-link" data-doc="RTB" data-vol="2">Ready To Board</button>
         </div>
       </div>
-    </div>
 
+    </div>
   </div>
 
-  <!-- ================= DOCS DOUBLES ================= -->
+  <!-- DOCS DOUBLES -->
   <div class="box">
-    <h2 class="title is-4">Documents doubles (VOL 1 + VOL 2)</h2>
+    <h2 class="title is-4">Documents 2 vols</h2>
     <div class="buttons">
-      <button class="button is-warning" data-doc="AUTOCONTROLE" data-vol="both">Autocontrôle (2 vols)</button>
-      <button class="button is-warning" data-doc="PRESTA_DEP" data-vol="both">Prestations départ base (2 vols)</button>
-      <button class="button is-warning" data-doc="PRESTA_RET" data-vol="both">Prestations retour base (2 vols)</button>
+      <button class="button is-warning" data-doc="AUTOCONTROLE" data-vol="both">Autocontrôle</button>
+      <button class="button is-warning" data-doc="PRESTA_DEP" data-vol="both">Prestations départ</button>
+      <button class="button is-warning" data-doc="PRESTA_RET" data-vol="both">Prestations arrivée</button>
     </div>
   </div>
 
