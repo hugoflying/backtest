@@ -25,8 +25,6 @@ function agent(){ return upper(document.getElementById("full_name")?.value) }
 
 const DOCS={
 
-const DOCS={
-
 /* ========= BINGO ========= */
 
 BINGO_FR:{
