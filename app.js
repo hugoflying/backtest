@@ -62,7 +62,7 @@ LIR_RYANAIR:{
    "DEPARTURE FLIGHT NUMBER": vol1.dep.flt,
    "TO": vol1.dep.to,
    "ARRIVAL FLIGHT NUMBER": vol1.arr.flt || "",
-   "HOLE": !!vol1.arr.hold_search // HOLD SECURITY SEARCH
+   "HOLD SECURITY SEARCH": !!vol1.arr.hold_search // HOLD SECURITY SEARCH
  }),
  flatten:true
 },
