@@ -235,17 +235,19 @@ async function fillAndPrint(docKey,volTarget="1"){
 
      const isName = n.includes("NOM PRENOM");
 
-     // taille "normale" pour tout
+     // rendu stable partout
      tf.setFontSize(11);
-
-     // alignement horizontal
      tf.setAlignment(isName ? PDFLib.TextAlignment.Left : PDFLib.TextAlignment.Center);
+     tf.enableMultiline();
+     tf.setMaxLength(100);
 
-     // "padding" uniquement sur NOM PRENOM (sinon on flingue le centrage ailleurs)
+     // padding vertical
      if(isName){
-       tf.enableMultiline();
-       tf.setLineHeight(13); // ajuste 12/13/14 si besoin
+       tf.setLineHeight(13);   // NOM PRENOM (remonte texte)
+     }else{
+       tf.setLineHeight(11);   // neutre (garde centrage)
      }
+
    }catch{}
  }
 
