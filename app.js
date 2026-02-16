@@ -130,14 +130,14 @@ AUTOCONTROLE:{
    const o={},name=agent();
 
    if(!isVolEmpty(vol1)){
-     o["FLIGHT A - DEPARTURE FL"] = vol1.dep.flt;
+     o["FLIGHT A - DEPARTURE FLIGHT NUMBER"] = vol1.dep.flt;
      o["FLIGHT A - DATE"] = isoToDDMMYYYY(vol1.dep.date);
      o["FLIGHT A - TO"] = vol1.dep.to;
      o["VOL A - NOM PRENOM"] = name;
    }
 
    if(!isVolEmpty(vol2)){
-     o["FLIGHT B - DEPARTURE FL"] = vol2.dep.flt;
+     o["FLIGHT B - DEPARTURE FLIGHT NUMBER"] = vol2.dep.flt;
      o["FLIGHT B - DATE"] = isoToDDMMYYYY(vol2.dep.date);
      o["FLIGHT B - TO"] = vol2.dep.to;
      o["VOL B - NOM PRENOM"] = name;
