@@ -10,9 +10,22 @@ function upper(s){ return (s||"").toUpperCase().trim(); }
 
 function getVol(n){
   const g=id=>document.getElementById(`${id}_${n}`)?.value||"";
+  const c=id=>!!document.getElementById(`${id}_${n}`)?.checked;
+
   return {
-    arr:{date:g("arr_date"),flt:g("arr_flt"),from:g("arr_from"),reg:g("arr_reg")},
-    dep:{date:g("dep_date"),flt:g("dep_flt"),to:g("dep_to"),reg:g("dep_reg")}
+    arr:{
+      date:g("arr_date"),
+      flt:g("arr_flt"),
+      from:g("arr_from"),
+      reg:g("arr_reg"),
+      hold_search: c("hold_search") // checkbox HOLD SECURITY SEARCH
+    },
+    dep:{
+      date:g("dep_date"),
+      flt:g("dep_flt"),
+      to:g("dep_to"),
+      reg:g("dep_reg")
+    }
   }
 }
 
@@ -48,7 +61,8 @@ LIR_RYANAIR:{
    "REGISTRATION": vol1.dep.reg,
    "DEPARTURE FLIGHT NUMBER": vol1.dep.flt,
    "TO": vol1.dep.to,
-   "ARRIVAL FLIGHT NUMBER": vol1.arr.flt || ""
+   "ARRIVAL FLIGHT NUMBER": vol1.arr.flt || "",
+   "HOLE": !!vol1.arr.hold_search // HOLD SECURITY SEARCH
  }),
  flatten:true
 },
@@ -61,48 +75,49 @@ LIR_LAUDA:{
    "DEPARTURE FLIGHT NUMBER": vol1.dep.flt,
    "REGISTRATION": vol1.dep.reg,
    "DATE": isoToDDMMYYYY(vol1.dep.date),
-   "FROM": "BVA",
+   "FROM": "BVA", // forcé
    "TO": vol1.dep.to
  }),
  flatten:true
 },
 
-/* ========= BBCG ========= */
+/* ========= BBCG (Wizz) ========= */
 
 BBCG_GATE:{
  file:"./templates/BBCG_Apr2020_Rev1 - BAGGAGE BINGO CARD_GATE.pdf",
  fill:({vol1})=>({
-   "Date": isoToDDMMYYYY(vol1.dep.date),
-   "Flt Nbr": vol1.dep.flt,
-   "Dest": vol1.dep.to
+   "DATE": isoToDDMMYYYY(vol1.dep.date),
+   "DEPARTURE FLIGHT NUMBER": vol1.dep.flt,
+   "TO": vol1.dep.to,
+   "GATE NUMBER": ""
  }),
  flatten:true
 },
 
-/* ========= WAIF ========= */
+/* ========= WAIF (Wizz) ========= */
 
 WAIF:{
  file:"./templates/WAIF_Jun2021_Rev1.1_ WALKAROUND INSPECTION FORM.pdf",
  fill:({vol1})=>({
-   "station":"BVA",
-   "Arival flihht number":vol1.arr.flt,
-   "date x":isoToDDMMYYYY(vol1.arr.date),
-   "reg":vol1.arr.reg,
-   "departure":vol1.dep.flt,
-   "date x2":isoToDDMMYYYY(vol1.dep.date)
+   "STATION": "BVA", // forcé
+   "ARRIVAL FLIGHT NUMBER": vol1.arr.flt,
+   "DATE": isoToDDMMYYYY(vol1.arr.date),
+   "REGISTRATION": vol1.arr.reg,
+   "DEPARTURE FLIGHT NUMBER": vol1.dep.flt,
+   "DATE_2": isoToDDMMYYYY(vol1.dep.date) // si ton 2e champ date s'appelle autrement, remplace DATE_2
  }),
  flatten:true
 },
 
-/* ========= RTB ========= */
+/* ========= RTB (Wizz) ========= */
 
 RTB:{
  file:"./templates/RTB_Mar2025_Rev3_Ready To Board.pdf",
  fill:({vol1})=>({
-   "Text1":isoToDDMMYYYY(vol1.dep.date),
-   "Text2":vol1.dep.flt,
-   "Text3":vol1.dep.to,
-   "Text4":vol1.dep.reg
+   "DATE": isoToDDMMYYYY(vol1.dep.date),
+   "DEPARTURE FLIGHT NUMBER": vol1.dep.flt,
+   "ROUTE": `BVA-${vol1.dep.to}`,
+   "REGISTRATION": vol1.dep.reg
  }),
  flatten:true
 },
@@ -115,17 +130,17 @@ AUTOCONTROLE:{
    const o={},name=agent();
 
    if(!isVolEmpty(vol1)){
-     o["FLIGHT_A"]=vol1.dep.flt;
-     o["DEST_A"]=vol1.dep.to;
-     o["DATE_A"]=isoToDDMMYYYY(vol1.dep.date);
-     o["NAME_A"]=name;
+     o["FLIGHT A - DEPARTURE FL"] = vol1.dep.flt;
+     o["FLIGHT A - DATE"] = isoToDDMMYYYY(vol1.dep.date);
+     o["FLIGHT A - TO"] = vol1.dep.to;
+     o["VOL A - NOM PRENOM"] = name;
    }
 
    if(!isVolEmpty(vol2)){
-     o["FLIGHT_B"]=vol2.dep.flt;
-     o["DEST_B"]=vol2.dep.to;
-     o["DATE_B"]=isoToDDMMYYYY(vol2.dep.date);
-     o["NAME_B"]=name;
+     o["FLIGHT B - DEPARTURE FL"] = vol2.dep.flt;
+     o["FLIGHT B - DATE"] = isoToDDMMYYYY(vol2.dep.date);
+     o["FLIGHT B - TO"] = vol2.dep.to;
+     o["VOL B - NOM PRENOM"] = name;
    }
 
    return o;
@@ -190,6 +205,7 @@ PRESTA_RET:{
 }
 
 };
+;
 
 /* ---------- MOTEUR PDF ---------- */
 
