@@ -243,9 +243,9 @@ async function fillAndPrint(docKey,volTarget="1"){
 
      // padding vertical
      if(isName){
-       tf.setLineHeight(13);   // NOM PRENOM (remonte texte)
+       tf.setLineHeight(9);   // NOM PRENOM (remonte texte)
      }else{
-       tf.setLineHeight(9.5);   // neutre (garde centrage)
+       tf.setLineHeight(9);   // neutre (garde centrage)
      }
 
    }catch{}
