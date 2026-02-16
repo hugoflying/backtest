@@ -233,6 +233,7 @@ async function fillAndPrint(docKey,volTarget="1"){
      const tf=form.getTextField(n);
      tf.setText(String(v??""));
      tf.setFontSize(14);
+     tf.setLineHeight(13);
 
      // NOM PRENOM autocontrole aligné gauche, reste centré
      if(n.includes("NOM PRENOM")){
