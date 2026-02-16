@@ -202,11 +202,13 @@ PRESTA_RET:{
    return o;
  },
  flatten:true
-},
+}
 
-}; // ⭐ ICI tu fermes DOCS
+};
+;
 
 /* ---------- MOTEUR PDF ---------- */
+
 const STYLE = {
   DEFAULT: { fontSize: 14, lineHeight: 14 },
   AUTOCONTROLE: { fontSize: 14, lineHeight: 13 },
