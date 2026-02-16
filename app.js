@@ -204,9 +204,6 @@ PRESTA_RET:{
  flatten:true
 }
 
-};
-;
-
 /* ---------- MOTEUR PDF ---------- */
 
 const STYLE = {
