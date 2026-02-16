@@ -265,15 +265,20 @@ function arrTimeMs(f){
 }
 
 async function fetchAK(flow, fromISO, toISO){
-  const url =
-    `${AK_PROXY}?flow=${encodeURIComponent(flow)}` +
-    `&from=${encodeURIComponent(fromISO)}` +
-    `&to=${encodeURIComponent(toISO)}`;
-
+  const url = `${AK_PROXY}?flow=${encodeURIComponent(flow)}&from=${encodeURIComponent(fromISO)}&to=${encodeURIComponent(toISO)}`;
   const res = await fetch(url);
-  if(!res.ok) throw new Error(`AK error ${res.status}`);
-  const data = await res.json();
-  return Array.isArray(data?.flights) ? data.flights : [];
+  const txt = await res.text(); // debug safe
+  if(!res.ok) throw new Error(`AK ${res.status} ${txt.slice(0,200)}`);
+
+  let data;
+  try { data = JSON.parse(txt); } catch { throw new Error(`AK JSON invalide: ${txt.slice(0,200)}`); }
+
+  if (Array.isArray(data)) return data;
+  if (Array.isArray(data?.flights)) return data.flights;
+  if (Array.isArray(data?.data)) return data.data;
+
+  console.log("AK payload inattendu:", data);
+  return [];
 }
 
 function buildOptionLabelDEP(f){
