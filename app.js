@@ -211,7 +211,7 @@ async function fillAndPrint(docKey,volTarget="1"){
      if(typeof v==="boolean"){ const cb=form.getCheckBox(n); v?cb.check():cb.uncheck(); continue;}
      const tf=form.getTextField(n);
      tf.setText(String(v??""));
-     tf.setFontSize(18);
+     tf.setFontSize(12);
      tf.setAlignment(PDFLib.TextAlignment.Center);
      tf.enableMultiline();
    }catch{}
