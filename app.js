@@ -323,8 +323,10 @@ function findPrevArrForDep(dep, arrAll){
 function applyDepToVol(n, dep, arrAll){
   if(!dep) return;
 
-  // DEP
-  setVal(`dep_date_${n}`, isoToYYYYMMDD(dep?.sobt || dep?.eobt || dep?.aobt || dep?.atot || ""));
+  // DEP (date) ✅ ajoute pobt/ctot/etot
+  const depIso = dep?.sobt || dep?.eobt || dep?.aobt || dep?.pobt || dep?.ctot || dep?.etot || dep?.atot || "";
+  setVal(`dep_date_${n}`, isoToYYYYMMDD(depIso));
+
   setVal(`dep_flt_${n}`, upper(dep?.fullFlightNumber || dep?.callsign || ""));
   setVal(`dep_to_${n}`, upper(dep?.adesIata || dep?.adesIcao || ""));
   setVal(`dep_reg_${n}`, upper(dep?.reg || ""));
@@ -332,18 +334,20 @@ function applyDepToVol(n, dep, arrAll){
   const stand = (dep?.pkg || "").toString().replace(/^P/i,"").trim();
   if(stand) setVal(`parking_${n}`, stand);
 
-  // ARR auto (immat)
   const prevArr = findPrevArrForDep(dep, arrAll);
   if(prevArr){
-    setVal(`arr_date_${n}`, isoToYYYYMMDD(prevArr?.sibt || prevArr?.eibt || prevArr?.aibt || prevArr?.aldt || ""));
+    // ARR (date) ✅ ajoute plein de fallbacks
+    const arrIso = prevArr?.sibt || prevArr?.eibt || prevArr?.aibt || prevArr?.aldt || prevArr?.eldt || prevArr?.afat || prevArr?.efat || "";
+    setVal(`arr_date_${n}`, isoToYYYYMMDD(arrIso));
+
     setVal(`arr_flt_${n}`, upper(prevArr?.fullFlightNumber || prevArr?.callsign || ""));
     setVal(`arr_from_${n}`, upper(prevArr?.adepIata || prevArr?.adepIcao || ""));
     setVal(`arr_reg_${n}`, upper(prevArr?.reg || dep?.reg || ""));
   }else{
-    // fallback : au moins l'immat
     setVal(`arr_reg_${n}`, upper(dep?.reg || ""));
   }
 }
+
 
 async function loadAKForDropdowns(){
   const st1 = $("ak_status_1");
