@@ -209,6 +209,29 @@ PRESTA_RET:{
 
 /* ---------- MOTEUR PDF ---------- */
 
+const STYLE = {
+  DEFAULT: { fontSize: 14, lineHeight: 14 },
+  AUTOCONTROLE: { fontSize: 14, lineHeight: 13 },
+  WAIF: { fontSize: 14, lineHeight: 13 },
+  PRESTA_DEP: { fontSize: 14, lineHeight: 14 },
+  PRESTA_RET: { fontSize: 14, lineHeight: 14 },
+};
+
+function getStyle(docKey, fieldName){
+  const base = STYLE.DEFAULT;
+  const doc = STYLE[docKey] || {};
+  const s = {
+    fontSize: doc.fontSize ?? base.fontSize,
+    lineHeight: doc.lineHeight ?? base.lineHeight
+  };
+
+  if(fieldName.includes("NOM PRENOM")){
+    s.lineHeight = s.fontSize + 2;
+  }
+
+  return s;
+}
+
 async function fillAndPrint(docKey,volTarget="1"){
  const def=DOCS[docKey]; if(!def)return;
  const v1=getVol(1),v2=getVol(2);
@@ -235,18 +258,17 @@ async function fillAndPrint(docKey,volTarget="1"){
 
      const isName = n.includes("NOM PRENOM");
 
-     // rendu stable partout
-     tf.setFontSize(14);
+     // alignement horizontal
      tf.setAlignment(isName ? PDFLib.TextAlignment.Left : PDFLib.TextAlignment.Center);
+
+     // rendu stable
      tf.enableMultiline();
      tf.setMaxLength(100);
 
-     // padding vertical
-     if(isName){
-       tf.setLineHeight(9);   // NOM PRENOM (remonte texte)
-     }else{
-       tf.setLineHeight(9);   // neutre (garde centrage)
-     }
+     // style par document + exceptions
+     const st = getStyle(docKey, n);
+     tf.setFontSize(st.fontSize);
+     tf.setLineHeight(st.lineHeight);
 
    }catch{}
  }
@@ -398,7 +420,6 @@ function applyDepToVol(n, dep, arrAll){
   }
 }
 
-
 async function loadAKForDropdowns(){
   const st1 = $("ak_status_1");
   const st2 = $("ak_status_2");
@@ -409,7 +430,7 @@ async function loadAKForDropdowns(){
   const startDay = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 0,0,0,0);
   const endDay   = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 23,59,59,999);
 
-  // même fenêtre large “linking” que index(62) :contentReference[oaicite:5]{index=5}
+  // fenêtre large pour lier ARR ↔ DEP
   const linkFromDate = new Date(startDay.getTime() - 12*60*60*1000);
   const linkToDate   = new Date(endDay.getTime()   + 12*60*60*1000);
   const linkFrom = linkFromDate.toISOString().replace(/\.\d{3}Z$/, "Z");
@@ -421,7 +442,7 @@ async function loadAKForDropdowns(){
       fetchAK("DEP", linkFrom, linkTo),
     ]);
 
-    // filtre “aujourd’hui” calqué index(62) :contentReference[oaicite:6]{index=6}
+    // vols départ du jour
     const inTodayDep = (f)=>{
       const t = Date.parse(f?.sobt || f?.eobt || f?.aobt || f?.atot || "");
       return t && t >= startDay.getTime() && t <= endDay.getTime();
@@ -429,7 +450,7 @@ async function loadAKForDropdowns(){
 
     const depToday = depAll.filter(inTodayDep);
 
-    // tri chrono (depTimeMs index62)
+    // tri chrono
     depToday.sort((a,b)=>{
       const ta = depTimeMs(a);
       const tb = depTimeMs(b);
@@ -443,7 +464,7 @@ async function loadAKForDropdowns(){
     window._akArrAll = arrAll;
     window._akDepToday = depToday;
 
-    // inject selects
+    // inject dropdowns
     [1,2].forEach(n=>{
       const sel = $(`ak_flight_${n}`);
       const st  = $(`ak_status_${n}`);
@@ -456,6 +477,7 @@ async function loadAKForDropdowns(){
         opt.textContent = buildDepLabel(f);
         sel.appendChild(opt);
       }
+
       if(st) st.textContent = `${depToday.length} vol(s)`;
     });
 
