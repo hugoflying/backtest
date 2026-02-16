@@ -225,3 +225,238 @@ document.addEventListener("click",e=>{
  const b=e.target.closest("button[data-doc]"); if(!b)return;
  fillAndPrint(b.dataset.doc,b.dataset.vol||"1");
 });
+
+/* =========================
+   AirportKeeper -> PDF Filler
+   ========================= */
+
+const AK_PROXY = "https://airportkeeper-proxy.deruellehugo-49c.workers.dev/ak"; // :contentReference[oaicite:3]{index=3}
+
+function $(id){ return document.getElementById(id); }
+
+function toUpper(s){ return (s || "").toUpperCase().trim(); }
+
+function isoToYYYYMMDD(iso){
+  if(!iso) return "";
+  const d = new Date(iso);
+  if(isNaN(d.getTime())) return "";
+  const y = d.getFullYear();
+  const m = String(d.getMonth()+1).padStart(2,"0");
+  const da = String(d.getDate()).padStart(2,"0");
+  return `${y}-${m}-${da}`;
+}
+
+function pickDepIso(f){
+  return f?.sobt || f?.eobt || f?.aobt || f?.atot || "";
+}
+function pickArrIso(f){
+  return f?.aibt || f?.eibt || f?.sibt || f?.aldt || f?.eldt || f?.afat || f?.efat || "";
+}
+
+function depTimeMs(f){
+  const iso = pickDepIso(f);
+  const t = Date.parse(iso);
+  return Number.isFinite(t) ? t : null;
+}
+function arrTimeMs(f){
+  const iso = pickArrIso(f);
+  const t = Date.parse(iso);
+  return Number.isFinite(t) ? t : null;
+}
+
+async function fetchAK(flow, fromISO, toISO){
+  const url =
+    `${AK_PROXY}?flow=${encodeURIComponent(flow)}` +
+    `&from=${encodeURIComponent(fromISO)}` +
+    `&to=${encodeURIComponent(toISO)}`;
+
+  const res = await fetch(url);
+  if(!res.ok) throw new Error(`AK error ${res.status}`);
+  const data = await res.json();
+  return Array.isArray(data?.flights) ? data.flights : [];
+}
+
+function buildOptionLabelDEP(f){
+  const ff   = toUpper(f?.fullFlightNumber || f?.callsign || "");
+  const to   = toUpper(f?.adesIata || "");
+  const reg  = toUpper(f?.reg || "");
+  const tms  = depTimeMs(f);
+
+  let hhmm = "--:--";
+  if(tms != null){
+    const d = new Date(tms);
+    const hh = String(d.getHours()).padStart(2,"0");
+    const mm = String(d.getMinutes()).padStart(2,"0");
+    hhmm = `${hh}:${mm}`;
+  }
+
+  // exemple: "07:10 FR1234 → ALC (EI-DCL)"
+  return `${hhmm} ${ff} → ${to || "---"} (${reg || "REG?"})`;
+}
+
+function standFromPkg(pkg){
+  const s = (pkg || "").toString().trim();
+  return s ? s.replace(/^P/i,"").trim() : "";
+}
+
+function setVal(id, v){
+  const el = $(id);
+  if(!el) return;
+  el.value = (v ?? "");
+  el.dispatchEvent(new Event("input", {bubbles:true}));
+  el.dispatchEvent(new Event("change",{bubbles:true}));
+}
+
+/**
+ * Trouve l'arrivée la plus proche AVANT ce départ (même reg).
+ * Fenêtre max 18h.
+ */
+function findPrevArrForDep(dep, arrList){
+  const depT = depTimeMs(dep);
+  if(depT == null) return null;
+  const reg = toUpper(dep?.reg || "");
+  if(!reg) return null;
+
+  let best = null;
+  let bestDt = Infinity;
+
+  for(const a of (arrList || [])){
+    if(toUpper(a?.reg || "") !== reg) continue;
+    const aT = arrTimeMs(a);
+    if(aT == null) continue;
+    if(aT > depT) continue;
+
+    const dt = depT - aT;
+    if(dt < 0) continue;
+    if(dt > 18 * 60 * 60 * 1000) continue;
+
+    if(dt < bestDt){
+      best = a;
+      bestDt = dt;
+    }
+  }
+  return best;
+}
+
+function applyDepToVol(n, dep, arrList){
+  if(!dep) return;
+
+  // ===== DEP =====
+  const depIso = pickDepIso(dep);
+  setVal(`dep_date_${n}`, isoToYYYYMMDD(depIso));
+
+  const ff = toUpper(dep?.fullFlightNumber || dep?.callsign || "");
+  setVal(`dep_flt_${n}`, ff);
+
+  setVal(`dep_to_${n}`, toUpper(dep?.adesIata || ""));
+
+  const reg = toUpper(dep?.reg || "");
+  setVal(`dep_reg_${n}`, reg);
+
+  const stand = standFromPkg(dep?.pkg);
+  if(stand) setVal(`parking_${n}`, stand);
+
+  // ===== ARR (auto via match) =====
+  const prevArr = findPrevArrForDep(dep, arrList);
+  if(prevArr){
+    const arrIso = pickArrIso(prevArr);
+    setVal(`arr_date_${n}`, isoToYYYYMMDD(arrIso));
+
+    const arrFF = toUpper(prevArr?.fullFlightNumber || prevArr?.callsign || "");
+    setVal(`arr_flt_${n}`, arrFF);
+
+    setVal(`arr_from_${n}`, toUpper(prevArr?.adepIata || ""));
+
+    setVal(`arr_reg_${n}`, toUpper(prevArr?.reg || reg));
+  }else{
+    // fallback minimal: reg si on l'a
+    if(reg) setVal(`arr_reg_${n}`, reg);
+  }
+}
+
+async function loadAKForDropdowns(){
+  const st1 = $("ak_status_1");
+  const st2 = $("ak_status_2");
+  if(st1) st1.textContent = "Chargement…";
+  if(st2) st2.textContent = "Chargement…";
+
+  // fenêtre : aujourd’hui 00:00 -> 23:59 + linking large (±12h)
+  const now = new Date();
+  const startDay = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 0,0,0,0);
+  const endDay   = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 23,59,59,999);
+
+  const linkFrom = new Date(startDay.getTime() - 12*60*60*1000).toISOString().replace(/\.\d{3}Z$/, "Z");
+  const linkTo   = new Date(endDay.getTime()   + 12*60*60*1000).toISOString().replace(/\.\d{3}Z$/, "Z");
+
+  const inTodayDEP = (f)=>{
+    const t = depTimeMs(f);
+    return t != null && t >= startDay.getTime() && t <= endDay.getTime();
+  };
+
+  try{
+    const [arrAll, depAll] = await Promise.all([
+      fetchAK("ARR", linkFrom, linkTo),
+      fetchAK("DEP", linkFrom, linkTo),
+    ]);
+
+    const depToday = depAll.filter(inTodayDEP);
+
+    // Tri chrono
+    depToday.sort((a,b)=>{
+      const ta = depTimeMs(a), tb = depTimeMs(b);
+      if(ta == null && tb == null) return 0;
+      if(ta == null) return 1;
+      if(tb == null) return -1;
+      return ta - tb;
+    });
+
+    // Cache
+    window._akArrAll = arrAll;
+    window._akDepToday = depToday;
+
+    // Remplit les 2 selects avec la même liste
+    [1,2].forEach(n=>{
+      const sel = $(`ak_flight_${n}`);
+      const st  = $(`ak_status_${n}`);
+      if(!sel) return;
+
+      sel.innerHTML = `<option value="">-- Choisir un vol --</option>`;
+      for(const f of depToday){
+        const opt = document.createElement("option");
+        opt.value = String(f?.id ?? "");
+        opt.textContent = buildOptionLabelDEP(f);
+        sel.appendChild(opt);
+      }
+
+      if(st) st.textContent = `${depToday.length} vol(s)`;
+    });
+
+  }catch(e){
+    const msg = `Erreur AK (${String(e.message || e)})`;
+    if(st1) st1.textContent = msg;
+    if(st2) st2.textContent = msg;
+  }
+}
+
+function bindAKSelect(n){
+  const sel = $(`ak_flight_${n}`);
+  if(!sel) return;
+
+  sel.addEventListener("change", ()=>{
+    const id = sel.value;
+    if(!id) return;
+
+    const dep = (window._akDepToday || []).find(f => String(f?.id ?? "") === String(id));
+    if(!dep) return;
+
+    applyDepToVol(n, dep, window._akArrAll || []);
+  });
+}
+
+// Init
+document.addEventListener("DOMContentLoaded", ()=>{
+  bindAKSelect(1);
+  bindAKSelect(2);
+  loadAKForDropdowns();
+});
+
