@@ -212,7 +212,7 @@ PRESTA_RET:{
 const STYLE = {
   DEFAULT: { fontSize: 15, lineHeight: 14 },
 
-  LIR_RYANAIR: { fontSize: 24, lineHeight: 14 },
+  LIR_RYANAIR: { fontSize: 54, lineHeight: 14 },
   LIR_LAUDA:   { fontSize: 14, lineHeight: 14 },
   BINGO_FR:    { fontSize: 14, lineHeight: 14 },
 
