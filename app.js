@@ -25,51 +25,63 @@ function agent(){ return upper(document.getElementById("full_name")?.value) }
 
 const DOCS={
 
-/* ---------- DOCS SIMPLES ---------- */
+const DOCS={
+
+/* ========= BINGO ========= */
 
 BINGO_FR:{
  file:"./templates/BINGO.pdf",
  fill:({vol1})=>({
-   "Date":isoToDDMMYYYY(vol1.dep.date),
-   "N° de vol":vol1.dep.flt,
-   "Immat°":vol1.dep.reg,
-   "Destination":vol1.dep.to
+   "DATE": isoToDDMMYYYY(vol1.dep.date),
+   "DEPARTURE FLIGHT NUMBER": vol1.dep.flt,
+   "REGISTRATION": vol1.dep.reg,
+   "TO": vol1.dep.to,
+   "Agent": agent()
  }),
  flatten:true
 },
+
+/* ========= LIR RYANAIR ========= */
 
 LIR_RYANAIR:{
  file:"./templates/LIR RYANAIR BELLOVA.pdf",
  fill:({vol1})=>({
-   "Date":isoToDDMMYYYY(vol1.dep.date),
-   "A/C Reg.":vol1.dep.reg,
-   "Flt. No.":vol1.dep.flt,
-   "Dest.":vol1.dep.to
+   "DATE": isoToDDMMYYYY(vol1.dep.date),
+   "REGISTRATION": vol1.dep.reg,
+   "DEPARTURE FLIGHT NUMBER": vol1.dep.flt,
+   "TO": vol1.dep.to,
+   "ARRIVAL FLIGHT NUMBER": vol1.arr.flt || ""
  }),
  flatten:true
 },
+
+/* ========= LIR LAUDA ========= */
 
 LIR_LAUDA:{
  file:"./templates/lauda-lir.pdf",
  fill:({vol1})=>({
-   "Flight Number":vol1.dep.flt,
-   "Registration":vol1.dep.reg,
-   "Date":isoToDDMMYYYY(vol1.dep.date),
-   "From":"BVA",
-   "To":vol1.dep.to
+   "DEPARTURE FLIGHT NUMBER": vol1.dep.flt,
+   "REGISTRATION": vol1.dep.reg,
+   "DATE": isoToDDMMYYYY(vol1.dep.date),
+   "FROM": "BVA",
+   "TO": vol1.dep.to
  }),
  flatten:true
 },
 
+/* ========= BBCG ========= */
+
 BBCG_GATE:{
  file:"./templates/BBCG_Apr2020_Rev1 - BAGGAGE BINGO CARD_GATE.pdf",
  fill:({vol1})=>({
-   "Date":isoToDDMMYYYY(vol1.dep.date),
-   "Flt Nbr":vol1.dep.flt,
-   "Dest":vol1.dep.to
+   "Date": isoToDDMMYYYY(vol1.dep.date),
+   "Flt Nbr": vol1.dep.flt,
+   "Dest": vol1.dep.to
  }),
  flatten:true
 },
+
+/* ========= WAIF ========= */
 
 WAIF:{
  file:"./templates/WAIF_Jun2021_Rev1.1_ WALKAROUND INSPECTION FORM.pdf",
@@ -84,6 +96,8 @@ WAIF:{
  flatten:true
 },
 
+/* ========= RTB ========= */
+
 RTB:{
  file:"./templates/RTB_Mar2025_Rev3_Ready To Board.pdf",
  fill:({vol1})=>({
@@ -95,7 +109,7 @@ RTB:{
  flatten:true
 },
 
-/* ---------- DOCS DOUBLES ---------- */
+/* ========= AUTOCONTROLE ========= */
 
 AUTOCONTROLE:{
  file:"./templates/Autocontrôle.pdf",
@@ -115,10 +129,13 @@ AUTOCONTROLE:{
      o["DATE_B"]=isoToDDMMYYYY(vol2.dep.date);
      o["NAME_B"]=name;
    }
+
    return o;
  },
  flatten:true
 },
+
+/* ========= PRESTATIONS DÉPART ========= */
 
 PRESTA_DEP:{
  file:"./templates/Suivi prestations basés départ.pdf",
@@ -126,23 +143,19 @@ PRESTA_DEP:{
    const o={};
 
    if(!isVolEmpty(vol1)){
-     o["IMM_A"]=vol1.dep.reg;
-     o["DATE_A"]=isoToDDMMYYYY(vol1.dep.date);
-     o["PARK_A"]=parking(1);
-     o["FLT_A"]=vol1.dep.flt;
-     o["DEST_A"]=vol1.dep.to;
-     o["DEPART_A"]=true;
-     o["GPU_A"]=true;
+     o["FLIGHT A - IMMATRICULATION"] = vol1.dep.reg;
+     o["FLIGHT A - DATE"] = isoToDDMMYYYY(vol1.dep.date);
+     o["FLIGHT A - STAND"] = parking(1);
+     o["FLIGHT A - DEPARTURE FLIGHT NUMBER"] = vol1.dep.flt;
+     o["FLIGHT A - TO"] = vol1.dep.to;
    }
 
    if(!isVolEmpty(vol2)){
-     o["IMM_B"]=vol2.dep.reg;
-     o["DATE_B"]=isoToDDMMYYYY(vol2.dep.date);
-     o["PARK_B"]=parking(2);
-     o["FLT_B"]=vol2.dep.flt;
-     o["DEST_B"]=vol2.dep.to;
-     o["DEPART_B"]=true;
-     o["GPU_B"]=true;
+     o["FLIGHT B - IMMATRICULATION"] = vol2.dep.reg;
+     o["FLIGHT B - DATE"] = isoToDDMMYYYY(vol2.dep.date);
+     o["FLIGHT B - STAND"] = parking(2);
+     o["FLIGHT B - DEPARTURE FLIGHT NUMBER"] = vol2.dep.flt;
+     o["FLIGHT B - TO"] = vol2.dep.to;
    }
 
    return o;
@@ -150,31 +163,27 @@ PRESTA_DEP:{
  flatten:true
 },
 
+/* ========= PRESTATIONS ARRIVÉE ========= */
+
 PRESTA_RET:{
  file:"./templates/Suivi prestations basés arrivée.pdf",
  fill:({vol1,vol2})=>{
    const o={};
 
    if(!isVolEmpty(vol1)){
-     o["IMM_A"]=vol1.arr.reg;
-     o["DATE_A"]=isoToDDMMYYYY(vol1.arr.date);
-     o["PARK_A"]=parking(1);
-     o["FLT_A"]=vol1.arr.flt;
-     o["FROM_A"]=vol1.arr.from;
-     o["ARR_A"]=true;
-     o["MEN_A"]=true;
-     o["GPU_A"]=true;
+     o["FLIGHT A - IMMATRICULATION"] = vol1.arr.reg;
+     o["FLIGHT A - DATE"] = isoToDDMMYYYY(vol1.arr.date);
+     o["FLIGHT A - STAND"] = parking(1);
+     o["FLIGHT A - ARRIVAL FLIGHT NUMBER"] = vol1.arr.flt;
+     o["FLIGHT A - FROM"] = vol1.arr.from;
    }
 
    if(!isVolEmpty(vol2)){
-     o["IMM_B"]=vol2.arr.reg;
-     o["DATE_B"]=isoToDDMMYYYY(vol2.arr.date);
-     o["PARK_B"]=parking(2);
-     o["FLT_B"]=vol2.arr.flt;
-     o["FROM_B"]=vol2.arr.from;
-     o["ARR_B"]=true;
-     o["MEN_B"]=true;
-     o["GPU_B"]=true;
+     o["FLIGHT B - IMMATRICULATION"] = vol2.arr.reg;
+     o["FLIGHT B - DATE"] = isoToDDMMYYYY(vol2.arr.date);
+     o["FLIGHT B - STAND"] = parking(2);
+     o["FLIGHT B - ARRIVAL FLIGHT NUMBER"] = vol2.arr.flt;
+     o["FLIGHT B - FROM"] = vol2.arr.from;
    }
 
    return o;
