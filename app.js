@@ -224,11 +224,23 @@ async function fillAndPrint(docKey,volTarget="1"){
 
  for(const [n,v] of Object.entries(fields)){
    try{
-     if(typeof v==="boolean"){ const cb=form.getCheckBox(n); v?cb.check():cb.uncheck(); continue;}
+     if(typeof v==="boolean"){
+       const cb=form.getCheckBox(n);
+       v?cb.check():cb.uncheck();
+       continue;
+     }
+
      const tf=form.getTextField(n);
      tf.setText(String(v??""));
-     tf.setFontSize(12);
-     tf.setAlignment(PDFLib.TextAlignment.Center);
+     tf.setFontSize(11);
+
+     // NOM PRENOM autocontrole aligné gauche, reste centré
+     if(n.includes("NOM PRENOM")){
+       tf.setAlignment(PDFLib.TextAlignment.Left);
+     }else{
+       tf.setAlignment(PDFLib.TextAlignment.Center);
+     }
+
      tf.enableMultiline();
    }catch{}
  }
@@ -239,7 +251,9 @@ async function fillAndPrint(docKey,volTarget="1"){
  const bytes=await pdfDoc.save();
  const url=URL.createObjectURL(new Blob([bytes],{type:"application/pdf"}));
  const iframe=document.createElement("iframe");
- iframe.style.display="none"; iframe.src=url; document.body.appendChild(iframe);
+ iframe.style.display="none";
+ iframe.src=url;
+ document.body.appendChild(iframe);
  iframe.onload=()=>iframe.contentWindow.print();
 }
 
