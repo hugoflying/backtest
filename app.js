@@ -210,7 +210,7 @@ PRESTA_RET:{
 /* ---------- MOTEUR PDF ---------- */
 
 const STYLE = {
-  DEFAULT: { fontSize: 14, lineHeight: 14 },
+  DEFAULT: { fontSize: 15, lineHeight: 14 },
 
   LIR_RYANAIR: { fontSize: 14, lineHeight: 14 },
   LIR_LAUDA:   { fontSize: 14, lineHeight: 14 },
