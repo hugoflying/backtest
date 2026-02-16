@@ -202,7 +202,10 @@ PRESTA_RET:{
    return o;
  },
  flatten:true
-}
+},
+
+}; // ✅ FIN de const DOCS
+
 
 /* ---------- MOTEUR PDF ---------- */
 
