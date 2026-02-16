@@ -216,7 +216,7 @@ const STYLE = {
   LIR_LAUDA:   { fontSize: 14, lineHeight: 14 },
   BINGO_FR:    { fontSize: 14, lineHeight: 14 },
 
-  BBCG_GATE:   { fontSize: 14, lineHeight: 80 },
+  BBCG_GATE:   { fontSize: 14, lineHeight: 14 },
   RTB:         { fontSize: 14, lineHeight: 14 },
   WAIF:        { fontSize: 14, lineHeight: 13 },
 
