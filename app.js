@@ -227,14 +227,13 @@ document.addEventListener("click",e=>{
 });
 
 /* =========================
-   AirportKeeper -> PDF Filler
+   AirportKeeper -> Dropdowns (version calquée index(62))
    ========================= */
 
 const AK_PROXY = "https://airportkeeper-proxy.deruellehugo-49c.workers.dev/ak"; // :contentReference[oaicite:3]{index=3}
 
 function $(id){ return document.getElementById(id); }
-
-function toUpper(s){ return (s || "").toUpperCase().trim(); }
+function upper(s){ return (s||"").toUpperCase().trim(); }
 
 function isoToYYYYMMDD(iso){
   if(!iso) return "";
@@ -246,62 +245,43 @@ function isoToYYYYMMDD(iso){
   return `${y}-${m}-${da}`;
 }
 
-function pickDepIso(f){
-  return f?.sobt || f?.eobt || f?.aobt || f?.atot || "";
-}
-function pickArrIso(f){
-  return f?.aibt || f?.eibt || f?.sibt || f?.aldt || f?.eldt || f?.afat || f?.efat || "";
-}
-
-function depTimeMs(f){
-  const iso = pickDepIso(f);
-  const t = Date.parse(iso);
-  return Number.isFinite(t) ? t : null;
-}
+// ===== mêmes choix temps que index(62) ===== :contentReference[oaicite:4]{index=4}
 function arrTimeMs(f){
-  const iso = pickArrIso(f);
-  const t = Date.parse(iso);
-  return Number.isFinite(t) ? t : null;
+  return Date.parse(f?.aibt || f?.eibt || f?.sibt || f?.aldt || f?.eldt || f?.afat || f?.efat || '') || null;
+}
+function depTimeMs(f){
+  return Date.parse(f?.aobt || f?.eobt || f?.pobt || f?.ctot || f?.etot || f?.sobt || '') || null;
 }
 
-async function fetchAK(flow, fromISO, toISO){
-  const url = `${AK_PROXY}?flow=${encodeURIComponent(flow)}&from=${encodeURIComponent(fromISO)}&to=${encodeURIComponent(toISO)}`;
+async function fetchAK(flow, from, to){
+  const url =
+    `${AK_PROXY}?flow=${encodeURIComponent(flow)}` +
+    `&from=${encodeURIComponent(from)}` +
+    `&to=${encodeURIComponent(to)}`;
+
   const res = await fetch(url);
-  const txt = await res.text(); // debug safe
-  if(!res.ok) throw new Error(`AK ${res.status} ${txt.slice(0,200)}`);
+  if(!res.ok) throw new Error(`AK error ${res.status}`);
 
-  let data;
-  try { data = JSON.parse(txt); } catch { throw new Error(`AK JSON invalide: ${txt.slice(0,200)}`); }
-
-  if (Array.isArray(data)) return data;
-  if (Array.isArray(data?.flights)) return data.flights;
-  if (Array.isArray(data?.data)) return data.data;
-
-  console.log("AK payload inattendu:", data);
-  return [];
+  const data = await res.json();
+  return Array.isArray(data?.flights) ? data.flights : [];
 }
 
-function buildOptionLabelDEP(f){
-  const ff   = toUpper(f?.fullFlightNumber || f?.callsign || "");
-  const to   = toUpper(f?.adesIata || "");
-  const reg  = toUpper(f?.reg || "");
-  const tms  = depTimeMs(f);
-
-  let hhmm = "--:--";
-  if(tms != null){
-    const d = new Date(tms);
-    const hh = String(d.getHours()).padStart(2,"0");
-    const mm = String(d.getMinutes()).padStart(2,"0");
-    hhmm = `${hh}:${mm}`;
-  }
-
-  // exemple: "07:10 FR1234 → ALC (EI-DCL)"
-  return `${hhmm} ${ff} → ${to || "---"} (${reg || "REG?"})`;
+// label dropdown (simple + fiable)
+function hhmmFromMs(ms){
+  if(ms == null) return "--:--";
+  const d = new Date(ms);
+  const hh = String(d.getHours()).padStart(2,"0");
+  const mm = String(d.getMinutes()).padStart(2,"0");
+  return `${hh}:${mm}`;
 }
 
-function standFromPkg(pkg){
-  const s = (pkg || "").toString().trim();
-  return s ? s.replace(/^P/i,"").trim() : "";
+function buildDepLabel(f){
+  const t   = hhmmFromMs(depTimeMs(f));
+  const ff  = upper(f?.fullFlightNumber || f?.callsign || "");
+  const to  = upper(f?.adesIata || f?.adesIcao || "");
+  const reg = upper(f?.reg || "");
+  const stand = (f?.pkg || "").toString().replace(/^P/i,"").trim();
+  return `${t} ${ff || "(sans numéro)"} → ${to || "---"} (${reg || "REG?"}${stand ? ` · P${stand}` : ""})`;
 }
 
 function setVal(id, v){
@@ -312,28 +292,25 @@ function setVal(id, v){
   el.dispatchEvent(new Event("change",{bubbles:true}));
 }
 
-/**
- * Trouve l'arrivée la plus proche AVANT ce départ (même reg).
- * Fenêtre max 18h.
- */
-function findPrevArrForDep(dep, arrList){
+// trouve l'arrivée précédente même reg (fenêtre 18h)
+function findPrevArrForDep(dep, arrAll){
   const depT = depTimeMs(dep);
   if(depT == null) return null;
-  const reg = toUpper(dep?.reg || "");
+  const reg = upper(dep?.reg || "");
   if(!reg) return null;
 
   let best = null;
   let bestDt = Infinity;
 
-  for(const a of (arrList || [])){
-    if(toUpper(a?.reg || "") !== reg) continue;
+  for(const a of (arrAll || [])){
+    if(upper(a?.reg || "") !== reg) continue;
     const aT = arrTimeMs(a);
     if(aT == null) continue;
     if(aT > depT) continue;
 
     const dt = depT - aT;
     if(dt < 0) continue;
-    if(dt > 18 * 60 * 60 * 1000) continue;
+    if(dt > 18*60*60*1000) continue;
 
     if(dt < bestDt){
       best = a;
@@ -343,39 +320,28 @@ function findPrevArrForDep(dep, arrList){
   return best;
 }
 
-function applyDepToVol(n, dep, arrList){
+function applyDepToVol(n, dep, arrAll){
   if(!dep) return;
 
-  // ===== DEP =====
-  const depIso = pickDepIso(dep);
-  setVal(`dep_date_${n}`, isoToYYYYMMDD(depIso));
+  // DEP
+  setVal(`dep_date_${n}`, isoToYYYYMMDD(dep?.sobt || dep?.eobt || dep?.aobt || dep?.atot || ""));
+  setVal(`dep_flt_${n}`, upper(dep?.fullFlightNumber || dep?.callsign || ""));
+  setVal(`dep_to_${n}`, upper(dep?.adesIata || dep?.adesIcao || ""));
+  setVal(`dep_reg_${n}`, upper(dep?.reg || ""));
 
-  const ff = toUpper(dep?.fullFlightNumber || dep?.callsign || "");
-  setVal(`dep_flt_${n}`, ff);
-
-  setVal(`dep_to_${n}`, toUpper(dep?.adesIata || ""));
-
-  const reg = toUpper(dep?.reg || "");
-  setVal(`dep_reg_${n}`, reg);
-
-  const stand = standFromPkg(dep?.pkg);
+  const stand = (dep?.pkg || "").toString().replace(/^P/i,"").trim();
   if(stand) setVal(`parking_${n}`, stand);
 
-  // ===== ARR (auto via match) =====
-  const prevArr = findPrevArrForDep(dep, arrList);
+  // ARR auto (immat)
+  const prevArr = findPrevArrForDep(dep, arrAll);
   if(prevArr){
-    const arrIso = pickArrIso(prevArr);
-    setVal(`arr_date_${n}`, isoToYYYYMMDD(arrIso));
-
-    const arrFF = toUpper(prevArr?.fullFlightNumber || prevArr?.callsign || "");
-    setVal(`arr_flt_${n}`, arrFF);
-
-    setVal(`arr_from_${n}`, toUpper(prevArr?.adepIata || ""));
-
-    setVal(`arr_reg_${n}`, toUpper(prevArr?.reg || reg));
+    setVal(`arr_date_${n}`, isoToYYYYMMDD(prevArr?.sibt || prevArr?.eibt || prevArr?.aibt || prevArr?.aldt || ""));
+    setVal(`arr_flt_${n}`, upper(prevArr?.fullFlightNumber || prevArr?.callsign || ""));
+    setVal(`arr_from_${n}`, upper(prevArr?.adepIata || prevArr?.adepIcao || ""));
+    setVal(`arr_reg_${n}`, upper(prevArr?.reg || dep?.reg || ""));
   }else{
-    // fallback minimal: reg si on l'a
-    if(reg) setVal(`arr_reg_${n}`, reg);
+    // fallback : au moins l'immat
+    setVal(`arr_reg_${n}`, upper(dep?.reg || ""));
   }
 }
 
@@ -385,18 +351,15 @@ async function loadAKForDropdowns(){
   if(st1) st1.textContent = "Chargement…";
   if(st2) st2.textContent = "Chargement…";
 
-  // fenêtre : aujourd’hui 00:00 -> 23:59 + linking large (±12h)
   const now = new Date();
   const startDay = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 0,0,0,0);
   const endDay   = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 23,59,59,999);
 
-  const linkFrom = new Date(startDay.getTime() - 12*60*60*1000).toISOString().replace(/\.\d{3}Z$/, "Z");
-  const linkTo   = new Date(endDay.getTime()   + 12*60*60*1000).toISOString().replace(/\.\d{3}Z$/, "Z");
-
-  const inTodayDEP = (f)=>{
-    const t = depTimeMs(f);
-    return t != null && t >= startDay.getTime() && t <= endDay.getTime();
-  };
+  // même fenêtre large “linking” que index(62) :contentReference[oaicite:5]{index=5}
+  const linkFromDate = new Date(startDay.getTime() - 12*60*60*1000);
+  const linkToDate   = new Date(endDay.getTime()   + 12*60*60*1000);
+  const linkFrom = linkFromDate.toISOString().replace(/\.\d{3}Z$/, "Z");
+  const linkTo   = linkToDate.toISOString().replace(/\.\d{3}Z$/, "Z");
 
   try{
     const [arrAll, depAll] = await Promise.all([
@@ -404,22 +367,29 @@ async function loadAKForDropdowns(){
       fetchAK("DEP", linkFrom, linkTo),
     ]);
 
-    const depToday = depAll.filter(inTodayDEP);
+    // filtre “aujourd’hui” calqué index(62) :contentReference[oaicite:6]{index=6}
+    const inTodayDep = (f)=>{
+      const t = Date.parse(f?.sobt || f?.eobt || f?.aobt || f?.atot || "");
+      return t && t >= startDay.getTime() && t <= endDay.getTime();
+    };
 
-    // Tri chrono
+    const depToday = depAll.filter(inTodayDep);
+
+    // tri chrono (depTimeMs index62)
     depToday.sort((a,b)=>{
-      const ta = depTimeMs(a), tb = depTimeMs(b);
+      const ta = depTimeMs(a);
+      const tb = depTimeMs(b);
       if(ta == null && tb == null) return 0;
       if(ta == null) return 1;
       if(tb == null) return -1;
       return ta - tb;
     });
 
-    // Cache
+    // cache global
     window._akArrAll = arrAll;
     window._akDepToday = depToday;
 
-    // Remplit les 2 selects avec la même liste
+    // inject selects
     [1,2].forEach(n=>{
       const sel = $(`ak_flight_${n}`);
       const st  = $(`ak_status_${n}`);
@@ -429,10 +399,9 @@ async function loadAKForDropdowns(){
       for(const f of depToday){
         const opt = document.createElement("option");
         opt.value = String(f?.id ?? "");
-        opt.textContent = buildOptionLabelDEP(f);
+        opt.textContent = buildDepLabel(f);
         sel.appendChild(opt);
       }
-
       if(st) st.textContent = `${depToday.length} vol(s)`;
     });
 
@@ -458,10 +427,8 @@ function bindAKSelect(n){
   });
 }
 
-// Init
 document.addEventListener("DOMContentLoaded", ()=>{
   bindAKSelect(1);
   bindAKSelect(2);
   loadAKForDropdowns();
 });
-
