@@ -204,11 +204,9 @@ PRESTA_RET:{
  flatten:true
 },
 
-}; // ✅ FIN de const DOCS
-
+}; // ⭐ ICI tu fermes DOCS
 
 /* ---------- MOTEUR PDF ---------- */
-
 const STYLE = {
   DEFAULT: { fontSize: 14, lineHeight: 14 },
   AUTOCONTROLE: { fontSize: 14, lineHeight: 13 },
