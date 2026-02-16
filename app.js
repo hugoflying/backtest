@@ -295,7 +295,6 @@ document.addEventListener("click",e=>{
 const AK_PROXY = "https://airportkeeper-proxy.deruellehugo-49c.workers.dev/ak"; // :contentReference[oaicite:3]{index=3}
 
 function $(id){ return document.getElementById(id); }
-function upper(s){ return (s||"").toUpperCase().trim(); }
 
 function isoToYYYYMMDD(iso){
   if(!iso) return "";
