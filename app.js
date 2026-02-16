@@ -245,7 +245,7 @@ async function fillAndPrint(docKey,volTarget="1"){
      if(isName){
        tf.setLineHeight(13);   // NOM PRENOM (remonte texte)
      }else{
-       tf.setLineHeight(11);   // neutre (garde centrage)
+       tf.setLineHeight(9.5);   // neutre (garde centrage)
      }
 
    }catch{}
