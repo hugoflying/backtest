@@ -236,7 +236,7 @@ async function fillAndPrint(docKey,volTarget="1"){
      const isName = n.includes("NOM PRENOM");
 
      // rendu stable partout
-     tf.setFontSize(16);
+     tf.setFontSize(14);
      tf.setAlignment(isName ? PDFLib.TextAlignment.Left : PDFLib.TextAlignment.Center);
      tf.enableMultiline();
      tf.setMaxLength(100);
