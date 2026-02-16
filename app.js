@@ -231,7 +231,7 @@ async function fillAndPrint(docKey,volTarget="1"){
      }
 
      const tf=form.getTextField(n);
-     tf.setText(String(v??""));
+     tf.setText(String(v ?? "").toUpperCase());
 
      const isName = n.includes("NOM PRENOM");
 
@@ -486,16 +486,4 @@ document.addEventListener("DOMContentLoaded", ()=>{
   bindAKSelect(2);
   loadAKForDropdowns();
 });
-
-
-
-
-
-
-
-
-
-
-
-
 
