@@ -232,17 +232,20 @@ async function fillAndPrint(docKey,volTarget="1"){
 
      const tf=form.getTextField(n);
      tf.setText(String(v??""));
-     tf.setFontSize(14);
-     tf.setLineHeight(13);
 
-     // NOM PRENOM autocontrole aligné gauche, reste centré
-     if(n.includes("NOM PRENOM")){
-       tf.setAlignment(PDFLib.TextAlignment.Left);
-     }else{
-       tf.setAlignment(PDFLib.TextAlignment.Center);
+     const isName = n.includes("NOM PRENOM");
+
+     // taille "normale" pour tout
+     tf.setFontSize(11);
+
+     // alignement horizontal
+     tf.setAlignment(isName ? PDFLib.TextAlignment.Left : PDFLib.TextAlignment.Center);
+
+     // "padding" uniquement sur NOM PRENOM (sinon on flingue le centrage ailleurs)
+     if(isName){
+       tf.enableMultiline();
+       tf.setLineHeight(13); // ajuste 12/13/14 si besoin
      }
-
-     tf.enableMultiline();
    }catch{}
  }
 
