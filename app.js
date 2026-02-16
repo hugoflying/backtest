@@ -211,25 +211,35 @@ PRESTA_RET:{
 
 const STYLE = {
   DEFAULT: { fontSize: 14, lineHeight: 14 },
-  AUTOCONTROLE: { fontSize: 14, lineHeight: 13 },
-  WAIF: { fontSize: 14, lineHeight: 13 },
-  PRESTA_DEP: { fontSize: 14, lineHeight: 14 },
-  PRESTA_RET: { fontSize: 14, lineHeight: 14 },
+
+  LIR_RYANAIR: { fontSize: 14, lineHeight: 14 },
+  LIR_LAUDA:   { fontSize: 14, lineHeight: 14 },
+  BINGO_FR:    { fontSize: 14, lineHeight: 14 },
+
+  BBCG_GATE:   { fontSize: 14, lineHeight: 14 },
+  RTB:         { fontSize: 14, lineHeight: 14 },
+  WAIF:        { fontSize: 14, lineHeight: 13 },
+
+  PRESTA_DEP:  { fontSize: 14, lineHeight: 14 },
+  PRESTA_RET:  { fontSize: 14, lineHeight: 14 },
+  AUTOCONTROLE:{ fontSize: 14, lineHeight: 13 },
+
+  // option : réglages ultra ciblés par champ
+  FIELDS: {
+    "VOL A - NOM PRENOM": { lineHeight: 16 }, // autocontrole
+    "VOL B - NOM PRENOM": { lineHeight: 16 },
+  }
 };
 
 function getStyle(docKey, fieldName){
   const base = STYLE.DEFAULT;
-  const doc = STYLE[docKey] || {};
-  const s = {
-    fontSize: doc.fontSize ?? base.fontSize,
-    lineHeight: doc.lineHeight ?? base.lineHeight
+  const doc  = STYLE[docKey] || {};
+  const field= STYLE.FIELDS?.[fieldName] || {};
+
+  return {
+    fontSize: field.fontSize ?? doc.fontSize ?? base.fontSize,
+    lineHeight: field.lineHeight ?? doc.lineHeight ?? base.lineHeight
   };
-
-  if(fieldName.includes("NOM PRENOM")){
-    s.lineHeight = s.fontSize + 2;
-  }
-
-  return s;
 }
 
 async function fillAndPrint(docKey,volTarget="1"){
