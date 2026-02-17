@@ -57,7 +57,7 @@ BINGO_FR:{
 /* ========= LIR RYANAIR ========= */
 
 LIR_RYANAIR:{
- file: `${TEMPLATE_BASE}/templates/LIR RYANAIR BELLOVA.pdf`
+ file: `${TEMPLATE_BASE}/templates/LIR RYANAIR BELLOVA.pdf`,
  fill:({vol1})=>({
    "DATE": isoToDDMMYYYY(vol1.dep.date),
    "REGISTRATION": vol1.dep.reg,
@@ -72,7 +72,7 @@ LIR_RYANAIR:{
 /* ========= LIR LAUDA ========= */
 
 LIR_LAUDA:{
- file: `${TEMPLATE_BASE}/templates/lauda-lir.pdf`
+ file: `${TEMPLATE_BASE}/templates/lauda-lir.pdf`,
  fill:({vol1})=>({
    "DEPARTURE FLIGHT NUMBER": vol1.dep.flt,
    "REGISTRATION": vol1.dep.reg,
@@ -86,7 +86,7 @@ LIR_LAUDA:{
 /* ========= BBCG (Wizz) ========= */
 
 BBCG_GATE:{
- file: `${TEMPLATE_BASE}/templates/BBCG_Apr2020_Rev1 - BAGGAGE BINGO CARD_GATE.pdf`
+ file: `${TEMPLATE_BASE}/templates/BBCG_Apr2020_Rev1 - BAGGAGE BINGO CARD_GATE.pdf`,
  fill:({vol1})=>({
    "DATE": isoToDDMMYYYY(vol1.dep.date),
    "DEPARTURE FLIGHT NUMBER": vol1.dep.flt,
@@ -99,7 +99,7 @@ BBCG_GATE:{
 /* ========= WAIF (Wizz) ========= */
 
 WAIF:{
- file: `${TEMPLATE_BASE}/templates/WAIF_Jun2021_Rev1.1_ WALKAROUND INSPECTION FORM.pdf`
+ file: `${TEMPLATE_BASE}/templates/WAIF_Jun2021_Rev1.1_ WALKAROUND INSPECTION FORM.pdf`,
  fill:({vol1})=>({
    "STATION": "BVA", // forcé
    "ARRIVAL FLIGHT NUMBER": vol1.arr.flt,
@@ -114,7 +114,7 @@ WAIF:{
 /* ========= RTB (Wizz) ========= */
 
 RTB:{
- file: `${TEMPLATE_BASE}/templates/RTB_Mar2025_Rev3_Ready To Board.pdf`
+ file: `${TEMPLATE_BASE}/templates/RTB_Mar2025_Rev3_Ready To Board.pdf`,
  fill:({vol1})=>({
    "DATE": isoToDDMMYYYY(vol1.dep.date),
    "DEPARTURE FLIGHT NUMBER": vol1.dep.flt,
@@ -127,7 +127,7 @@ RTB:{
 /* ========= AUTOCONTROLE ========= */
 
 AUTOCONTROLE:{
- file: `${TEMPLATE_BASE}/templates/Autocontrôle.pdf`
+ file: `${TEMPLATE_BASE}/templates/Autocontrôle.pdf`,
  fill:({vol1,vol2})=>{
    const o={},name=agent();
 
@@ -153,7 +153,7 @@ AUTOCONTROLE:{
 /* ========= PRESTATIONS DÉPART ========= */
 
 PRESTA_DEP:{
- file: `${TEMPLATE_BASE}/templates/Suivi prestations basés départ.pdf`
+ file: `${TEMPLATE_BASE}/templates/Suivi prestations basés départ.pdf`,
  fill:({vol1,vol2})=>{
    const o={};
 
@@ -181,7 +181,7 @@ PRESTA_DEP:{
 /* ========= PRESTATIONS ARRIVÉE ========= */
 
 PRESTA_RET:{
- file: `${TEMPLATE_BASE}/templates/Suivi prestations basés arrivée.pdf`
+ file: `${TEMPLATE_BASE}/templates/Suivi prestations basés arrivée.pdf`,
  fill:({vol1,vol2})=>{
    const o={};
 
