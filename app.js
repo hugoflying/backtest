@@ -211,19 +211,6 @@ PRESTA_RET:{
 
 /* ---------- MOTEUR PDF ---------- */
 
-const FONT_SIZE = {
-  DEFAULT: 14,
-  LIR_RYANAIR: 14,
-  LIR_LAUDA: 14,
-  BINGO_FR: 14,
-  BBCG_GATE: 14,
-  WAIF: 14,
-  RTB: 14,
-  PRESTA_DEP: 14,
-  PRESTA_RET: 14,
-  AUTOCONTROLE: 14,
-};
-
 async function fillAndPrint(docKey, volTarget = "1") {
   const def = DOCS[docKey];
   if (!def) return;
@@ -233,6 +220,8 @@ async function fillAndPrint(docKey, volTarget = "1") {
   const vol2 = (volTarget === "2") ? v1 : v2;
 
   const res = await fetch(def.file);
+  if (!res.ok) throw new Error(`Template fetch failed (${res.status})`);
+
   const pdfDoc = await PDFDocument.load(await res.arrayBuffer());
   const form = pdfDoc.getForm();
   const font = await pdfDoc.embedFont(StandardFonts.Helvetica);
@@ -241,8 +230,6 @@ async function fillAndPrint(docKey, volTarget = "1") {
     (volTarget === "both")
       ? def.fill({ vol1: v1, vol2: v2 })
       : def.fill({ vol1, vol2 });
-
-  const fontSize = FONT_SIZE[docKey] || FONT_SIZE.DEFAULT;
 
   for (const [n, v] of Object.entries(fields)) {
     try {
@@ -260,12 +247,9 @@ async function fillAndPrint(docKey, volTarget = "1") {
       // alignement horizontal
       tf.setAlignment(isName ? PDFLib.TextAlignment.Left : PDFLib.TextAlignment.Center);
 
-      // rendu stable
+      // rendu stable (sans imposer la taille de police)
       tf.enableMultiline();
       tf.setMaxLength(100);
-
-      // taille de police par document
-      tf.setFontSize(fontSize);
 
     } catch {}
   }
@@ -283,9 +267,10 @@ async function fillAndPrint(docKey, volTarget = "1") {
 }
 
 /* boutons */
-document.addEventListener("click",e=>{
- const b=e.target.closest("button[data-doc]"); if(!b)return;
- fillAndPrint(b.dataset.doc,b.dataset.vol||"1");
+document.addEventListener("click", (e) => {
+  const b = e.target.closest("button[data-doc]");
+  if (!b) return;
+  fillAndPrint(b.dataset.doc, b.dataset.vol || "1");
 });
 
 /* =========================
