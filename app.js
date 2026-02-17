@@ -211,90 +211,75 @@ PRESTA_RET:{
 
 /* ---------- MOTEUR PDF ---------- */
 
-const STYLE = {
-  DEFAULT: { fontSize: 15, lineHeight: 14 },
-
-  LIR_RYANAIR: { fontSize: 14, lineHeight: 14 },
-  LIR_LAUDA:   { fontSize: 14, lineHeight: 14 },
-  BINGO_FR:    { fontSize: 14, lineHeight: 14 },
-
-  BBCG_GATE:   { fontSize: 14, lineHeight: 14 },
-  RTB:         { fontSize: 14, lineHeight: 14 },
-  WAIF:        { fontSize: 14, lineHeight: 13 },
-
-  PRESTA_DEP:  { fontSize: 14, lineHeight: 14 },
-  PRESTA_RET:  { fontSize: 14, lineHeight: 14 },
-  AUTOCONTROLE:{ fontSize: 14, lineHeight: 13 },
-
-  // option : réglages ultra ciblés par champ
-  FIELDS: {
-    "VOL A - NOM PRENOM": { lineHeight: 16 }, // autocontrole
-    "VOL B - NOM PRENOM": { lineHeight: 16 },
-  }
+const FONT_SIZE = {
+  DEFAULT: 14,
+  LIR_RYANAIR: 14,
+  LIR_LAUDA: 14,
+  BINGO_FR: 14,
+  BBCG_GATE: 14,
+  WAIF: 14,
+  RTB: 14,
+  PRESTA_DEP: 14,
+  PRESTA_RET: 14,
+  AUTOCONTROLE: 14,
 };
 
-function getStyle(docKey, fieldName){
-  const base = STYLE.DEFAULT;
-  const doc  = STYLE[docKey] || {};
-  const field= STYLE.FIELDS?.[fieldName] || {};
+async function fillAndPrint(docKey, volTarget = "1") {
+  const def = DOCS[docKey];
+  if (!def) return;
 
-  return {
-    fontSize: field.fontSize ?? doc.fontSize ?? base.fontSize,
-    lineHeight: field.lineHeight ?? doc.lineHeight ?? base.lineHeight
-  };
-}
+  const v1 = getVol(1), v2 = getVol(2);
+  const vol1 = (volTarget === "2") ? v2 : v1;
+  const vol2 = (volTarget === "2") ? v1 : v2;
 
-async function fillAndPrint(docKey,volTarget="1"){
- const def=DOCS[docKey]; if(!def)return;
- const v1=getVol(1),v2=getVol(2);
- const vol1=(volTarget==="2")?v2:v1;
- const vol2=(volTarget==="2")?v1:v2;
+  const res = await fetch(def.file);
+  const pdfDoc = await PDFDocument.load(await res.arrayBuffer());
+  const form = pdfDoc.getForm();
+  const font = await pdfDoc.embedFont(StandardFonts.Helvetica);
 
- const res=await fetch(def.file);
- const pdfDoc=await PDFDocument.load(await res.arrayBuffer());
- const form=pdfDoc.getForm();
- const font=await pdfDoc.embedFont(StandardFonts.Helvetica);
+  const fields =
+    (volTarget === "both")
+      ? def.fill({ vol1: v1, vol2: v2 })
+      : def.fill({ vol1, vol2 });
 
- const fields=(volTarget==="both")?def.fill({vol1:v1,vol2:v2}):def.fill({vol1,vol2});
+  const fontSize = FONT_SIZE[docKey] || FONT_SIZE.DEFAULT;
 
- for(const [n,v] of Object.entries(fields)){
-   try{
-     if(typeof v==="boolean"){
-       const cb=form.getCheckBox(n);
-       v?cb.check():cb.uncheck();
-       continue;
-     }
+  for (const [n, v] of Object.entries(fields)) {
+    try {
+      if (typeof v === "boolean") {
+        const cb = form.getCheckBox(n);
+        v ? cb.check() : cb.uncheck();
+        continue;
+      }
 
-     const tf=form.getTextField(n);
-     tf.setText(String(v ?? "").toUpperCase());
+      const tf = form.getTextField(n);
+      tf.setText(String(v ?? "").toUpperCase());
 
-     const isName = n.includes("NOM PRENOM");
+      const isName = n.includes("NOM PRENOM");
 
-     // alignement horizontal
-     tf.setAlignment(isName ? PDFLib.TextAlignment.Left : PDFLib.TextAlignment.Center);
+      // alignement horizontal
+      tf.setAlignment(isName ? PDFLib.TextAlignment.Left : PDFLib.TextAlignment.Center);
 
-     // rendu stable
-     tf.enableMultiline();
-     tf.setMaxLength(100);
+      // rendu stable
+      tf.enableMultiline();
+      tf.setMaxLength(100);
 
-     // style par document + exceptions
-     const st = getStyle(docKey, n);
-     tf.setFontSize(st.fontSize);
-     tf.setLineHeight(st.lineHeight);
+      // taille de police par document
+      tf.setFontSize(fontSize);
 
-   }catch{}
- }
+    } catch {}
+  }
 
- form.updateFieldAppearances(font);
- form.flatten();
+  form.updateFieldAppearances(font);
+  form.flatten();
 
- const bytes=await pdfDoc.save();
- const url=URL.createObjectURL(new Blob([bytes],{type:"application/pdf"}));
- const iframe=document.createElement("iframe");
- iframe.style.display="none";
- iframe.src=url;
- document.body.appendChild(iframe);
- iframe.onload=()=>iframe.contentWindow.print();
+  const bytes = await pdfDoc.save();
+  const url = URL.createObjectURL(new Blob([bytes], { type: "application/pdf" }));
+  const iframe = document.createElement("iframe");
+  iframe.style.display = "none";
+  iframe.src = url;
+  document.body.appendChild(iframe);
+  iframe.onload = () => iframe.contentWindow.print();
 }
 
 /* boutons */
