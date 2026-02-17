@@ -244,12 +244,8 @@ async function fillAndPrint(docKey, volTarget = "1") {
 
       const isName = n.includes("NOM PRENOM");
 
-      // alignement horizontal
+      // uniquement l’alignement horizontal
       tf.setAlignment(isName ? PDFLib.TextAlignment.Left : PDFLib.TextAlignment.Center);
-
-      // rendu stable (sans imposer la taille de police)
-      tf.enableMultiline();
-      tf.setMaxLength(100);
 
     } catch {}
   }
@@ -272,6 +268,7 @@ document.addEventListener("click", (e) => {
   if (!b) return;
   fillAndPrint(b.dataset.doc, b.dataset.vol || "1");
 });
+
 
 /* =========================
    AirportKeeper -> Dropdowns (version calquée index(62))
