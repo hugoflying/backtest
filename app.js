@@ -1,3 +1,5 @@
+const TEMPLATE_BASE = "https://flight-templates.deruellehugo-49c.workers.dev";
+
 const { PDFDocument, StandardFonts } = PDFLib;
 
 function isoToDDMMYYYY(iso){
