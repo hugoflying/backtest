@@ -6,120 +6,41 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bulma@1.0.2/css/bulma.min.css">
 
+  <!-- ✅ Styles popup AK (si tu l'utilises encore) -->
   <style>
-    :root{
-      --bg: #f6f7fb;
-      --card: rgba(255,255,255,.92);
-      --stroke: rgba(16,24,40,.08);
-      --shadow: 0 14px 34px rgba(16,24,40,.08);
-      --shadow-sm: 0 8px 20px rgba(16,24,40,.08);
-      --radius: 18px;
-    }
-
-    html, body { background: var(--bg); }
-
-    .app-header{
-      position: sticky;
-      top: 0;
-      z-index: 50;
-      backdrop-filter: blur(10px);
-      background: rgba(246,247,251,.75);
-      border-bottom: 1px solid var(--stroke);
-      padding: 16px 0;
-      margin-bottom: 10px;
-    }
-
-    .app-title{
-      letter-spacing: -0.02em;
-      font-weight: 800;
-    }
-
-    .box{
-      border-radius: var(--radius);
-      border: 1px solid var(--stroke);
-      box-shadow: var(--shadow-sm);
-      background: var(--card);
-    }
-
-    .section { padding-top: 18px; }
-
-    .input, .select select{
-      border-radius: 14px;
-      border: 1px solid rgba(16,24,40,.12);
-      transition: .15s ease;
-      background: rgba(255,255,255,.95);
-    }
-
-    .input:focus, .select select:focus{
-      border-color: rgba(50,115,220,.55);
-      box-shadow: 0 0 0 4px rgba(50,115,220,.12);
-    }
-
-    .label{ font-weight: 700; }
-
-    .buttons .button{
-      border-radius: 999px;
-      padding-left: 14px;
-      padding-right: 14px;
-      box-shadow: 0 10px 18px rgba(16,24,40,.08);
-      border: 1px solid rgba(16,24,40,.08);
-    }
-
-    .buttons .button.is-link,
-    .buttons .button.is-dark,
-    .buttons .button.is-warning{
-      border: none;
-    }
-
-    .tags .tag{
-      border-radius: 999px;
-      font-weight: 700;
-    }
-
-    .help{ color: rgba(16,24,40,.55); }
-
     #akBackdrop{
       position: fixed;
       inset: 0;
       background: rgba(0,0,0,.35);
-      backdrop-filter: blur(2px);
       z-index: 4600;
     }
-
     #akPopover{
       position: fixed;
       inset: 10px;
-      border-radius: 22px;
-      border: 1px solid var(--stroke);
-      box-shadow: var(--shadow);
-      background: var(--card);
+      background: #fff;
+      border-radius: 16px;
       z-index: 4700;
       padding: 12px;
       overflow: auto;
+      box-shadow: 0 10px 28px rgba(0,0,0,.08);
+      border: 1px solid rgba(0,0,0,.08);
     }
-
     #akPopover .ak-header{
       position: sticky;
       top: 0;
       z-index: 2;
-      backdrop-filter: blur(10px);
-      background: rgba(255,255,255,.78);
-      border-bottom: 1px solid var(--stroke);
+      background: #fff;
       padding: 10px 0;
+      border-bottom: 1px solid rgba(0,0,0,.08);
     }
   </style>
 </head>
 
 <body>
-
-<div class="app-header">
-  <div class="container">
-    <h1 class="title has-text-centered app-title">Flight PDF Filler</h1>
-  </div>
-</div>
-
 <section class="section">
   <div class="container">
+
+    <h1 class="title has-text-centered">Flight PDF Filler</h1>
 
     <!-- AGENT -->
     <div class="box">
@@ -132,12 +53,14 @@
 
     <div class="columns">
 
-      <!-- VOL 1 -->
+      <!-- ================= VOL 1 ================= -->
       <div class="column">
 
+        <!-- LISTE VOLS (AK) -->
         <div class="box">
           <h2 class="title is-5">Liste Vols</h2>
 
+          <!-- ✅ Switch Départs / Arrivées -->
           <div class="field mb-2">
             <div class="select is-fullwidth">
               <select id="ak_flow_1">
@@ -159,6 +82,8 @@
 
         <div class="box">
           <h2 class="title is-4">VOL 1 — ARRIVÉE</h2>
+
+          <!-- ✅ Badges ARR (retard / à l'heure / avance) -->
           <div class="tags mb-2" id="arr_badges_1"></div>
 
           <label class="checkbox mb-2">
@@ -175,6 +100,8 @@
 
         <div class="box">
           <h2 class="title is-4">VOL 1 — DÉPART</h2>
+
+          <!-- ✅ Badges DEP (retard / à l'heure / avance) -->
           <div class="tags mb-2" id="dep_badges_1"></div>
 
           <input id="dep_date_1" type="date" class="input mb-2">
@@ -191,6 +118,7 @@
             <button class="button is-dark" data-doc="LIR_RYANAIR" data-vol="1">LIR Ryanair</button>
             <button class="button is-dark" data-doc="LIR_LAUDA" data-vol="1">LIR Lauda</button>
             <button class="button is-dark" data-doc="BINGO_FR" data-vol="1">Bingo Gate</button>
+
             <button class="button is-link" data-doc="BBCG_GATE" data-vol="1">BBCG Gate</button>
             <button class="button is-link" data-doc="WAIF" data-vol="1">Walkaround</button>
             <button class="button is-link" data-doc="RTB" data-vol="1">Ready To Board</button>
@@ -199,12 +127,14 @@
 
       </div>
 
-      <!-- VOL 2 -->
+      <!-- ================= VOL 2 ================= -->
       <div class="column">
 
+        <!-- LISTE VOLS (AK) -->
         <div class="box">
           <h2 class="title is-5">Liste Vols</h2>
 
+          <!-- ✅ Switch Départs / Arrivées -->
           <div class="field mb-2">
             <div class="select is-fullwidth">
               <select id="ak_flow_2">
@@ -226,6 +156,8 @@
 
         <div class="box">
           <h2 class="title is-4">VOL 2 — ARRIVÉE</h2>
+
+          <!-- ✅ Badges ARR (retard / à l'heure / avance) -->
           <div class="tags mb-2" id="arr_badges_2"></div>
 
           <label class="checkbox mb-2">
@@ -242,6 +174,8 @@
 
         <div class="box">
           <h2 class="title is-4">VOL 2 — DÉPART</h2>
+
+          <!-- ✅ Badges DEP (retard / à l'heure / avance) -->
           <div class="tags mb-2" id="dep_badges_2"></div>
 
           <input id="dep_date_2" type="date" class="input mb-2">
@@ -258,6 +192,7 @@
             <button class="button is-dark" data-doc="LIR_RYANAIR" data-vol="2">LIR Ryanair</button>
             <button class="button is-dark" data-doc="LIR_LAUDA" data-vol="2">LIR Lauda</button>
             <button class="button is-dark" data-doc="BINGO_FR" data-vol="2">Bingo Gate</button>
+
             <button class="button is-link" data-doc="BBCG_GATE" data-vol="2">BBCG Gate</button>
             <button class="button is-link" data-doc="WAIF" data-vol="2">Walkaround</button>
             <button class="button is-link" data-doc="RTB" data-vol="2">Ready To Board</button>
@@ -267,6 +202,7 @@
       </div>
     </div>
 
+    <!-- DOCS DOUBLES -->
     <div class="box">
       <h2 class="title is-4">Documents 2 vols</h2>
       <div class="buttons">
@@ -279,6 +215,7 @@
   </div>
 </section>
 
+<!-- ✅ POPUP AK (si tu utilises openAKMenu/closeAKMenu/renderAKMenu) -->
 <div id="akBackdrop" style="display:none;" onclick="closeAKMenu()"></div>
 
 <div id="akPopover" style="display:none;">
