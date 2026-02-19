@@ -6,8 +6,118 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bulma@1.0.2/css/bulma.min.css">
 
-  <!-- ✅ Styles popup AK (si tu l'utilises encore) -->
   <style>
+    /* ===== App look (dark moderne) ===== */
+    body{
+      background:
+        radial-gradient(1200px 700px at 50% 0%, rgba(72,95,199,.12), transparent 60%),
+        #0f1115;
+      color: #e9eaee;
+      min-height: 100vh;
+    }
+
+    /* Titre */
+    .title.ui-title{
+      margin-bottom: 18px;
+      letter-spacing: .4px;
+      color: #f3f4f6;
+      text-shadow: 0 2px 12px rgba(0,0,0,.35);
+    }
+
+    /* Layout */
+    .ui-section{
+      padding-top: 28px;
+      padding-bottom: 28px;
+    }
+    .ui-container{
+      max-width: 1180px;
+    }
+
+    /* Grille plus dense */
+    .ui-grid{
+      gap: 14px;
+      margin-top: 14px;
+    }
+    .ui-grid > .column{
+      padding: 0 !important;
+    }
+    .ui-stack{
+      display:flex;
+      flex-direction: column;
+      gap: 14px;
+    }
+
+    /* Cards */
+    .ui-card{
+      border-radius: 16px;
+      overflow: hidden;
+      border: 1px solid rgba(255,255,255,.08);
+      background: rgba(20, 22, 26, .92);
+      box-shadow: 0 10px 24px rgba(0,0,0,.35);
+    }
+    .ui-card .card-header{
+      background: rgba(255,255,255,.03);
+      border-bottom: 1px solid rgba(255,255,255,.06);
+    }
+    .ui-card .card-header-title{
+      font-size: 0.95rem;
+      letter-spacing: .2px;
+      color: #f3f4f6;
+    }
+    .ui-card .card-content{
+      padding: 14px;
+    }
+
+    /* Labels */
+    .label.is-small{
+      opacity: .85;
+      margin-bottom: 6px;
+      color: rgba(243,244,246,.9);
+    }
+
+    /* Inputs / selects */
+    .ui-input,
+    .select select,
+    .textarea{
+      background: rgba(255,255,255,.03) !important;
+      border-color: rgba(255,255,255,.10) !important;
+      color: #e9eaee !important;
+    }
+    .ui-input::placeholder{
+      color: rgba(233,234,238,.45);
+    }
+    .ui-input:focus,
+    .select select:focus,
+    .textarea:focus{
+      border-color: rgba(72, 95, 199, .8) !important;
+      box-shadow: 0 0 0 3px rgba(72, 95, 199, .20) !important;
+    }
+    .input.is-small,
+    .select.is-small select{
+      height: 34px;
+    }
+    .help{
+      color: rgba(233,234,238,.6);
+    }
+
+    /* Boutons docs */
+    .ui-doc-buttons{
+      display:flex;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    /* Badges */
+    .tags .tag{
+      border-radius: 999px;
+    }
+
+    /* Checkbox un peu plus propre en dark */
+    .checkbox{
+      color: rgba(233,234,238,.9);
+    }
+
+    /* ===== Popup AK (conservé) ===== */
     #akBackdrop{
       position: fixed;
       inset: 0;
@@ -17,205 +127,378 @@
     #akPopover{
       position: fixed;
       inset: 10px;
-      background: #fff;
+      background: rgba(20, 22, 26, .98);
+      color: #e9eaee;
       border-radius: 16px;
       z-index: 4700;
       padding: 12px;
       overflow: auto;
-      box-shadow: 0 10px 28px rgba(0,0,0,.08);
-      border: 1px solid rgba(0,0,0,.08);
+      box-shadow: 0 10px 28px rgba(0,0,0,.45);
+      border: 1px solid rgba(255,255,255,.10);
     }
     #akPopover .ak-header{
       position: sticky;
       top: 0;
       z-index: 2;
-      background: #fff;
+      background: rgba(20, 22, 26, .98);
       padding: 10px 0;
-      border-bottom: 1px solid rgba(0,0,0,.08);
+      border-bottom: 1px solid rgba(255,255,255,.10);
     }
   </style>
 </head>
 
 <body>
-<section class="section">
-  <div class="container">
+<section class="section ui-section">
+  <div class="container ui-container">
 
-    <h1 class="title has-text-centered">Flight PDF Filler</h1>
+    <h1 class="title has-text-centered ui-title">Flight PDF Filler</h1>
 
     <!-- AGENT -->
-    <div class="box">
-      <h2 class="title is-4">Agent</h2>
-      <div class="field">
-        <label class="label">Nom Prénom</label>
-        <input id="full_name" class="input" placeholder="DUPONT JEAN">
+    <div class="card ui-card">
+      <header class="card-header">
+        <p class="card-header-title">Agent</p>
+      </header>
+      <div class="card-content">
+        <div class="field">
+          <label class="label is-small">Nom Prénom</label>
+          <div class="control">
+            <input id="full_name" class="input is-small ui-input" placeholder="DUPONT JEAN">
+          </div>
+        </div>
       </div>
     </div>
 
-    <div class="columns">
+    <div class="columns ui-grid is-variable is-0">
 
       <!-- ================= VOL 1 ================= -->
       <div class="column">
+        <div class="ui-stack">
 
-        <!-- LISTE VOLS (AK) -->
-        <div class="box">
-          <h2 class="title is-5">Liste Vols</h2>
+          <!-- LISTE VOLS (AK) -->
+          <div class="card ui-card">
+            <header class="card-header">
+              <p class="card-header-title">Liste Vols — Vol 1</p>
+            </header>
+            <div class="card-content">
 
-          <!-- ✅ Switch Départs / Arrivées -->
-          <div class="field mb-2">
-            <div class="select is-fullwidth">
-              <select id="ak_flow_1">
-                <option value="DEP" selected>Départs</option>
-                <option value="ARR">Arrivées</option>
-              </select>
+              <!-- Switch Départs / Arrivées -->
+              <div class="field mb-2">
+                <div class="control">
+                  <div class="select is-fullwidth is-small">
+                    <select id="ak_flow_1">
+                      <option value="DEP" selected>Départs</option>
+                      <option value="ARR">Arrivées</option>
+                    </select>
+                  </div>
+                </div>
+              </div>
+
+              <div class="field">
+                <div class="control">
+                  <div class="select is-fullwidth is-small">
+                    <select id="ak_flight_1">
+                      <option value="">-- Choisir un vol --</option>
+                    </select>
+                  </div>
+                </div>
+                <p class="help" id="ak_status_1">—</p>
+              </div>
+
             </div>
           </div>
 
-          <div class="field">
-            <div class="select is-fullwidth">
-              <select id="ak_flight_1">
-                <option value="">-- Choisir un vol --</option>
-              </select>
+          <!-- VOL 1 ARRIVÉE -->
+          <div class="card ui-card">
+            <header class="card-header">
+              <p class="card-header-title">VOL 1 — ARRIVÉE</p>
+            </header>
+            <div class="card-content">
+
+              <!-- Badges ARR -->
+              <div class="tags mb-2" id="arr_badges_1"></div>
+
+              <label class="checkbox mb-2 is-size-7">
+                <input id="hold_search_1" type="checkbox">
+                HOLD SECURITY SEARCH
+              </label>
+
+              <div class="field mb-2">
+                <div class="control">
+                  <input id="arr_date_1" type="date" class="input is-small ui-input">
+                </div>
+              </div>
+
+              <div class="field mb-2">
+                <div class="control">
+                  <input id="arr_flt_1" class="input is-small ui-input" placeholder="Flight Number">
+                </div>
+              </div>
+
+              <div class="field mb-2">
+                <div class="control">
+                  <input id="arr_from_1" class="input is-small ui-input" placeholder="From">
+                </div>
+              </div>
+
+              <div class="field mb-2">
+                <div class="control">
+                  <input id="arr_reg_1" class="input is-small ui-input" placeholder="Registration">
+                </div>
+              </div>
+
+              <div class="field">
+                <div class="control">
+                  <input id="arr_type_1" class="input is-small ui-input" placeholder="A/C Type">
+                </div>
+              </div>
+
             </div>
-            <p class="help" id="ak_status_1">—</p>
           </div>
-        </div>
 
-        <div class="box">
-          <h2 class="title is-4">VOL 1 — ARRIVÉE</h2>
+          <!-- VOL 1 DÉPART -->
+          <div class="card ui-card">
+            <header class="card-header">
+              <p class="card-header-title">VOL 1 — DÉPART</p>
+            </header>
+            <div class="card-content">
 
-          <!-- ✅ Badges ARR (retard / à l'heure / avance) -->
-          <div class="tags mb-2" id="arr_badges_1"></div>
+              <!-- Badges DEP -->
+              <div class="tags mb-2" id="dep_badges_1"></div>
 
-          <label class="checkbox mb-2">
-            <input id="hold_search_1" type="checkbox">
-            HOLD SECURITY SEARCH
-          </label>
+              <div class="field mb-2">
+                <div class="control">
+                  <input id="dep_date_1" type="date" class="input is-small ui-input">
+                </div>
+              </div>
 
-          <input id="arr_date_1" type="date" class="input mb-2">
-          <input id="arr_flt_1" class="input mb-2" placeholder="Flight Number">
-          <input id="arr_from_1" class="input mb-2" placeholder="From">
-          <input id="arr_reg_1" class="input mb-2" placeholder="Registration">
-          <input id="arr_type_1" class="input mb-2" placeholder="A/C Type">
-        </div>
+              <div class="field mb-2">
+                <div class="control">
+                  <input id="dep_flt_1" class="input is-small ui-input" placeholder="Flight number">
+                </div>
+              </div>
 
-        <div class="box">
-          <h2 class="title is-4">VOL 1 — DÉPART</h2>
+              <div class="field mb-2">
+                <div class="control">
+                  <input id="dep_to_1" class="input is-small ui-input" placeholder="To">
+                </div>
+              </div>
 
-          <!-- ✅ Badges DEP (retard / à l'heure / avance) -->
-          <div class="tags mb-2" id="dep_badges_1"></div>
+              <div class="field mb-2">
+                <div class="control">
+                  <input id="parking_1" class="input is-small ui-input" placeholder="Parking">
+                </div>
+              </div>
 
-          <input id="dep_date_1" type="date" class="input mb-2">
-          <input id="dep_flt_1" class="input mb-2" placeholder="Flight number">
-          <input id="dep_to_1" class="input mb-2" placeholder="To">
-          <input id="parking_1" class="input mb-2" placeholder="Parking">
-          <input id="dep_reg_1" class="input mb-2" placeholder="Registration">
-          <input id="dep_type_1" class="input mb-2" placeholder="A/C Type">
-        </div>
+              <div class="field mb-2">
+                <div class="control">
+                  <input id="dep_reg_1" class="input is-small ui-input" placeholder="Registration">
+                </div>
+              </div>
 
-        <div class="box">
-          <h2 class="title is-5">Documents VOL 1</h2>
-          <div class="buttons">
-            <button class="button is-dark" data-doc="LIR_RYANAIR" data-vol="1">LIR Ryanair</button>
-            <button class="button is-dark" data-doc="LIR_LAUDA" data-vol="1">LIR Lauda</button>
-            <button class="button is-dark" data-doc="BINGO_FR" data-vol="1">Bingo Gate</button>
+              <div class="field">
+                <div class="control">
+                  <input id="dep_type_1" class="input is-small ui-input" placeholder="A/C Type">
+                </div>
+              </div>
 
-            <button class="button is-link" data-doc="BBCG_GATE" data-vol="1">BBCG Gate</button>
-            <button class="button is-link" data-doc="WAIF" data-vol="1">Walkaround</button>
-            <button class="button is-link" data-doc="RTB" data-vol="1">Ready To Board</button>
+            </div>
           </div>
-        </div>
 
+          <!-- DOCS VOL 1 -->
+          <div class="card ui-card">
+            <header class="card-header">
+              <p class="card-header-title">Documents — Vol 1</p>
+            </header>
+            <div class="card-content">
+              <div class="ui-doc-buttons">
+                <button class="button is-dark is-small" data-doc="LIR_RYANAIR" data-vol="1">LIR Ryanair</button>
+                <button class="button is-dark is-small" data-doc="LIR_LAUDA" data-vol="1">LIR Lauda</button>
+                <button class="button is-dark is-small" data-doc="BINGO_FR" data-vol="1">Bingo Gate</button>
+
+                <button class="button is-link is-small" data-doc="BBCG_GATE" data-vol="1">BBCG Gate</button>
+                <button class="button is-link is-small" data-doc="WAIF" data-vol="1">Walkaround</button>
+                <button class="button is-link is-small" data-doc="RTB" data-vol="1">Ready To Board</button>
+              </div>
+            </div>
+          </div>
+
+        </div>
       </div>
 
       <!-- ================= VOL 2 ================= -->
       <div class="column">
+        <div class="ui-stack">
 
-        <!-- LISTE VOLS (AK) -->
-        <div class="box">
-          <h2 class="title is-5">Liste Vols</h2>
+          <!-- LISTE VOLS (AK) -->
+          <div class="card ui-card">
+            <header class="card-header">
+              <p class="card-header-title">Liste Vols — Vol 2</p>
+            </header>
+            <div class="card-content">
 
-          <!-- ✅ Switch Départs / Arrivées -->
-          <div class="field mb-2">
-            <div class="select is-fullwidth">
-              <select id="ak_flow_2">
-                <option value="DEP" selected>Départs</option>
-                <option value="ARR">Arrivées</option>
-              </select>
+              <!-- Switch Départs / Arrivées -->
+              <div class="field mb-2">
+                <div class="control">
+                  <div class="select is-fullwidth is-small">
+                    <select id="ak_flow_2">
+                      <option value="DEP" selected>Départs</option>
+                      <option value="ARR">Arrivées</option>
+                    </select>
+                  </div>
+                </div>
+              </div>
+
+              <div class="field">
+                <div class="control">
+                  <div class="select is-fullwidth is-small">
+                    <select id="ak_flight_2">
+                      <option value="">-- Choisir un vol --</option>
+                    </select>
+                  </div>
+                </div>
+                <p class="help" id="ak_status_2">—</p>
+              </div>
+
             </div>
           </div>
 
-          <div class="field">
-            <div class="select is-fullwidth">
-              <select id="ak_flight_2">
-                <option value="">-- Choisir un vol --</option>
-              </select>
+          <!-- VOL 2 ARRIVÉE -->
+          <div class="card ui-card">
+            <header class="card-header">
+              <p class="card-header-title">VOL 2 — ARRIVÉE</p>
+            </header>
+            <div class="card-content">
+
+              <!-- Badges ARR -->
+              <div class="tags mb-2" id="arr_badges_2"></div>
+
+              <label class="checkbox mb-2 is-size-7">
+                <input id="hold_search_2" type="checkbox">
+                HOLD SECURITY SEARCH
+              </label>
+
+              <div class="field mb-2">
+                <div class="control">
+                  <input id="arr_date_2" type="date" class="input is-small ui-input">
+                </div>
+              </div>
+
+              <div class="field mb-2">
+                <div class="control">
+                  <input id="arr_flt_2" class="input is-small ui-input" placeholder="Flight Number">
+                </div>
+              </div>
+
+              <div class="field mb-2">
+                <div class="control">
+                  <input id="arr_from_2" class="input is-small ui-input" placeholder="From">
+                </div>
+              </div>
+
+              <div class="field mb-2">
+                <div class="control">
+                  <input id="arr_reg_2" class="input is-small ui-input" placeholder="Registration">
+                </div>
+              </div>
+
+              <div class="field">
+                <div class="control">
+                  <input id="arr_type_2" class="input is-small ui-input" placeholder="A/C Type">
+                </div>
+              </div>
+
             </div>
-            <p class="help" id="ak_status_2">—</p>
           </div>
-        </div>
 
-        <div class="box">
-          <h2 class="title is-4">VOL 2 — ARRIVÉE</h2>
+          <!-- VOL 2 DÉPART -->
+          <div class="card ui-card">
+            <header class="card-header">
+              <p class="card-header-title">VOL 2 — DÉPART</p>
+            </header>
+            <div class="card-content">
 
-          <!-- ✅ Badges ARR (retard / à l'heure / avance) -->
-          <div class="tags mb-2" id="arr_badges_2"></div>
+              <!-- Badges DEP -->
+              <div class="tags mb-2" id="dep_badges_2"></div>
 
-          <label class="checkbox mb-2">
-            <input id="hold_search_2" type="checkbox">
-            HOLD SECURITY SEARCH
-          </label>
+              <div class="field mb-2">
+                <div class="control">
+                  <input id="dep_date_2" type="date" class="input is-small ui-input">
+                </div>
+              </div>
 
-          <input id="arr_date_2" type="date" class="input mb-2">
-          <input id="arr_flt_2" class="input mb-2" placeholder="Flight Number">
-          <input id="arr_from_2" class="input mb-2" placeholder="From">
-          <input id="arr_reg_2" class="input mb-2" placeholder="Registration">
-          <input id="arr_type_2" class="input mb-2" placeholder="A/C Type">
-        </div>
+              <div class="field mb-2">
+                <div class="control">
+                  <input id="dep_flt_2" class="input is-small ui-input" placeholder="Flight Number">
+                </div>
+              </div>
 
-        <div class="box">
-          <h2 class="title is-4">VOL 2 — DÉPART</h2>
+              <div class="field mb-2">
+                <div class="control">
+                  <input id="dep_to_2" class="input is-small ui-input" placeholder="To">
+                </div>
+              </div>
 
-          <!-- ✅ Badges DEP (retard / à l'heure / avance) -->
-          <div class="tags mb-2" id="dep_badges_2"></div>
+              <div class="field mb-2">
+                <div class="control">
+                  <input id="parking_2" class="input is-small ui-input" placeholder="Parking">
+                </div>
+              </div>
 
-          <input id="dep_date_2" type="date" class="input mb-2">
-          <input id="dep_flt_2" class="input mb-2" placeholder="Flight Number">
-          <input id="dep_to_2" class="input mb-2" placeholder="To">
-          <input id="parking_2" class="input mb-2" placeholder="Parking">
-          <input id="dep_reg_2" class="input mb-2" placeholder="Registration">
-          <input id="dep_type_2" class="input mb-2" placeholder="A/C Type">
-        </div>
+              <div class="field mb-2">
+                <div class="control">
+                  <input id="dep_reg_2" class="input is-small ui-input" placeholder="Registration">
+                </div>
+              </div>
 
-        <div class="box">
-          <h2 class="title is-5">Documents VOL 2</h2>
-          <div class="buttons">
-            <button class="button is-dark" data-doc="LIR_RYANAIR" data-vol="2">LIR Ryanair</button>
-            <button class="button is-dark" data-doc="LIR_LAUDA" data-vol="2">LIR Lauda</button>
-            <button class="button is-dark" data-doc="BINGO_FR" data-vol="2">Bingo Gate</button>
+              <div class="field">
+                <div class="control">
+                  <input id="dep_type_2" class="input is-small ui-input" placeholder="A/C Type">
+                </div>
+              </div>
 
-            <button class="button is-link" data-doc="BBCG_GATE" data-vol="2">BBCG Gate</button>
-            <button class="button is-link" data-doc="WAIF" data-vol="2">Walkaround</button>
-            <button class="button is-link" data-doc="RTB" data-vol="2">Ready To Board</button>
+            </div>
           </div>
-        </div>
 
+          <!-- DOCS VOL 2 -->
+          <div class="card ui-card">
+            <header class="card-header">
+              <p class="card-header-title">Documents — Vol 2</p>
+            </header>
+            <div class="card-content">
+              <div class="ui-doc-buttons">
+                <button class="button is-dark is-small" data-doc="LIR_RYANAIR" data-vol="2">LIR Ryanair</button>
+                <button class="button is-dark is-small" data-doc="LIR_LAUDA" data-vol="2">LIR Lauda</button>
+                <button class="button is-dark is-small" data-doc="BINGO_FR" data-vol="2">Bingo Gate</button>
+
+                <button class="button is-link is-small" data-doc="BBCG_GATE" data-vol="2">BBCG Gate</button>
+                <button class="button is-link is-small" data-doc="WAIF" data-vol="2">Walkaround</button>
+                <button class="button is-link is-small" data-doc="RTB" data-vol="2">Ready To Board</button>
+              </div>
+            </div>
+          </div>
+
+        </div>
       </div>
     </div>
 
     <!-- DOCS DOUBLES -->
-    <div class="box">
-      <h2 class="title is-4">Documents 2 vols</h2>
-      <div class="buttons">
-        <button class="button is-warning" data-doc="AUTOCONTROLE" data-vol="both">Autocontrôle</button>
-        <button class="button is-warning" data-doc="PRESTA_DEP" data-vol="both">Prestations départ</button>
-        <button class="button is-warning" data-doc="PRESTA_RET" data-vol="both">Prestations arrivée</button>
+    <div class="card ui-card" style="margin-top:14px;">
+      <header class="card-header">
+        <p class="card-header-title">Documents — 2 vols</p>
+      </header>
+      <div class="card-content">
+        <div class="ui-doc-buttons">
+          <button class="button is-warning is-small" data-doc="AUTOCONTROLE" data-vol="both">Autocontrôle</button>
+          <button class="button is-warning is-small" data-doc="PRESTA_DEP" data-vol="both">Prestations départ</button>
+          <button class="button is-warning is-small" data-doc="PRESTA_RET" data-vol="both">Prestations arrivée</button>
+        </div>
       </div>
     </div>
 
   </div>
 </section>
 
-<!-- ✅ POPUP AK (si tu utilises openAKMenu/closeAKMenu/renderAKMenu) -->
+<!-- POPUP AK -->
 <div id="akBackdrop" style="display:none;" onclick="closeAKMenu()"></div>
 
 <div id="akPopover" style="display:none;">
