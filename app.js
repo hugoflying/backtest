@@ -466,7 +466,7 @@ function akAcType(f){
   );
 }
 
-async function loadAKForDropdowns(){
+async function loadAKAll(){
   const st1 = $("ak_status_1");
   const st2 = $("ak_status_2");
   if(st1) st1.textContent = "Chargement…";
@@ -488,44 +488,33 @@ async function loadAKForDropdowns(){
       fetchAK("DEP", linkFrom, linkTo),
     ]);
 
-    // vols départ du jour
+    // vols départ du jour (comme avant)
     const inTodayDep = (f)=>{
       const t = Date.parse(f?.sobt || f?.eobt || f?.aobt || f?.atot || "");
       return t && t >= startDay.getTime() && t <= endDay.getTime();
     };
-
     const depToday = depAll.filter(inTodayDep);
 
+    // vols arrivée du jour (équivalent)
+    const inTodayArr = (f)=>{
+      const t = Date.parse(f?.sibt || f?.eibt || f?.aibt || f?.aldt || f?.eldt || "");
+      return t && t >= startDay.getTime() && t <= endDay.getTime();
+    };
+    const arrToday = arrAll.filter(inTodayArr);
+
     // tri chrono
-    depToday.sort((a,b)=>{
-      const ta = depTimeMs(a);
-      const tb = depTimeMs(b);
-      if(ta == null && tb == null) return 0;
-      if(ta == null) return 1;
-      if(tb == null) return -1;
-      return ta - tb;
-    });
+    depToday.sort((a,b)=> (depTimeMs(a) ?? 1e18) - (depTimeMs(b) ?? 1e18));
+    arrToday.sort((a,b)=> (arrTimeMs(a) ?? 1e18) - (arrTimeMs(b) ?? 1e18));
 
     // cache global
-    window._akArrAll = arrAll;
-    window._akDepToday = depToday;
+    window._akArrAll   = arrAll;     // large window, utile pour lien
+    window._akDepAll   = depAll;     // si besoin plus tard
+    window._akDepToday = depToday;   // pour affichage DEP
+    window._akArrToday = arrToday;   // pour affichage ARR
 
-    // inject dropdowns
-    [1,2].forEach(n=>{
-      const sel = $(`ak_flight_${n}`);
-      const st  = $(`ak_status_${n}`);
-      if(!sel) return;
-
-      sel.innerHTML = `<option value="">-- Choisir un vol --</option>`;
-      for(const f of depToday){
-        const opt = document.createElement("option");
-        opt.value = String(f?.id ?? "");
-        opt.textContent = buildDepLabel(f);
-        sel.appendChild(opt);
-      }
-
-      if(st) st.textContent = `${depToday.length} vol(s)`;
-    });
+    // refresh dropdowns selon le flow sélectionné
+    refreshAKDropdown(1);
+    refreshAKDropdown(2);
 
   }catch(e){
     const msg = `Erreur AK (${String(e.message || e)})`;
@@ -534,26 +523,70 @@ async function loadAKForDropdowns(){
   }
 }
 
-function bindAKSelect(n){
+function buildArrLabel(f){
+  const t   = hhmmFromMs(arrTimeMs(f));
+  const ff  = upper(f?.fullFlightNumber || f?.callsign || "");
+  const from= upper(f?.adepIata || f?.adepIcao || "");
+  const reg = upper(f?.reg || "");
+  const stand = (f?.pkg || "").toString().replace(/^P/i,"").trim();
+  return `${t} ${ff || "(sans numéro)"} ← ${from || "---"} (${reg || "REG?"}${stand ? ` · P${stand}` : ""})`;
+}
+
+function refreshAKDropdown(n){
+  const flowSel = $(`ak_flow_${n}`);   // ton switch
   const sel = $(`ak_flight_${n}`);
-  if(!sel) return;
+  const st  = $(`ak_status_${n}`);
+  if(!flowSel || !sel) return;
+
+  const flow = flowSel.value; // "DEP" ou "ARR"
+  const list = (flow === "DEP") ? (window._akDepToday || []) : (window._akArrToday || []);
+
+  sel.innerHTML = `<option value="">-- Choisir un vol --</option>`;
+  for(const f of list){
+    const opt = document.createElement("option");
+    opt.value = String(f?.id ?? "");
+    opt.textContent = (flow === "DEP") ? buildDepLabel(f) : buildArrLabel(f);
+    sel.appendChild(opt);
+  }
+
+  if(st) st.textContent = `${list.length} vol(s)`;
+}
+
+function bindAK(n){
+  const flowSel = $(`ak_flow_${n}`);
+  const sel = $(`ak_flight_${n}`);
+  if(!flowSel || !sel) return;
+
+  flowSel.addEventListener("change", ()=>{
+    refreshAKDropdown(n);
+  });
 
   sel.addEventListener("change", ()=>{
     const id = sel.value;
     if(!id) return;
 
-    const dep = (window._akDepToday || []).find(f => String(f?.id ?? "") === String(id));
-    if(!dep) return;
+    const flow = flowSel.value;
 
-    applyDepToVol(n, dep, window._akArrAll || []);
+    if(flow === "DEP"){
+      const dep = (window._akDepToday || []).find(f => String(f?.id ?? "") === String(id));
+      if(!dep) return;
+
+      // ✅ conserve la logique : remplir DEP + ARR liée via cache arrAll large
+      applyDepToVol(n, dep, window._akArrAll || []);
+    } else {
+      const arr = (window._akArrToday || []).find(f => String(f?.id ?? "") === String(id));
+      if(!arr) return;
+
+      // remplissage arrivée seulement (tu peux décider de remplir le départ lié aussi si tu veux)
+      const arrIso = arr?.sibt || arr?.eibt || arr?.aibt || arr?.aldt || arr?.eldt || arr?.afat || arr?.efat || "";
+      setVal(`arr_date_${n}`, isoToYYYYMMDD(arrIso));
+      setVal(`arr_flt_${n}`, upper(arr?.fullFlightNumber || arr?.callsign || ""));
+      setVal(`arr_from_${n}`, upper(arr?.adepIata || arr?.adepIcao || ""));
+      setVal(`arr_reg_${n}`, upper(arr?.reg || ""));
+      setVal(`arr_type_${n}`, akAcType(arr));
+    }
   });
 }
-
-document.addEventListener("DOMContentLoaded", ()=>{
-  bindAKSelect(1);
-  bindAKSelect(2);
-  loadAKForDropdowns();
-});
 
 function lirTypeX(acType){
   const t = upper(acType);
@@ -570,5 +603,12 @@ function lirTypeX(acType){
     B38M: (isB38M ? "" : "X"),
   };
 }
+
+document.addEventListener("DOMContentLoaded", ()=>{
+  bindAK(1);
+  bindAK(2);
+  loadAKAll();
+});
+
 
 
