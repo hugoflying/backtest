@@ -339,15 +339,15 @@ function lirTypeX(acType){
 }
 
 /* =========================
-   AirportKeeper -> Dropdowns
+   AirportKeeper
    - Liste DEP = SOBT
    - Liste ARR = SIBT
-   - Lien ARR↔DEP conservé (via arrAll / depAll)
-   - Lien inversé : choix ARR => remplit DEP lié (suivant)
-   - Choix DEP => ARR liée UNIQUEMENT si même date (SOBT == SIBT)
+   - Association par linkedId (strict)
+     * DEP -> ARR : linkedId + même jour obligatoire (SOBT == SIBT), sinon rien
+     * ARR -> DEP : linkedId (strict)
    - Badges UI : ARR et DEP indépendants
-     * 5–14  => retard orange
-     * >=15  => retard rouge
+     * 5–14  => retardé orange
+     * >=15  => retardé rouge
      * <5    => à l'heure vert
      * <=-5  => en avance bleu
    ========================= */
@@ -366,7 +366,7 @@ function isoToYYYYMMDD(iso){
   return `${y}-${m}-${da}`;
 }
 
-// ===== temps "moteur" (pour lien, etc.) =====
+// ===== temps "moteur" (au cas où) =====
 function arrTimeMs(f){
   return Date.parse(f?.aibt || f?.eibt || f?.sibt || f?.aldt || f?.eldt || f?.afat || f?.efat || '') || null;
 }
@@ -374,7 +374,7 @@ function depTimeMs(f){
   return Date.parse(f?.aobt || f?.eobt || f?.pobt || f?.ctot || f?.etot || f?.sobt || '') || null;
 }
 
-// ===== temps "LISTE" (affichage + tri du menu) =====
+// ===== temps "LISTE" (affichage + tri) =====
 function depListMs(f){ return Date.parse(f?.sobt || "") || null; } // ✅ SOBT
 function arrListMs(f){ return Date.parse(f?.sibt || "") || null; } // ✅ SIBT
 
@@ -432,7 +432,7 @@ function setVal(id, v){
 }
 
 /* =========================
-   LIENS ARR <-> DEP
+   LIENS ARR <-> DEP (linkedId strict)
    ========================= */
 
 function ymdUTC(iso){
@@ -442,70 +442,29 @@ function ymdUTC(iso){
   return new Date(t).toISOString().slice(0,10); // YYYY-MM-DD (UTC)
 }
 
-// trouve l'arrivée précédente même reg (fenêtre 18h)
-// ✅ + contrainte : ARR (SIBT...) et DEP (SOBT...) même date
-function findPrevArrForDep(dep, arrAll){
-  const depT = depTimeMs(dep);
-  if(depT == null) return null;
-
-  const reg = upper(dep?.reg || "");
-  if(!reg) return null;
-
-  const depDay = ymdUTC(dep?.sobt || dep?.eobt || dep?.aobt || dep?.atot || "");
-
-  let best = null;
-  let bestDt = Infinity;
-
-  for(const a of (arrAll || [])){
-    if(upper(a?.reg || "") !== reg) continue;
-
-    const arrDay = ymdUTC(a?.sibt || a?.eibt || a?.aibt || a?.eldt || a?.aldt || "");
-    if(depDay && arrDay && depDay !== arrDay) continue;
-
-    const aT = arrTimeMs(a);
-    if(aT == null) continue;
-    if(aT > depT) continue;
-
-    const dt = depT - aT;
-    if(dt < 0) continue;
-    if(dt > 18*60*60*1000) continue;
-
-    if(dt < bestDt){
-      best = a;
-      bestDt = dt;
-    }
-  }
-  return best;
+function sameDayDepArr(dep, arr){
+  const depDay = ymdUTC(dep?.sobt || dep?.eobt || dep?.aobt || "");
+  const arrDay = ymdUTC(arr?.sibt || arr?.eibt || arr?.aibt || arr?.eldt || "");
+  return !!depDay && !!arrDay && depDay === arrDay;
 }
 
-// trouve le départ suivant même reg (fenêtre 18h)
-function findNextDepForArr(arr, depAll){
-  const arrT = arrTimeMs(arr);
-  if(arrT == null) return null;
+// DEP -> ARR via linkedId + même jour obligatoire
+function findLinkedArrForDepSameDay(dep, arrAll){
+  const lid = String(dep?.linkedId || "").trim();
+  if(!lid) return null;
 
-  const reg = upper(arr?.reg || "");
-  if(!reg) return null;
+  const arr = (arrAll || []).find(a => String(a?.id || "") === lid) || null;
+  if(!arr) return null;
 
-  let best = null;
-  let bestDt = Infinity;
+  if(!sameDayDepArr(dep, arr)) return null;
+  return arr;
+}
 
-  for(const d of (depAll || [])){
-    if(upper(d?.reg || "") !== reg) continue;
-
-    const dT = depTimeMs(d);
-    if(dT == null) continue;
-    if(dT < arrT) continue;
-
-    const dt = dT - arrT;
-    if(dt < 0) continue;
-    if(dt > 18*60*60*1000) continue;
-
-    if(dt < bestDt){
-      best = d;
-      bestDt = dt;
-    }
-  }
-  return best;
+// ARR -> DEP via linkedId strict
+function findLinkedDepForArr(arr, depAll){
+  const lid = String(arr?.linkedId || "").trim();
+  if(!lid) return null;
+  return (depAll || []).find(d => String(d?.id || "") === lid) || null;
 }
 
 function applyArrToVol(n, arr){
@@ -551,8 +510,8 @@ function applyDepToVol(n, dep, arrAll){
   const stand = (dep?.pkg || "").toString().replace(/^P/i,"").trim();
   if(stand) setVal(`parking_${n}`, stand);
 
-  // ===== ARRIVEE liée (même date obligatoire) =====
-  const prevArr = findPrevArrForDep(dep, arrAll);
+  // ===== ARRIVEE liée (linkedId + même jour obligatoire) =====
+  const prevArr = findLinkedArrForDepSameDay(dep, arrAll);
 
   if(prevArr){
     const arrIso = prevArr?.sibt || prevArr?.eibt || prevArr?.aibt || prevArr?.aldt || prevArr?.eldt || prevArr?.afat || prevArr?.efat || "";
@@ -563,9 +522,13 @@ function applyDepToVol(n, dep, arrAll){
     setVal(`arr_reg_${n}`, upper(prevArr?.reg || dep?.reg || ""));
     setVal(`arr_type_${n}`, akAcType(prevArr) || akAcType(dep));
   } else {
-    // fallback si pas d’arrivée trouvée
-    setVal(`arr_reg_${n}`, upper(dep?.reg || ""));
-    setVal(`arr_type_${n}`, akAcType(dep));
+    // si pas de liée (ou pas le même jour), on ne remplit pas l'arrivée
+    // mais on garde au minimum reg/type côté ARR si tu veux
+    setVal(`arr_reg_${n}`, "");
+    setVal(`arr_type_${n}`, "");
+    setVal(`arr_date_${n}`, "");
+    setVal(`arr_flt_${n}`, "");
+    setVal(`arr_from_${n}`, "");
   }
 }
 
@@ -613,7 +576,7 @@ function renderDelayBadge(containerEl, mins){
     color = "is-warning";
   }
   else if(mins <= -5){
-    label = `EN AVANCE ${mins}`; // ex: -8
+    label = `EN AVANCE ${mins}`;
     color = "is-info";
   }
   else{
@@ -668,7 +631,7 @@ async function loadAKAll(){
   const startDay = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 0,0,0,0);
   const endDay   = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 23,59,59,999);
 
-  // fenêtre large pour lier ARR ↔ DEP
+  // fenêtre large pour récupérer toutes les liaisons
   const linkFromDate = new Date(startDay.getTime() - 12*60*60*1000);
   const linkToDate   = new Date(endDay.getTime()   + 12*60*60*1000);
   const linkFrom = linkFromDate.toISOString().replace(/\.\d{3}Z$/, "Z");
@@ -755,21 +718,19 @@ function bindAK(n){
 
       applyDepToVol(n, dep, window._akArrAll || []);
 
-      const prevArr = findPrevArrForDep(dep, window._akArrAll || []);
-      updateBadgesFromFlights(n, dep, prevArr);
+      const linkedArr = findLinkedArrForDepSameDay(dep, window._akArrAll || []);
+      updateBadgesFromFlights(n, dep, linkedArr);
 
     } else {
       const arr = (window._akArrToday || []).find(f => String(f?.id ?? "") === String(id));
       if(!arr) return;
 
-      // ARR sélectionnée
       applyArrToVol(n, arr);
 
-      // DEP lié (suivant)
-      const nextDep = findNextDepForArr(arr, window._akDepAll || []);
-      if(nextDep) applyDepOnlyToVol(n, nextDep);
+      const linkedDep = findLinkedDepForArr(arr, window._akDepAll || []);
+      if(linkedDep) applyDepOnlyToVol(n, linkedDep);
 
-      updateBadgesFromFlights(n, nextDep || null, arr);
+      updateBadgesFromFlights(n, linkedDep || null, arr);
     }
   });
 }
@@ -778,5 +739,8 @@ function bindAK(n){
 document.addEventListener("DOMContentLoaded", ()=>{
   bindAK(1);
   bindAK(2);
+  loadAKAll();
+});
+
   loadAKAll();
 });
