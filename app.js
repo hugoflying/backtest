@@ -59,16 +59,32 @@ BINGO_FR:{
 /* ========= LIR RYANAIR ========= */
 
 LIR_RYANAIR:{
- file: `${TEMPLATE_BASE}/templates/LIR RYANAIR BELLOVA.pdf`,
- fill:({vol1})=>({
-   "DATE": isoToDDMMYYYY(vol1.dep.date),
-   "REGISTRATION": vol1.dep.reg,
-   "DEPARTURE FLIGHT NUMBER": vol1.dep.flt,
-   "TO": vol1.dep.to,
-   "ARRIVAL FLIGHT NUMBER": vol1.arr.flt || "",
-   "HOLD SECURITY SEARCH": !!vol1.arr.hold_search // HOLD SECURITY SEARCH
- }),
- flatten:true
+  file: `${TEMPLATE_BASE}/templates/LIR RYANAIR BELLOVA.pdf`,
+  fill:({vol1})=>{
+    const x = lirTypeX(vol1.dep.type); // A/C Type UI (ICAO)
+
+    return {
+      "DATE": isoToDDMMYYYY(vol1.dep.date),
+      "REGISTRATION": vol1.dep.reg,
+      "DEPARTURE FLIGHT NUMBER": vol1.dep.flt,
+      "TO": vol1.dep.to,
+
+      "A/C TYPE": vol1.dep.type,
+
+      // ✅ met "X" dans les 2 autres cases
+      "B737": x.B737,
+      "B738": x.B738,
+      "B38M": x.B38M,
+
+      "ARRIVAL FLIGHT NUMBER": vol1.arr.flt || "",
+      "HOLD SECURITY SEARCH": !!vol1.arr.hold_search,
+
+      "POUSSETTE PORTE": "",
+      "POUSSETTE CBS": "",
+      "MAX 5": "",
+    };
+  },
+  flatten:true
 },
 
 /* ========= LIR LAUDA ========= */
@@ -503,4 +519,21 @@ document.addEventListener("DOMContentLoaded", ()=>{
   bindAKSelect(2);
   loadAKForDropdowns();
 });
+
+function lirTypeX(acType){
+  const t = upper(acType);
+
+  // on ne garde que ces 3 valeurs
+  // (si tu veux gérer d'autres variantes, je te l'étends)
+  const isB737 = t === "B737";
+  const isB738 = t === "B738";
+  const isB38M = t === "B38M";
+
+  return {
+    B737: (isB737 ? "" : "X"),
+    B738: (isB738 ? "" : "X"),
+    B38M: (isB38M ? "" : "X"),
+  };
+}
+
 
