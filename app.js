@@ -293,6 +293,20 @@ async function fillAndPrint(docKey, volTarget = "1") {
   iframe.onload = () => iframe.contentWindow.print();
 }
 
+// ===== boutons PDF =====
+document.addEventListener("click", async (e) => {
+  const b = e.target.closest("button[data-doc]");
+  if (!b) return;
+
+  try {
+    await fillAndPrint(b.dataset.doc, b.dataset.vol || "1");
+  } catch (err) {
+    console.error(err);
+    alert(err?.message || String(err));
+  }
+});
+
+
 /* =========================
    AirportKeeper -> Dropdowns (version calquée index(62))
    ========================= */
