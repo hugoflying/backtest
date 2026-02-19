@@ -322,12 +322,30 @@ document.addEventListener("click", async (e) => {
   }
 });
 
+function lirTypeX(acType){
+  const t = upper(acType);
+
+  // on ne garde que ces 3 valeurs
+  // (si tu veux gérer d'autres variantes, je te l'étends)
+  const isB737 = t === "B737";
+  const isB738 = t === "B738";
+  const isB38M = t === "B38M";
+
+  return {
+    B737: (isB737 ? "" : "X"),
+    B738: (isB738 ? "" : "X"),
+    B38M: (isB38M ? "" : "X"),
+  };
+}
 
 /* =========================
-   AirportKeeper -> Dropdowns (version calquée index(62))
+   AirportKeeper -> Dropdowns
+   - Liste DEP = SOBT
+   - Liste ARR = SIBT
+   - Lien ARR↔DEP conservé (via arrAll)
    ========================= */
 
-const AK_PROXY = "https://airportkeeper-proxy.deruellehugo-49c.workers.dev/ak"; // :contentReference[oaicite:3]{index=3}
+const AK_PROXY = "https://airportkeeper-proxy.deruellehugo-49c.workers.dev/ak";
 
 function $(id){ return document.getElementById(id); }
 
@@ -341,12 +359,22 @@ function isoToYYYYMMDD(iso){
   return `${y}-${m}-${da}`;
 }
 
-// ===== mêmes choix temps que index(62) ===== :contentReference[oaicite:4]{index=4}
+// ===== temps "moteur" (pour lien, etc.) =====
 function arrTimeMs(f){
   return Date.parse(f?.aibt || f?.eibt || f?.sibt || f?.aldt || f?.eldt || f?.afat || f?.efat || '') || null;
 }
 function depTimeMs(f){
   return Date.parse(f?.aobt || f?.eobt || f?.pobt || f?.ctot || f?.etot || f?.sobt || '') || null;
+}
+
+// ===== temps "LISTE" (affichage + tri du menu) =====
+// ✅ DEP affiché = SOBT
+function depListMs(f){
+  return Date.parse(f?.sobt || "") || null;
+}
+// ✅ ARR affiché = SIBT
+function arrListMs(f){
+  return Date.parse(f?.sibt || "") || null;
 }
 
 async function fetchAK(flow, from, to){
@@ -379,12 +407,21 @@ function hhmmFromMs(ms){
 }
 
 function buildDepLabel(f){
-  const t   = hhmmFromMs(depTimeMs(f));
+  const t   = hhmmFromMs(depListMs(f)); // ✅ SOBT
   const ff  = upper(f?.fullFlightNumber || f?.callsign || "");
   const to  = upper(f?.adesIata || f?.adesIcao || "");
   const reg = upper(f?.reg || "");
   const stand = (f?.pkg || "").toString().replace(/^P/i,"").trim();
-  return `${t} ${ff || "(sans numéro)"} → ${to || "---"} (${reg || "REG?"}${stand ? ` · P${stand}` : ""})`;
+  return `${t || "—"} ${ff || "(sans numéro)"} → ${to || "---"} (${reg || "REG?"}${stand ? ` · P${stand}` : ""})`;
+}
+
+function buildArrLabel(f){
+  const t   = hhmmFromMs(arrListMs(f)); // ✅ SIBT
+  const ff  = upper(f?.fullFlightNumber || f?.callsign || "");
+  const from= upper(f?.adepIata || f?.adepIcao || "");
+  const reg = upper(f?.reg || "");
+  const stand = (f?.pkg || "").toString().replace(/^P/i,"").trim();
+  return `${t || "—"} ${ff || "(sans numéro)"} ← ${from || "---"} (${reg || "REG?"}${stand ? ` · P${stand}` : ""})`;
 }
 
 function setVal(id, v){
@@ -449,8 +486,7 @@ function applyDepToVol(n, dep, arrAll){
     setVal(`arr_from_${n}`, upper(prevArr?.adepIata || prevArr?.adepIcao || ""));
     setVal(`arr_reg_${n}`, upper(prevArr?.reg || dep?.reg || ""));
     setVal(`arr_type_${n}`, akAcType(prevArr) || akAcType(dep)); // ← A/C TYPE ARR
-  }
-  else{
+  } else {
     // fallback si pas d’arrivée trouvée
     setVal(`arr_reg_${n}`, upper(dep?.reg || ""));
     setVal(`arr_type_${n}`, akAcType(dep));
@@ -488,23 +524,23 @@ async function loadAKAll(){
       fetchAK("DEP", linkFrom, linkTo),
     ]);
 
-    // vols départ du jour (comme avant)
+    // ✅ vols départ du jour : basé sur SOBT uniquement
     const inTodayDep = (f)=>{
-      const t = Date.parse(f?.sobt || f?.eobt || f?.aobt || f?.atot || "");
+      const t = Date.parse(f?.sobt || "");
       return t && t >= startDay.getTime() && t <= endDay.getTime();
     };
     const depToday = depAll.filter(inTodayDep);
 
-    // vols arrivée du jour (équivalent)
+    // ✅ vols arrivée du jour : basé sur SIBT uniquement
     const inTodayArr = (f)=>{
-      const t = Date.parse(f?.sibt || f?.eibt || f?.aibt || f?.aldt || f?.eldt || "");
+      const t = Date.parse(f?.sibt || "");
       return t && t >= startDay.getTime() && t <= endDay.getTime();
     };
     const arrToday = arrAll.filter(inTodayArr);
 
-    // tri chrono
-    depToday.sort((a,b)=> (depTimeMs(a) ?? 1e18) - (depTimeMs(b) ?? 1e18));
-    arrToday.sort((a,b)=> (arrTimeMs(a) ?? 1e18) - (arrTimeMs(b) ?? 1e18));
+    // ✅ tri chrono SOBT / SIBT (liste)
+    depToday.sort((a,b)=> (Date.parse(a?.sobt || "") || 1e18) - (Date.parse(b?.sobt || "") || 1e18));
+    arrToday.sort((a,b)=> (Date.parse(a?.sibt || "") || 1e18) - (Date.parse(b?.sibt || "") || 1e18));
 
     // cache global
     window._akArrAll   = arrAll;     // large window, utile pour lien
@@ -523,17 +559,8 @@ async function loadAKAll(){
   }
 }
 
-function buildArrLabel(f){
-  const t   = hhmmFromMs(arrTimeMs(f));
-  const ff  = upper(f?.fullFlightNumber || f?.callsign || "");
-  const from= upper(f?.adepIata || f?.adepIcao || "");
-  const reg = upper(f?.reg || "");
-  const stand = (f?.pkg || "").toString().replace(/^P/i,"").trim();
-  return `${t} ${ff || "(sans numéro)"} ← ${from || "---"} (${reg || "REG?"}${stand ? ` · P${stand}` : ""})`;
-}
-
 function refreshAKDropdown(n){
-  const flowSel = $(`ak_flow_${n}`);   // ton switch
+  const flowSel = $(`ak_flow_${n}`);
   const sel = $(`ak_flight_${n}`);
   const st  = $(`ak_status_${n}`);
   if(!flowSel || !sel) return;
@@ -577,7 +604,7 @@ function bindAK(n){
       const arr = (window._akArrToday || []).find(f => String(f?.id ?? "") === String(id));
       if(!arr) return;
 
-      // remplissage arrivée seulement (tu peux décider de remplir le départ lié aussi si tu veux)
+      // remplissage arrivée (SIBT)
       const arrIso = arr?.sibt || arr?.eibt || arr?.aibt || arr?.aldt || arr?.eldt || arr?.afat || arr?.efat || "";
       setVal(`arr_date_${n}`, isoToYYYYMMDD(arrIso));
       setVal(`arr_flt_${n}`, upper(arr?.fullFlightNumber || arr?.callsign || ""));
@@ -588,27 +615,11 @@ function bindAK(n){
   });
 }
 
-function lirTypeX(acType){
-  const t = upper(acType);
-
-  // on ne garde que ces 3 valeurs
-  // (si tu veux gérer d'autres variantes, je te l'étends)
-  const isB737 = t === "B737";
-  const isB738 = t === "B738";
-  const isB38M = t === "B38M";
-
-  return {
-    B737: (isB737 ? "" : "X"),
-    B738: (isB738 ? "" : "X"),
-    B38M: (isB38M ? "" : "X"),
-  };
-}
-
+// boot
 document.addEventListener("DOMContentLoaded", ()=>{
   bindAK(1);
   bindAK(2);
   loadAKAll();
 });
-
 
 
