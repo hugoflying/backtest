@@ -246,7 +246,7 @@ async function fillAndPrint(docKey, volTarget = "1") {
 
   const form = pdfDoc.getForm();
 
-  // 🔥 chemin compatible GitHub Pages + local
+  // chemin compatible GitHub Pages + local
   const BASE = location.pathname.replace(/\/[^\/]*$/, "/");
 
   const arialBytes = await fetch(BASE + "fonts/ARIAL.TTF").then(r => r.arrayBuffer());
@@ -260,6 +260,8 @@ async function fillAndPrint(docKey, volTarget = "1") {
       ? def.fill({ vol1: v1, vol2: v2 })
       : def.fill({ vol1, vol2 });
 
+  const boldX = [];
+
   for (const [n, v] of Object.entries(fields)) {
     try {
       if (typeof v === "boolean") {
@@ -272,14 +274,19 @@ async function fillAndPrint(docKey, volTarget = "1") {
       const value = String(v ?? "").toUpperCase();
       tf.setText(value);
 
-      // X en gras
-      if (value === "X") tf.updateAppearances(fontBold);
-      else tf.updateAppearances(font);
-
       const isName = n.includes("NOM PRENOM");
       tf.setAlignment(isName ? PDFLib.TextAlignment.Left : PDFLib.TextAlignment.Center);
 
+      if (value === "X") boldX.push(tf);
     } catch {}
+  }
+
+  // Arial partout
+  form.updateFieldAppearances(font);
+
+  // X en Arial Bold
+  for (const tf of boldX) {
+    try { tf.updateAppearances(fontBold); } catch {}
   }
 
   form.flatten();
