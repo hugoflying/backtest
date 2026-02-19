@@ -519,15 +519,14 @@ function delayMinFrom(plannedIso, actualIso){
 }
 
 function actualDepIso(f){
-  // ✅ retard départ = EOBT - SOBT
-  return f?.eobt || "";
+  // départ : AOBT > EOBT
+  return f?.aobt || f?.eobt || "";
 }
 
 function actualArrIso(f){
-  // ✅ retard arrivée = ELDT - SIBT
-  return f?.eldt || "";
+  // arrivée : AIBT > ELDT > EIBT
+  return f?.aibt || f?.eldt || f?.eibt || "";
 }
-
 
 // ✅ règles demandées
 function renderDelayBadge(containerEl, mins){
