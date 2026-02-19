@@ -342,7 +342,9 @@ function lirTypeX(acType){
    AirportKeeper -> Dropdowns
    - Liste DEP = SOBT
    - Liste ARR = SIBT
-   - Lien ARR↔DEP conservé (via arrAll)
+   - Lien ARR↔DEP conservé (via arrAll / depAll)
+   - Lien inversé : choix ARR => remplit DEP lié (suivant)
+   - Choix DEP => ARR liée UNIQUEMENT si même date (SOBT == SIBT)
    - Badges UI : ARR et DEP indépendants
      * 5–14  => retard orange
      * >=15  => retard rouge
@@ -373,14 +375,8 @@ function depTimeMs(f){
 }
 
 // ===== temps "LISTE" (affichage + tri du menu) =====
-// ✅ DEP affiché = SOBT
-function depListMs(f){
-  return Date.parse(f?.sobt || "") || null;
-}
-// ✅ ARR affiché = SIBT
-function arrListMs(f){
-  return Date.parse(f?.sibt || "") || null;
-}
+function depListMs(f){ return Date.parse(f?.sobt || "") || null; } // ✅ SOBT
+function arrListMs(f){ return Date.parse(f?.sibt || "") || null; } // ✅ SIBT
 
 async function fetchAK(flow, from, to){
   const url =
@@ -393,7 +389,6 @@ async function fetchAK(flow, from, to){
 
   const data = await res.json();
 
-  // ✅ accepte tous les formats possibles
   if (Array.isArray(data)) return data;
   if (Array.isArray(data?.flights)) return data.flights;
   if (Array.isArray(data?.data)) return data.data;
@@ -402,7 +397,6 @@ async function fetchAK(flow, from, to){
   return [];
 }
 
-// label dropdown (simple + fiable)
 function hhmmFromMs(ms){
   if(ms == null) return "--:--";
   const d = new Date(ms);
@@ -412,7 +406,7 @@ function hhmmFromMs(ms){
 }
 
 function buildDepLabel(f){
-  const t   = hhmmFromMs(depListMs(f)); // ✅ SOBT
+  const t   = hhmmFromMs(depListMs(f));
   const ff  = upper(f?.fullFlightNumber || f?.callsign || "");
   const to  = upper(f?.adesIata || f?.adesIcao || "");
   const reg = upper(f?.reg || "");
@@ -421,7 +415,7 @@ function buildDepLabel(f){
 }
 
 function buildArrLabel(f){
-  const t   = hhmmFromMs(arrListMs(f)); // ✅ SIBT
+  const t   = hhmmFromMs(arrListMs(f));
   const ff  = upper(f?.fullFlightNumber || f?.callsign || "");
   const from= upper(f?.adepIata || f?.adepIcao || "");
   const reg = upper(f?.reg || "");
@@ -437,18 +431,37 @@ function setVal(id, v){
   el.dispatchEvent(new Event("change",{bubbles:true}));
 }
 
+/* =========================
+   LIENS ARR <-> DEP
+   ========================= */
+
+function ymdUTC(iso){
+  if(!iso) return "";
+  const t = Date.parse(iso);
+  if(!t) return "";
+  return new Date(t).toISOString().slice(0,10); // YYYY-MM-DD (UTC)
+}
+
 // trouve l'arrivée précédente même reg (fenêtre 18h)
+// ✅ + contrainte : ARR (SIBT...) et DEP (SOBT...) même date
 function findPrevArrForDep(dep, arrAll){
   const depT = depTimeMs(dep);
   if(depT == null) return null;
+
   const reg = upper(dep?.reg || "");
   if(!reg) return null;
+
+  const depDay = ymdUTC(dep?.sobt || dep?.eobt || dep?.aobt || dep?.atot || "");
 
   let best = null;
   let bestDt = Infinity;
 
   for(const a of (arrAll || [])){
     if(upper(a?.reg || "") !== reg) continue;
+
+    const arrDay = ymdUTC(a?.sibt || a?.eibt || a?.aibt || a?.eldt || a?.aldt || "");
+    if(depDay && arrDay && depDay !== arrDay) continue;
+
     const aT = arrTimeMs(a);
     if(aT == null) continue;
     if(aT > depT) continue;
@@ -465,6 +478,64 @@ function findPrevArrForDep(dep, arrAll){
   return best;
 }
 
+// trouve le départ suivant même reg (fenêtre 18h)
+function findNextDepForArr(arr, depAll){
+  const arrT = arrTimeMs(arr);
+  if(arrT == null) return null;
+
+  const reg = upper(arr?.reg || "");
+  if(!reg) return null;
+
+  let best = null;
+  let bestDt = Infinity;
+
+  for(const d of (depAll || [])){
+    if(upper(d?.reg || "") !== reg) continue;
+
+    const dT = depTimeMs(d);
+    if(dT == null) continue;
+    if(dT < arrT) continue;
+
+    const dt = dT - arrT;
+    if(dt < 0) continue;
+    if(dt > 18*60*60*1000) continue;
+
+    if(dt < bestDt){
+      best = d;
+      bestDt = dt;
+    }
+  }
+  return best;
+}
+
+function applyArrToVol(n, arr){
+  if(!arr) return;
+
+  const arrIso = arr?.sibt || arr?.eibt || arr?.aibt || arr?.aldt || arr?.eldt || arr?.afat || arr?.efat || "";
+  setVal(`arr_date_${n}`, isoToYYYYMMDD(arrIso));
+  setVal(`arr_flt_${n}`, upper(arr?.fullFlightNumber || arr?.callsign || ""));
+  setVal(`arr_from_${n}`, upper(arr?.adepIata || arr?.adepIcao || ""));
+  setVal(`arr_reg_${n}`, upper(arr?.reg || ""));
+  setVal(`arr_type_${n}`, akAcType(arr));
+
+  const stand = (arr?.pkg || "").toString().replace(/^P/i,"").trim();
+  if(stand) setVal(`parking_${n}`, stand);
+}
+
+function applyDepOnlyToVol(n, dep){
+  if(!dep) return;
+
+  const depIso = dep?.sobt || dep?.eobt || dep?.aobt || dep?.pobt || dep?.ctot || dep?.etot || dep?.atot || "";
+  setVal(`dep_date_${n}`, isoToYYYYMMDD(depIso));
+  setVal(`dep_flt_${n}`, upper(dep?.fullFlightNumber || dep?.callsign || ""));
+  setVal(`dep_to_${n}`, upper(dep?.adesIata || dep?.adesIcao || ""));
+  setVal(`dep_reg_${n}`, upper(dep?.reg || ""));
+  setVal(`dep_type_${n}`, akAcType(dep));
+
+  const stand = (dep?.pkg || "").toString().replace(/^P/i,"").trim();
+  if(stand) setVal(`parking_${n}`, stand);
+}
+
 function applyDepToVol(n, dep, arrAll){
   if(!dep) return;
 
@@ -475,12 +546,12 @@ function applyDepToVol(n, dep, arrAll){
   setVal(`dep_flt_${n}`, upper(dep?.fullFlightNumber || dep?.callsign || ""));
   setVal(`dep_to_${n}`, upper(dep?.adesIata || dep?.adesIcao || ""));
   setVal(`dep_reg_${n}`, upper(dep?.reg || ""));
-  setVal(`dep_type_${n}`, akAcType(dep)); // ← A/C TYPE DEP
+  setVal(`dep_type_${n}`, akAcType(dep));
 
   const stand = (dep?.pkg || "").toString().replace(/^P/i,"").trim();
   if(stand) setVal(`parking_${n}`, stand);
 
-  // ===== ARRIVEE liée =====
+  // ===== ARRIVEE liée (même date obligatoire) =====
   const prevArr = findPrevArrForDep(dep, arrAll);
 
   if(prevArr){
@@ -490,7 +561,7 @@ function applyDepToVol(n, dep, arrAll){
     setVal(`arr_flt_${n}`, upper(prevArr?.fullFlightNumber || prevArr?.callsign || ""));
     setVal(`arr_from_${n}`, upper(prevArr?.adepIata || prevArr?.adepIcao || ""));
     setVal(`arr_reg_${n}`, upper(prevArr?.reg || dep?.reg || ""));
-    setVal(`arr_type_${n}`, akAcType(prevArr) || akAcType(dep)); // ← A/C TYPE ARR
+    setVal(`arr_type_${n}`, akAcType(prevArr) || akAcType(dep));
   } else {
     // fallback si pas d’arrivée trouvée
     setVal(`arr_reg_${n}`, upper(dep?.reg || ""));
@@ -522,13 +593,11 @@ function actualDepIso(f){
   // départ : AOBT > EOBT
   return f?.aobt || f?.eobt || "";
 }
-
 function actualArrIso(f){
   // arrivée : AIBT > ELDT > EIBT
   return f?.aibt || f?.eldt || f?.eibt || "";
 }
 
-// ✅ règles demandées
 function renderDelayBadge(containerEl, mins){
   if(!containerEl || mins == null) return;
 
@@ -537,26 +606,25 @@ function renderDelayBadge(containerEl, mins){
 
   if(mins >= 15){
     label = `RETARD +${mins}`;
-    color = "is-danger";     // rouge
+    color = "is-danger";
   }
   else if(mins >= 5){
     label = `RETARD +${mins}`;
-    color = "is-warning";    // orange
+    color = "is-warning";
   }
   else if(mins <= -5){
     label = `EN AVANCE ${mins}`; // ex: -8
-    color = "is-info";       // bleu
+    color = "is-info";
   }
   else{
     label = "À L’HEURE";
-    color = "is-success";    // vert
+    color = "is-success";
   }
 
   const span = document.createElement("span");
   span.className = `tag ${color}`;
   span.style.fontWeight = "900";
   span.textContent = label;
-
   containerEl.appendChild(span);
 }
 
@@ -566,14 +634,12 @@ function updateBadgesFromFlights(n, depFlight, arrFlight){
   if(depWrap) depWrap.innerHTML = "";
   if(arrWrap) arrWrap.innerHTML = "";
 
-  // DEP: SOBT vs actualDep
   if(depFlight && depWrap){
     const planned = depFlight?.sobt || "";
     const actual  = actualDepIso(depFlight);
     renderDelayBadge(depWrap, delayMinFrom(planned, actual));
   }
 
-  // ARR: SIBT vs actualArr
   if(arrFlight && arrWrap){
     const planned = arrFlight?.sibt || "";
     const actual  = actualArrIso(arrFlight);
@@ -614,31 +680,26 @@ async function loadAKAll(){
       fetchAK("DEP", linkFrom, linkTo),
     ]);
 
-    // ✅ vols départ du jour : basé sur SOBT uniquement
     const inTodayDep = (f)=>{
       const t = Date.parse(f?.sobt || "");
       return t && t >= startDay.getTime() && t <= endDay.getTime();
     };
     const depToday = depAll.filter(inTodayDep);
 
-    // ✅ vols arrivée du jour : basé sur SIBT uniquement
     const inTodayArr = (f)=>{
       const t = Date.parse(f?.sibt || "");
       return t && t >= startDay.getTime() && t <= endDay.getTime();
     };
     const arrToday = arrAll.filter(inTodayArr);
 
-    // ✅ tri chrono SOBT / SIBT (liste)
     depToday.sort((a,b)=> (Date.parse(a?.sobt || "") || 1e18) - (Date.parse(b?.sobt || "") || 1e18));
     arrToday.sort((a,b)=> (Date.parse(a?.sibt || "") || 1e18) - (Date.parse(b?.sibt || "") || 1e18));
 
-    // cache global
-    window._akArrAll   = arrAll;     // large window, utile pour lien
-    window._akDepAll   = depAll;     // si besoin plus tard
-    window._akDepToday = depToday;   // pour affichage DEP
-    window._akArrToday = arrToday;   // pour affichage ARR
+    window._akArrAll   = arrAll;
+    window._akDepAll   = depAll;
+    window._akDepToday = depToday;
+    window._akArrToday = arrToday;
 
-    // refresh dropdowns selon le flow sélectionné
     refreshAKDropdown(1);
     refreshAKDropdown(2);
 
@@ -701,14 +762,14 @@ function bindAK(n){
       const arr = (window._akArrToday || []).find(f => String(f?.id ?? "") === String(id));
       if(!arr) return;
 
-      const arrIso = arr?.sibt || arr?.eibt || arr?.aibt || arr?.aldt || arr?.eldt || arr?.afat || arr?.efat || "";
-      setVal(`arr_date_${n}`, isoToYYYYMMDD(arrIso));
-      setVal(`arr_flt_${n}`, upper(arr?.fullFlightNumber || arr?.callsign || ""));
-      setVal(`arr_from_${n}`, upper(arr?.adepIata || arr?.adepIcao || ""));
-      setVal(`arr_reg_${n}`, upper(arr?.reg || ""));
-      setVal(`arr_type_${n}`, akAcType(arr));
+      // ARR sélectionnée
+      applyArrToVol(n, arr);
 
-      updateBadgesFromFlights(n, null, arr);
+      // DEP lié (suivant)
+      const nextDep = findNextDepForArr(arr, window._akDepAll || []);
+      if(nextDep) applyDepOnlyToVol(n, nextDep);
+
+      updateBadgesFromFlights(n, nextDep || null, arr);
     }
   });
 }
