@@ -20,13 +20,15 @@ function getVol(n){
       flt:g("arr_flt"),
       from:g("arr_from"),
       reg:g("arr_reg"),
-      hold_search: c("hold_search") // checkbox HOLD SECURITY SEARCH
+      type:g("arr_type"),
+      hold_search: c("hold_search")
     },
     dep:{
       date:g("dep_date"),
       flt:g("dep_flt"),
       to:g("dep_to"),
-      reg:g("dep_reg")
+      reg:g("dep_reg"),
+      type:g("dep_type")
     }
   }
 }
@@ -373,29 +375,44 @@ function findPrevArrForDep(dep, arrAll){
 function applyDepToVol(n, dep, arrAll){
   if(!dep) return;
 
-  // DEP (date) ✅ ajoute pobt/ctot/etot
+  // ===== DEPART =====
   const depIso = dep?.sobt || dep?.eobt || dep?.aobt || dep?.pobt || dep?.ctot || dep?.etot || dep?.atot || "";
   setVal(`dep_date_${n}`, isoToYYYYMMDD(depIso));
 
   setVal(`dep_flt_${n}`, upper(dep?.fullFlightNumber || dep?.callsign || ""));
   setVal(`dep_to_${n}`, upper(dep?.adesIata || dep?.adesIcao || ""));
   setVal(`dep_reg_${n}`, upper(dep?.reg || ""));
+  setVal(`dep_type_${n}`, akAcType(dep)); // ← A/C TYPE DEP
 
   const stand = (dep?.pkg || "").toString().replace(/^P/i,"").trim();
   if(stand) setVal(`parking_${n}`, stand);
 
+  // ===== ARRIVEE liée =====
   const prevArr = findPrevArrForDep(dep, arrAll);
+
   if(prevArr){
-    // ARR (date) ✅ ajoute plein de fallbacks
     const arrIso = prevArr?.sibt || prevArr?.eibt || prevArr?.aibt || prevArr?.aldt || prevArr?.eldt || prevArr?.afat || prevArr?.efat || "";
     setVal(`arr_date_${n}`, isoToYYYYMMDD(arrIso));
 
     setVal(`arr_flt_${n}`, upper(prevArr?.fullFlightNumber || prevArr?.callsign || ""));
     setVal(`arr_from_${n}`, upper(prevArr?.adepIata || prevArr?.adepIcao || ""));
     setVal(`arr_reg_${n}`, upper(prevArr?.reg || dep?.reg || ""));
-  }else{
-    setVal(`arr_reg_${n}`, upper(dep?.reg || ""));
+    setVal(`arr_type_${n}`, akAcType(prevArr) || akAcType(dep)); // ← A/C TYPE ARR
   }
+  else{
+    // fallback si pas d’arrivée trouvée
+    setVal(`arr_reg_${n}`, upper(dep?.reg || ""));
+    setVal(`arr_type_${n}`, akAcType(dep));
+  }
+}
+
+function akAcType(f){
+  return upper(
+    f?.acTypeIcao ||
+    f?.acTypeIata ||
+    f?.aircraftDetails?.acTypeName ||
+    ""
+  );
 }
 
 async function loadAKForDropdowns(){
