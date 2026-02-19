@@ -2,236 +2,710 @@
 <html lang="fr">
 <head>
   <meta charset="utf-8">
-  <title>Flight PDF Filler</title>
+  <title>Préparation des Vols</title>
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bulma@1.0.2/css/bulma.min.css">
 
-  <!-- ✅ Styles popup AK (si tu l'utilises encore) -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bulma@1.0.2/css/bulma.min.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&family=Syne:wght@400;600;700;800&display=swap" rel="stylesheet">
+
   <style>
-    #akBackdrop{
-      position: fixed;
-      inset: 0;
-      background: rgba(0,0,0,.35);
-      z-index: 4600;
+    :root {
+      --bg:        #0d0f14;
+      --surface:   #151820;
+      --panel:     #1b1f2a;
+      --border:    #252935;
+      --border-hi: #2f3545;
+      --accent:    #4f8cff;
+      --accent2:   #f7b731;
+      --green:     #36d399;
+      --red:       #ff4d6d;
+      --text:      #e2e8f0;
+      --muted:     #6b7694;
+      --mono:      'JetBrains Mono', monospace;
+      --sans:      'Syne', sans-serif;
     }
-    #akPopover{
-      position: fixed;
-      inset: 10px;
-      background: #fff;
-      border-radius: 16px;
-      z-index: 4700;
-      padding: 12px;
-      overflow: auto;
-      box-shadow: 0 10px 28px rgba(0,0,0,.08);
-      border: 1px solid rgba(0,0,0,.08);
+
+    *, *::before, *::after { box-sizing: border-box; }
+
+    html, body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: var(--mono);
+      font-size: 13px;
+      min-height: 100vh;
     }
-    #akPopover .ak-header{
+
+    /* ── TOP BAR ── */
+    .topbar {
+      background: var(--surface);
+      border-bottom: 1px solid var(--border);
+      padding: 10px 20px;
+      display: flex;
+      align-items: center;
+      gap: 16px;
       position: sticky;
       top: 0;
-      z-index: 2;
-      background: #fff;
-      padding: 10px 0;
-      border-bottom: 1px solid rgba(0,0,0,.08);
+      z-index: 100;
     }
+    .topbar-logo {
+      font-family: var(--sans);
+      font-weight: 800;
+      font-size: 16px;
+      letter-spacing: -0.5px;
+      color: #fff;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      white-space: nowrap;
+    }
+    .topbar-logo .dot {
+      width: 8px; height: 8px;
+      border-radius: 50%;
+      background: var(--accent);
+      box-shadow: 0 0 8px var(--accent);
+      animation: pulse 2s infinite;
+    }
+    @keyframes pulse { 0%,100% { opacity: 1; } 50% { opacity: .4; } }
+    .topbar-divider { width: 1px; height: 20px; background: var(--border); }
+
+    /* ── AGENT STRIP ── */
+    .agent-strip {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex: 1;
+      justify-content: flex-end;
+    }
+    .agent-strip label {
+      color: var(--muted);
+      font-size: 10px;
+      letter-spacing: .08em;
+      text-transform: uppercase;
+      white-space: nowrap;
+    }
+    .agent-strip input {
+      background: var(--panel);
+      border: 1px solid var(--border);
+      color: var(--text);
+      font-family: var(--mono);
+      font-size: 13px;
+      font-weight: 600;
+      padding: 5px 10px;
+      border-radius: 6px;
+      width: 240px;
+      transition: border-color .2s;
+    }
+    .agent-strip input:focus { outline: none; border-color: var(--accent); }
+
+    /* ── LAYOUT ── */
+    .app-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+      padding: 14px;
+      max-width: 1400px;
+      margin: 0 auto;
+    }
+    @media (max-width: 980px){
+      .app-grid{ grid-template-columns: 1fr; }
+      .agent-strip{ justify-content: flex-start; }
+      .agent-strip input{ width: 100%; max-width: 320px; }
+    }
+
+    /* ── VOL CARD ── */
+    .vol-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      overflow: hidden;
+    }
+    .vol-header {
+      background: var(--panel);
+      border-bottom: 1px solid var(--border);
+      padding: 8px 14px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+    .vol-badge {
+      font-family: var(--sans);
+      font-weight: 700;
+      font-size: 11px;
+      padding: 2px 10px;
+      border-radius: 4px;
+      background: var(--accent);
+      color: #fff;
+      letter-spacing: .05em;
+    }
+    .vol-badge.v2 { background: var(--accent2); color: #1a1200; }
+    .vol-body { padding: 10px 14px 14px; }
+
+    /* ── FLIGHT PICKER ── */
+    .flow-toggle {
+      display: flex;
+      border-radius: 6px;
+      overflow: hidden;
+      border: 1px solid var(--border);
+    }
+    .flow-toggle button {
+      flex: 1;
+      background: transparent;
+      border: none;
+      color: var(--muted);
+      font-family: var(--mono);
+      font-size: 11px;
+      font-weight: 600;
+      padding: 6px 10px;
+      cursor: pointer;
+      transition: background .15s, color .15s;
+      letter-spacing: .05em;
+      white-space: nowrap;
+    }
+    .flow-toggle button.active { background: var(--accent); color: #fff; }
+
+    .flt-select-wrap { position: relative; min-width: 260px; flex: 1; }
+    .flt-select-wrap select {
+      width: 100%;
+      background: var(--panel);
+      border: 1px solid var(--border);
+      color: var(--text);
+      font-family: var(--mono);
+      font-size: 12px;
+      padding: 6px 28px 6px 10px;
+      border-radius: 6px;
+      appearance: none;
+      cursor: pointer;
+      transition: border-color .2s;
+    }
+    .flt-select-wrap select:focus { outline: none; border-color: var(--accent); }
+    .flt-select-wrap::after {
+      content: '▾';
+      position: absolute;
+      right: 10px; top: 50%;
+      transform: translateY(-50%);
+      color: var(--muted);
+      pointer-events: none;
+      font-size: 11px;
+    }
+    .flt-status {
+      font-size: 10px;
+      color: var(--muted);
+      white-space: nowrap;
+    }
+
+    /* ── SECTION DIVIDER ── */
+    .section-label {
+      font-size: 9px;
+      letter-spacing: .12em;
+      text-transform: uppercase;
+      color: var(--muted);
+      margin-bottom: 6px;
+      margin-top: 10px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .section-label::after {
+      content: '';
+      flex: 1;
+      height: 1px;
+      background: var(--border);
+    }
+
+    /* ── FIELDS GRID ── */
+    .fields-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
+    .fields-grid.three { grid-template-columns: 1fr 1fr 1fr; }
+    @media (max-width: 980px){
+      .fields-grid.three{ grid-template-columns: 1fr 1fr; }
+    }
+    .field-item { display: flex; flex-direction: column; gap: 3px; }
+    .field-item label {
+      font-size: 9px;
+      letter-spacing: .08em;
+      text-transform: uppercase;
+      color: var(--muted);
+    }
+    .field-item input {
+      background: var(--panel);
+      border: 1px solid var(--border);
+      color: var(--text);
+      font-family: var(--mono);
+      font-size: 12px;
+      padding: 5px 8px;
+      border-radius: 5px;
+      transition: border-color .2s, background .2s;
+    }
+    .field-item input:focus {
+      outline: none;
+      border-color: var(--accent);
+      background: #1e2330;
+    }
+    .field-item input::placeholder { color: var(--border-hi); }
+    .field-item input[type="date"] { color-scheme: dark; }
+
+    /* ── HOLD CHECKBOX ── */
+    .hold-row {
+      display: flex;
+      align-items: center;
+      gap: 7px;
+      margin-bottom: 6px;
+      cursor: pointer;
+      user-select: none;
+    }
+    .hold-row input[type="checkbox"] { display: none; }
+    .hold-box {
+      width: 14px; height: 14px;
+      border: 1px solid var(--border-hi);
+      border-radius: 3px;
+      background: var(--panel);
+      display: grid;
+      place-items: center;
+      transition: background .15s, border-color .15s;
+      flex-shrink: 0;
+    }
+    .hold-row input:checked + .hold-box { background: var(--red); border-color: var(--red); }
+    .hold-box::after {
+      content: '✓';
+      font-size: 10px;
+      color: #fff;
+      opacity: 0;
+      transition: opacity .15s;
+    }
+    .hold-row input:checked + .hold-box::after { opacity: 1; }
+    .hold-label {
+      font-size: 10px;
+      letter-spacing: .07em;
+      text-transform: uppercase;
+      color: var(--muted);
+    }
+
+    /* ── BADGES (compat: app.js injecte des .tag Bulma parfois) ── */
+    .badges-row {
+      display: flex;
+      gap: 5px;
+      flex-wrap: wrap;
+      margin-bottom: 6px;
+      min-height: 20px;
+    }
+    .badge {
+      font-size: 9px;
+      font-weight: 700;
+      letter-spacing: .06em;
+      padding: 2px 7px;
+      border-radius: 3px;
+    }
+    .badge.delay   { background: rgba(255,77,109,.15); color: var(--red); border: 1px solid rgba(255,77,109,.3); }
+    .badge.ontime  { background: rgba(54,211,153,.15); color: var(--green); border: 1px solid rgba(54,211,153,.3); }
+    .badge.advance { background: rgba(79,140,255,.15); color: var(--accent); border: 1px solid rgba(79,140,255,.3); }
+
+    /* si tes badges viennent en .tag Bulma */
+    .badges-row .tag{
+      font-size: 9px;
+      font-weight: 700;
+      letter-spacing: .06em;
+      padding: 2px 7px;
+      border-radius: 3px;
+      background: rgba(255,255,255,.06);
+      border: 1px solid rgba(255,255,255,.10);
+      color: var(--text);
+      height: auto;
+      line-height: 1.2;
+    }
+
+    /* ── DOC BUTTONS ── */
+    .docs-section {
+      border-top: 1px solid var(--border);
+      padding: 10px 14px;
+      display: flex;
+      gap: 6px;
+      flex-wrap: wrap;
+    }
+    .doc-btn {
+      font-family: var(--mono);
+      font-size: 10px;
+      font-weight: 600;
+      letter-spacing: .05em;
+      text-transform: uppercase;
+      padding: 5px 10px;
+      border-radius: 5px;
+      border: 1px solid transparent;
+      cursor: pointer;
+      transition: all .15s;
+      background: transparent;
+    }
+    .doc-btn.dark {
+      background: var(--panel);
+      border-color: var(--border-hi);
+      color: var(--text);
+    }
+    .doc-btn.dark:hover { background: #242838; border-color: var(--muted); }
+    .doc-btn.link {
+      background: rgba(79,140,255,.1);
+      border-color: rgba(79,140,255,.3);
+      color: var(--accent);
+    }
+    .doc-btn.link:hover { background: rgba(79,140,255,.2); }
+
+    /* ── BOTTOM DOCS ── */
+    .bottom-docs {
+      max-width: 1400px;
+      margin: 0 auto 14px;
+      padding: 12px 14px;
+      border-top: 1px solid var(--border);
+      background: var(--surface);
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      flex-wrap: wrap;
+      border-left: 1px solid var(--border);
+      border-right: 1px solid var(--border);
+      border-bottom: 1px solid var(--border);
+      border-radius: 0 0 10px 10px;
+    }
+    .bottom-docs-label {
+      font-size: 9px;
+      letter-spacing: .1em;
+      text-transform: uppercase;
+      color: var(--muted);
+      white-space: nowrap;
+      margin-right: 6px;
+    }
+    .doc-btn.warn {
+      background: rgba(247,183,49,.1);
+      border-color: rgba(247,183,49,.3);
+      color: var(--accent2);
+    }
+    .doc-btn.warn:hover { background: rgba(247,183,49,.18); }
+
+    /* ── POPUP ── */
+    #akBackdrop {
+      position: fixed; inset: 0;
+      background: rgba(0,0,0,.6);
+      backdrop-filter: blur(4px);
+      z-index: 4600;
+    }
+    #akPopover {
+      position: fixed;
+      inset: 20px;
+      background: var(--surface);
+      border: 1px solid var(--border-hi);
+      border-radius: 12px;
+      z-index: 4700;
+      padding: 14px;
+      overflow: auto;
+      box-shadow: 0 20px 60px rgba(0,0,0,.6);
+      color: var(--text);
+    }
+    #akPopover .ak-header {
+      position: sticky; top: 0; z-index: 2;
+      background: var(--surface);
+      padding: 8px 0 12px;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      align-items: center;
+    }
+    #akMenuTitle, #akMenuStatus { font-family: var(--mono); font-size: 11px; color: var(--muted); }
+
+    .button.is-small { font-family: var(--mono); font-size: 11px; }
+
+    /* ── SCROLLBAR ── */
+    ::-webkit-scrollbar { width: 5px; height: 5px; }
+    ::-webkit-scrollbar-track { background: var(--bg); }
+    ::-webkit-scrollbar-thumb { background: var(--border-hi); border-radius: 3px; }
   </style>
 </head>
 
 <body>
-<section class="section">
-  <div class="container">
 
-    <h1 class="title has-text-centered">Flight PDF Filler</h1>
+  <!-- TOP BAR -->
+  <div class="topbar">
+    <div class="topbar-logo">
+      <span class="dot"></span>
+      PRÉPARATION DES VOLS
+    </div>
+    <div class="topbar-divider"></div>
 
-    <!-- AGENT -->
-    <div class="box">
-      <h2 class="title is-4">Agent</h2>
-      <div class="field">
-        <label class="label">Nom Prénom</label>
-        <input id="full_name" class="input" placeholder="DUPONT JEAN">
+    <div class="agent-strip">
+      <label>Agent</label>
+      <input id="full_name" type="text" placeholder="DUPONT JEAN">
+    </div>
+  </div>
+
+  <!-- MAIN GRID -->
+  <div class="app-grid">
+
+    <!-- ═══════ VOL 1 ═══════ -->
+    <div class="vol-card">
+      <div class="vol-header">
+        <span class="vol-badge">VOL 1</span>
+
+        <!-- Flow toggle -->
+        <div class="flow-toggle" id="flow-toggle-1">
+          <button class="active" data-val="DEP" type="button" onclick="setFlow(1,'DEP',this)">DEP</button>
+          <button data-val="ARR" type="button" onclick="setFlow(1,'ARR',this)">ARR</button>
+        </div>
+
+        <!-- Flight select (ID attendu par app.js) -->
+        <div class="flt-select-wrap">
+          <select id="ak_flight_1">
+            <option value="">— Choisir un vol —</option>
+          </select>
+        </div>
+
+        <span class="flt-status" id="ak_status_1">—</span>
+
+        <!-- Hidden select compat app.js (il écoute souvent ak_flow_*) -->
+        <select id="ak_flow_1" style="display:none">
+          <option value="DEP" selected>Départs</option>
+          <option value="ARR">Arrivées</option>
+        </select>
+      </div>
+
+      <div class="vol-body">
+
+        <!-- ARRIVÉE -->
+        <div class="section-label">Arrivée</div>
+        <div class="badges-row" id="arr_badges_1"></div>
+
+        <label class="hold-row">
+          <input id="hold_search_1" type="checkbox">
+          <span class="hold-box"></span>
+          <span class="hold-label">Hold Security Search</span>
+        </label>
+
+        <div class="fields-grid three">
+          <div class="field-item">
+            <label>Date</label>
+            <input id="arr_date_1" type="date">
+          </div>
+          <div class="field-item">
+            <label>Flight No.</label>
+            <input id="arr_flt_1" placeholder="FR1234">
+          </div>
+          <div class="field-item">
+            <label>From</label>
+            <input id="arr_from_1" placeholder="BCN">
+          </div>
+        </div>
+
+        <div class="fields-grid" style="margin-top:6px;">
+          <div class="field-item">
+            <label>Registration</label>
+            <input id="arr_reg_1" placeholder="EI-ABC">
+          </div>
+          <div class="field-item">
+            <label>A/C Type</label>
+            <input id="arr_type_1" placeholder="B737-800">
+          </div>
+        </div>
+
+        <!-- DÉPART -->
+        <div class="section-label" style="margin-top:14px;">Départ</div>
+        <div class="badges-row" id="dep_badges_1"></div>
+
+        <div class="fields-grid three">
+          <div class="field-item">
+            <label>Date</label>
+            <input id="dep_date_1" type="date">
+          </div>
+          <div class="field-item">
+            <label>Flight No.</label>
+            <input id="dep_flt_1" placeholder="FR1235">
+          </div>
+          <div class="field-item">
+            <label>To</label>
+            <input id="dep_to_1" placeholder="MAD">
+          </div>
+        </div>
+
+        <div class="fields-grid three" style="margin-top:6px;">
+          <div class="field-item">
+            <label>Registration</label>
+            <input id="dep_reg_1" placeholder="EI-ABC">
+          </div>
+          <div class="field-item">
+            <label>A/C Type</label>
+            <input id="dep_type_1" placeholder="B737-800">
+          </div>
+          <div class="field-item">
+            <label>Parking</label>
+            <input id="parking_1" placeholder="B12">
+          </div>
+        </div>
+
+      </div>
+
+      <div class="docs-section">
+        <button class="doc-btn dark" data-doc="LIR_RYANAIR" data-vol="1" type="button">LIR Ryanair</button>
+        <button class="doc-btn dark" data-doc="LIR_LAUDA"   data-vol="1" type="button">LIR Lauda</button>
+        <button class="doc-btn dark" data-doc="BINGO_FR"    data-vol="1" type="button">Bingo Gate</button>
+
+        <button class="doc-btn link" data-doc="BBCG_GATE"   data-vol="1" type="button">BBCG Gate</button>
+        <button class="doc-btn link" data-doc="WAIF"        data-vol="1" type="button">Walkaround</button>
+        <button class="doc-btn link" data-doc="RTB"         data-vol="1" type="button">Ready To Board</button>
       </div>
     </div>
 
-    <div class="columns">
+    <!-- ═══════ VOL 2 ═══════ -->
+    <div class="vol-card">
+      <div class="vol-header">
+        <span class="vol-badge v2">VOL 2</span>
 
-      <!-- ================= VOL 1 ================= -->
-      <div class="column">
+        <div class="flow-toggle" id="flow-toggle-2">
+          <button class="active" data-val="DEP" type="button" onclick="setFlow(2,'DEP',this)">DEP</button>
+          <button data-val="ARR" type="button" onclick="setFlow(2,'ARR',this)">ARR</button>
+        </div>
 
-        <!-- LISTE VOLS (AK) -->
-        <div class="box">
-          <h2 class="title is-5">Liste Vols</h2>
+        <div class="flt-select-wrap">
+          <select id="ak_flight_2">
+            <option value="">— Choisir un vol —</option>
+          </select>
+        </div>
 
-          <!-- ✅ Switch Départs / Arrivées -->
-          <div class="field mb-2">
-            <div class="select is-fullwidth">
-              <select id="ak_flow_1">
-                <option value="DEP" selected>Départs</option>
-                <option value="ARR">Arrivées</option>
-              </select>
-            </div>
+        <span class="flt-status" id="ak_status_2">—</span>
+
+        <select id="ak_flow_2" style="display:none">
+          <option value="DEP" selected>Départs</option>
+          <option value="ARR">Arrivées</option>
+        </select>
+      </div>
+
+      <div class="vol-body">
+
+        <div class="section-label">Arrivée</div>
+        <div class="badges-row" id="arr_badges_2"></div>
+
+        <label class="hold-row">
+          <input id="hold_search_2" type="checkbox">
+          <span class="hold-box"></span>
+          <span class="hold-label">Hold Security Search</span>
+        </label>
+
+        <div class="fields-grid three">
+          <div class="field-item">
+            <label>Date</label>
+            <input id="arr_date_2" type="date">
           </div>
-
-          <div class="field">
-            <div class="select is-fullwidth">
-              <select id="ak_flight_1">
-                <option value="">-- Choisir un vol --</option>
-              </select>
-            </div>
-            <p class="help" id="ak_status_1">—</p>
+          <div class="field-item">
+            <label>Flight No.</label>
+            <input id="arr_flt_2" placeholder="FR1234">
+          </div>
+          <div class="field-item">
+            <label>From</label>
+            <input id="arr_from_2" placeholder="BCN">
           </div>
         </div>
 
-        <div class="box">
-          <h2 class="title is-4">VOL 1 — ARRIVÉE</h2>
-
-          <!-- ✅ Badges ARR (retard / à l'heure / avance) -->
-          <div class="tags mb-2" id="arr_badges_1"></div>
-
-          <label class="checkbox mb-2">
-            <input id="hold_search_1" type="checkbox">
-            HOLD SECURITY SEARCH
-          </label>
-
-          <input id="arr_date_1" type="date" class="input mb-2">
-          <input id="arr_flt_1" class="input mb-2" placeholder="Flight Number">
-          <input id="arr_from_1" class="input mb-2" placeholder="From">
-          <input id="arr_reg_1" class="input mb-2" placeholder="Registration">
-          <input id="arr_type_1" class="input mb-2" placeholder="A/C Type">
+        <div class="fields-grid" style="margin-top:6px;">
+          <div class="field-item">
+            <label>Registration</label>
+            <input id="arr_reg_2" placeholder="EI-ABC">
+          </div>
+          <div class="field-item">
+            <label>A/C Type</label>
+            <input id="arr_type_2" placeholder="B737-800">
+          </div>
         </div>
 
-        <div class="box">
-          <h2 class="title is-4">VOL 1 — DÉPART</h2>
+        <div class="section-label" style="margin-top:14px;">Départ</div>
+        <div class="badges-row" id="dep_badges_2"></div>
 
-          <!-- ✅ Badges DEP (retard / à l'heure / avance) -->
-          <div class="tags mb-2" id="dep_badges_1"></div>
-
-          <input id="dep_date_1" type="date" class="input mb-2">
-          <input id="dep_flt_1" class="input mb-2" placeholder="Flight number">
-          <input id="dep_to_1" class="input mb-2" placeholder="To">
-          <input id="parking_1" class="input mb-2" placeholder="Parking">
-          <input id="dep_reg_1" class="input mb-2" placeholder="Registration">
-          <input id="dep_type_1" class="input mb-2" placeholder="A/C Type">
+        <div class="fields-grid three">
+          <div class="field-item">
+            <label>Date</label>
+            <input id="dep_date_2" type="date">
+          </div>
+          <div class="field-item">
+            <label>Flight No.</label>
+            <input id="dep_flt_2" placeholder="FR1235">
+          </div>
+          <div class="field-item">
+            <label>To</label>
+            <input id="dep_to_2" placeholder="MAD">
+          </div>
         </div>
 
-        <div class="box">
-          <h2 class="title is-5">Documents VOL 1</h2>
-          <div class="buttons">
-            <button class="button is-dark" data-doc="LIR_RYANAIR" data-vol="1">LIR Ryanair</button>
-            <button class="button is-dark" data-doc="LIR_LAUDA" data-vol="1">LIR Lauda</button>
-            <button class="button is-dark" data-doc="BINGO_FR" data-vol="1">Bingo Gate</button>
-
-            <button class="button is-link" data-doc="BBCG_GATE" data-vol="1">BBCG Gate</button>
-            <button class="button is-link" data-doc="WAIF" data-vol="1">Walkaround</button>
-            <button class="button is-link" data-doc="RTB" data-vol="1">Ready To Board</button>
+        <div class="fields-grid three" style="margin-top:6px;">
+          <div class="field-item">
+            <label>Registration</label>
+            <input id="dep_reg_2" placeholder="EI-ABC">
+          </div>
+          <div class="field-item">
+            <label>A/C Type</label>
+            <input id="dep_type_2" placeholder="B737-800">
+          </div>
+          <div class="field-item">
+            <label>Parking</label>
+            <input id="parking_2" placeholder="B12">
           </div>
         </div>
 
       </div>
 
-      <!-- ================= VOL 2 ================= -->
-      <div class="column">
+      <div class="docs-section">
+        <button class="doc-btn dark" data-doc="LIR_RYANAIR" data-vol="2" type="button">LIR Ryanair</button>
+        <button class="doc-btn dark" data-doc="LIR_LAUDA"   data-vol="2" type="button">LIR Lauda</button>
+        <button class="doc-btn dark" data-doc="BINGO_FR"    data-vol="2" type="button">Bingo Gate</button>
 
-        <!-- LISTE VOLS (AK) -->
-        <div class="box">
-          <h2 class="title is-5">Liste Vols</h2>
-
-          <!-- ✅ Switch Départs / Arrivées -->
-          <div class="field mb-2">
-            <div class="select is-fullwidth">
-              <select id="ak_flow_2">
-                <option value="DEP" selected>Départs</option>
-                <option value="ARR">Arrivées</option>
-              </select>
-            </div>
-          </div>
-
-          <div class="field">
-            <div class="select is-fullwidth">
-              <select id="ak_flight_2">
-                <option value="">-- Choisir un vol --</option>
-              </select>
-            </div>
-            <p class="help" id="ak_status_2">—</p>
-          </div>
-        </div>
-
-        <div class="box">
-          <h2 class="title is-4">VOL 2 — ARRIVÉE</h2>
-
-          <!-- ✅ Badges ARR (retard / à l'heure / avance) -->
-          <div class="tags mb-2" id="arr_badges_2"></div>
-
-          <label class="checkbox mb-2">
-            <input id="hold_search_2" type="checkbox">
-            HOLD SECURITY SEARCH
-          </label>
-
-          <input id="arr_date_2" type="date" class="input mb-2">
-          <input id="arr_flt_2" class="input mb-2" placeholder="Flight Number">
-          <input id="arr_from_2" class="input mb-2" placeholder="From">
-          <input id="arr_reg_2" class="input mb-2" placeholder="Registration">
-          <input id="arr_type_2" class="input mb-2" placeholder="A/C Type">
-        </div>
-
-        <div class="box">
-          <h2 class="title is-4">VOL 2 — DÉPART</h2>
-
-          <!-- ✅ Badges DEP (retard / à l'heure / avance) -->
-          <div class="tags mb-2" id="dep_badges_2"></div>
-
-          <input id="dep_date_2" type="date" class="input mb-2">
-          <input id="dep_flt_2" class="input mb-2" placeholder="Flight Number">
-          <input id="dep_to_2" class="input mb-2" placeholder="To">
-          <input id="parking_2" class="input mb-2" placeholder="Parking">
-          <input id="dep_reg_2" class="input mb-2" placeholder="Registration">
-          <input id="dep_type_2" class="input mb-2" placeholder="A/C Type">
-        </div>
-
-        <div class="box">
-          <h2 class="title is-5">Documents VOL 2</h2>
-          <div class="buttons">
-            <button class="button is-dark" data-doc="LIR_RYANAIR" data-vol="2">LIR Ryanair</button>
-            <button class="button is-dark" data-doc="LIR_LAUDA" data-vol="2">LIR Lauda</button>
-            <button class="button is-dark" data-doc="BINGO_FR" data-vol="2">Bingo Gate</button>
-
-            <button class="button is-link" data-doc="BBCG_GATE" data-vol="2">BBCG Gate</button>
-            <button class="button is-link" data-doc="WAIF" data-vol="2">Walkaround</button>
-            <button class="button is-link" data-doc="RTB" data-vol="2">Ready To Board</button>
-          </div>
-        </div>
-
-      </div>
-    </div>
-
-    <!-- DOCS DOUBLES -->
-    <div class="box">
-      <h2 class="title is-4">Documents 2 vols</h2>
-      <div class="buttons">
-        <button class="button is-warning" data-doc="AUTOCONTROLE" data-vol="both">Autocontrôle</button>
-        <button class="button is-warning" data-doc="PRESTA_DEP" data-vol="both">Prestations départ</button>
-        <button class="button is-warning" data-doc="PRESTA_RET" data-vol="both">Prestations arrivée</button>
+        <button class="doc-btn link" data-doc="BBCG_GATE"   data-vol="2" type="button">BBCG Gate</button>
+        <button class="doc-btn link" data-doc="WAIF"        data-vol="2" type="button">Walkaround</button>
+        <button class="doc-btn link" data-doc="RTB"         data-vol="2" type="button">Ready To Board</button>
       </div>
     </div>
 
   </div>
-</section>
 
-<!-- ✅ POPUP AK (si tu utilises openAKMenu/closeAKMenu/renderAKMenu) -->
-<div id="akBackdrop" style="display:none;" onclick="closeAKMenu()"></div>
+  <!-- DOCS 2 VOLS -->
+  <div class="bottom-docs">
+    <span class="bottom-docs-label">Docs 2 vols</span>
+    <button class="doc-btn warn" data-doc="AUTOCONTROLE" data-vol="both" type="button">Autocontrôle</button>
+    <button class="doc-btn warn" data-doc="PRESTA_DEP"   data-vol="both" type="button">Prestations départ</button>
+    <button class="doc-btn warn" data-doc="PRESTA_RET"   data-vol="both" type="button">Prestations arrivée</button>
+  </div>
 
-<div id="akPopover" style="display:none;">
-  <div class="ak-header">
-    <div style="display:flex; gap:10px; flex-wrap:wrap; align-items:center;">
-      <span class="tag is-light" id="akMenuTitle">AK</span>
+  <!-- POPUP AK -->
+  <div id="akBackdrop" style="display:none;" onclick="closeAKMenu()"></div>
+  <div id="akPopover"  style="display:none;">
+    <div class="ak-header">
+      <span class="tag is-dark" id="akMenuTitle">AK</span>
       <button class="button is-small is-link" type="button" id="akMenuRefresh">Rafraîchir</button>
-      <span class="tag is-light" id="akMenuStatus">—</span>
-      <button class="button is-small is-light" type="button" style="margin-left:auto" onclick="closeAKMenu()">Fermer</button>
+      <span id="akMenuStatus">—</span>
+      <button class="button is-small" type="button" style="margin-left:auto" onclick="closeAKMenu()">Fermer ✕</button>
     </div>
+    <div id="akMenuList" style="margin-top:10px;"></div>
   </div>
-  <div id="akMenuList" style="margin-top:10px;"></div>
-</div>
 
-<script src="https://unpkg.com/pdf-lib@1.17.1/dist/pdf-lib.min.js"></script>
-<script type="module" src="app.js"></script>
+  <script src="https://unpkg.com/pdf-lib@1.17.1/dist/pdf-lib.min.js"></script>
 
+  <script>
+    // Bridge flow-toggle -> hidden select attendu par app.js
+    function setFlow(vol, val, btn) {
+      document.querySelectorAll(`#flow-toggle-${vol} button`).forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      const sel = document.getElementById(`ak_flow_${vol}`);
+      if (sel) {
+        sel.value = val;
+        sel.dispatchEvent(new Event('change', { bubbles: true }));
+      }
+    }
+
+    // Init visuel du toggle selon la valeur initiale du select (au cas où)
+    function syncFlowUI(vol){
+      const sel = document.getElementById(`ak_flow_${vol}`);
+      const val = sel?.value || 'DEP';
+      const btn = document.querySelector(`#flow-toggle-${vol} button[data-val="${val}"]`);
+      if (btn) setFlow(vol, val, btn);
+    }
+    window.addEventListener('DOMContentLoaded', () => {
+      syncFlowUI(1);
+      syncFlowUI(2);
+    });
+  </script>
+
+  <script type="module" src="app.js"></script>
 </body>
 </html>
