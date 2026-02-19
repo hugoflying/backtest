@@ -246,8 +246,11 @@ async function fillAndPrint(docKey, volTarget = "1") {
 
   const form = pdfDoc.getForm();
 
-  const arialBytes = await fetch("/fonts/ARIAL.TTF").then(r => r.arrayBuffer());
-  const arialBoldBytes = await fetch("/fonts/ARIAL-BOLD.TTF").then(r => r.arrayBuffer());
+  // 🔥 chemin compatible GitHub Pages + local
+  const BASE = location.pathname.replace(/\/[^\/]*$/, "/");
+
+  const arialBytes = await fetch(BASE + "fonts/ARIAL.TTF").then(r => r.arrayBuffer());
+  const arialBoldBytes = await fetch(BASE + "fonts/ARIAL-BOLD.TTF").then(r => r.arrayBuffer());
 
   const font = await pdfDoc.embedFont(arialBytes);
   const fontBold = await pdfDoc.embedFont(arialBoldBytes);
@@ -289,14 +292,6 @@ async function fillAndPrint(docKey, volTarget = "1") {
   document.body.appendChild(iframe);
   iframe.onload = () => iframe.contentWindow.print();
 }
-
-/* boutons */
-document.addEventListener("click", (e) => {
-  const b = e.target.closest("button[data-doc]");
-  if (!b) return;
-  fillAndPrint(b.dataset.doc, b.dataset.vol || "1");
-});
-
 
 /* =========================
    AirportKeeper -> Dropdowns (version calquée index(62))
