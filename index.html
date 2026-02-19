@@ -5,6 +5,35 @@
   <title>Flight PDF Filler</title>
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bulma@1.0.2/css/bulma.min.css">
+
+  <!-- ✅ Styles popup AK -->
+  <style>
+    #akBackdrop{
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,.35);
+      z-index: 4600;
+    }
+    #akPopover{
+      position: fixed;
+      inset: 10px;
+      background: #fff;
+      border-radius: 16px;
+      z-index: 4700;
+      padding: 12px;
+      overflow: auto;
+      box-shadow: 0 10px 28px rgba(0,0,0,.08);
+      border: 1px solid rgba(0,0,0,.08);
+    }
+    #akPopover .ak-header{
+      position: sticky;
+      top: 0;
+      z-index: 2;
+      background: #fff;
+      padding: 10px 0;
+      border-bottom: 1px solid rgba(0,0,0,.08);
+    }
+  </style>
 </head>
 
 <body>
@@ -171,6 +200,21 @@
 
   </div>
 </section>
+
+<!-- ✅ POPUP AK (si tu utilises openAKMenu/closeAKMenu/renderAKMenu) -->
+<div id="akBackdrop" style="display:none;" onclick="closeAKMenu()"></div>
+
+<div id="akPopover" style="display:none;">
+  <div class="ak-header">
+    <div style="display:flex; gap:10px; flex-wrap:wrap; align-items:center;">
+      <span class="tag is-light" id="akMenuTitle">AK</span>
+      <button class="button is-small is-link" type="button" id="akMenuRefresh">Rafraîchir</button>
+      <span class="tag is-light" id="akMenuStatus">—</span>
+      <button class="button is-small is-light" type="button" style="margin-left:auto" onclick="closeAKMenu()">Fermer</button>
+    </div>
+  </div>
+  <div id="akMenuList" style="margin-top:10px;"></div>
+</div>
 
 <script src="https://unpkg.com/pdf-lib@1.17.1/dist/pdf-lib.min.js"></script>
 <script type="module" src="app.js"></script>
