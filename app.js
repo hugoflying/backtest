@@ -741,6 +741,3 @@ document.addEventListener("DOMContentLoaded", ()=>{
   bindAK(2);
   loadAKAll();
 });
-
-  loadAKAll();
-});
