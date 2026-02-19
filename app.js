@@ -343,6 +343,11 @@ function lirTypeX(acType){
    - Liste DEP = SOBT
    - Liste ARR = SIBT
    - Lien ARR↔DEP conservé (via arrAll)
+   - Badges UI : ARR et DEP indépendants
+     * 5–14  => retard orange
+     * >=15  => retard rouge
+     * <5    => à l'heure vert
+     * <=-5  => en avance bleu
    ========================= */
 
 const AK_PROXY = "https://airportkeeper-proxy.deruellehugo-49c.workers.dev/ak";
@@ -502,6 +507,88 @@ function akAcType(f){
   );
 }
 
+/* =========================
+   BADGES RETARD (UI)
+   ========================= */
+
+function delayMinFrom(plannedIso, actualIso){
+  const p = Date.parse(plannedIso || "");
+  const a = Date.parse(actualIso || "");
+  if(!p || !a) return null;
+  return Math.round((a - p) / 60000);
+}
+
+function actualDepIso(f){
+  return f?.aobt || f?.atot || f?.eobt || f?.etot || f?.pobt || f?.ctot || "";
+}
+function actualArrIso(f){
+  return f?.aibt || f?.aldt || f?.eibt || f?.eldt || f?.afat || f?.efat || "";
+}
+
+// ✅ règles demandées
+function renderDelayBadge(containerEl, mins){
+  if(!containerEl || mins == null) return;
+
+  let label = "";
+  let color = "";
+
+  if(mins >= 15){
+    label = `RETARD +${mins}`;
+    color = "is-danger";     // rouge
+  }
+  else if(mins >= 5){
+    label = `RETARD +${mins}`;
+    color = "is-warning";    // orange
+  }
+  else if(mins <= -5){
+    label = `EN AVANCE ${mins}`; // ex: -8
+    color = "is-info";       // bleu
+  }
+  else{
+    label = "À L’HEURE";
+    color = "is-success";    // vert
+  }
+
+  const span = document.createElement("span");
+  span.className = `tag ${color}`;
+  span.style.fontWeight = "900";
+  span.textContent = label;
+
+  containerEl.appendChild(span);
+}
+
+function updateBadgesFromFlights(n, depFlight, arrFlight){
+  const depWrap = $(`dep_badges_${n}`);
+  const arrWrap = $(`arr_badges_${n}`);
+  if(depWrap) depWrap.innerHTML = "";
+  if(arrWrap) arrWrap.innerHTML = "";
+
+  // DEP: SOBT vs actualDep
+  if(depFlight && depWrap){
+    const planned = depFlight?.sobt || "";
+    const actual  = actualDepIso(depFlight);
+    renderDelayBadge(depWrap, delayMinFrom(planned, actual));
+  }
+
+  // ARR: SIBT vs actualArr
+  if(arrFlight && arrWrap){
+    const planned = arrFlight?.sibt || "";
+    const actual  = actualArrIso(arrFlight);
+    renderDelayBadge(arrWrap, delayMinFrom(planned, actual));
+  }
+}
+
+function clearBadges(n){
+  const a = $(`arr_badges_${n}`);
+  const d = $(`dep_badges_${n}`);
+  if(a) a.innerHTML = "";
+  if(d) d.innerHTML = "";
+}
+
+/* =========================
+   LOAD + DROPDOWNS
+   ========================= */
+
 async function loadAKAll(){
   const st1 = $("ak_status_1");
   const st2 = $("ak_status_2");
@@ -586,11 +673,15 @@ function bindAK(n){
 
   flowSel.addEventListener("change", ()=>{
     refreshAKDropdown(n);
+    clearBadges(n);
   });
 
   sel.addEventListener("change", ()=>{
     const id = sel.value;
-    if(!id) return;
+    if(!id){
+      clearBadges(n);
+      return;
+    }
 
     const flow = flowSel.value;
 
@@ -598,19 +689,23 @@ function bindAK(n){
       const dep = (window._akDepToday || []).find(f => String(f?.id ?? "") === String(id));
       if(!dep) return;
 
-      // ✅ conserve la logique : remplir DEP + ARR liée via cache arrAll large
       applyDepToVol(n, dep, window._akArrAll || []);
+
+      const prevArr = findPrevArrForDep(dep, window._akArrAll || []);
+      updateBadgesFromFlights(n, dep, prevArr);
+
     } else {
       const arr = (window._akArrToday || []).find(f => String(f?.id ?? "") === String(id));
       if(!arr) return;
 
-      // remplissage arrivée (SIBT)
       const arrIso = arr?.sibt || arr?.eibt || arr?.aibt || arr?.aldt || arr?.eldt || arr?.afat || arr?.efat || "";
       setVal(`arr_date_${n}`, isoToYYYYMMDD(arrIso));
       setVal(`arr_flt_${n}`, upper(arr?.fullFlightNumber || arr?.callsign || ""));
       setVal(`arr_from_${n}`, upper(arr?.adepIata || arr?.adepIcao || ""));
       setVal(`arr_reg_${n}`, upper(arr?.reg || ""));
       setVal(`arr_type_${n}`, akAcType(arr));
+
+      updateBadgesFromFlights(n, null, arr);
     }
   });
 }
@@ -621,5 +716,3 @@ document.addEventListener("DOMContentLoaded", ()=>{
   bindAK(2);
   loadAKAll();
 });
-
-
