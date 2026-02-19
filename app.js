@@ -605,11 +605,11 @@ function renderDelayBadge(containerEl, mins){
   let color = "";
 
   if(mins >= 15){
-    label = `RETARD +${mins}`;
+    label = `RETARDÉ +${mins}`;
     color = "is-danger";
   }
   else if(mins >= 5){
-    label = `RETARD +${mins}`;
+    label = `RETARDÉ +${mins}`;
     color = "is-warning";
   }
   else if(mins <= -5){
