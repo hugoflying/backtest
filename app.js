@@ -1,4 +1,6 @@
 const TEMPLATE_BASE = "https://flight-templates.deruellehugo-49c.workers.dev";
+import fontkit from "https://cdn.skypack.dev/@pdf-lib/fontkit";
+
 
 const { PDFDocument, StandardFonts } = PDFLib;
 
@@ -241,8 +243,15 @@ async function fillAndPrint(docKey, volTarget = "1") {
   if (!res.ok) throw new Error(`Template fetch failed (${res.status})`);
 
   const pdfDoc = await PDFDocument.load(await res.arrayBuffer());
+  pdfDoc.registerFontkit(fontkit);
+
   const form = pdfDoc.getForm();
-  const font = await pdfDoc.embedFont(StandardFonts.Helvetica);
+
+  const arialBytes = await fetch("/fonts/ARIAL.TTF").then(r => r.arrayBuffer());
+  const arialBoldBytes = await fetch("/fonts/ARIAL-BOLD.TTF").then(r => r.arrayBuffer());
+
+  const font = await pdfDoc.embedFont(arialBytes);
+  const fontBold = await pdfDoc.embedFont(arialBoldBytes);
 
   const fields =
     (volTarget === "both")
@@ -258,17 +267,19 @@ async function fillAndPrint(docKey, volTarget = "1") {
       }
 
       const tf = form.getTextField(n);
-      tf.setText(String(v ?? "").toUpperCase());
+      const value = String(v ?? "").toUpperCase();
+      tf.setText(value);
+
+      // X en gras
+      if (value === "X") tf.updateAppearances(fontBold);
+      else tf.updateAppearances(font);
 
       const isName = n.includes("NOM PRENOM");
-
-      // uniquement l’alignement horizontal
       tf.setAlignment(isName ? PDFLib.TextAlignment.Left : PDFLib.TextAlignment.Center);
 
     } catch {}
   }
 
-  form.updateFieldAppearances(font);
   form.flatten();
 
   const bytes = await pdfDoc.save();
