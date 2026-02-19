@@ -246,9 +246,7 @@ async function fillAndPrint(docKey, volTarget = "1") {
 
   const form = pdfDoc.getForm();
 
-  // chemin compatible GitHub Pages + local
   const BASE = location.pathname.replace(/\/[^\/]*$/, "/");
-
   const arialBytes = await fetch(BASE + "fonts/ARIAL.TTF").then(r => r.arrayBuffer());
   const arialBoldBytes = await fetch(BASE + "fonts/ARIAL-BOLD.TTF").then(r => r.arrayBuffer());
 
@@ -260,25 +258,44 @@ async function fillAndPrint(docKey, volTarget = "1") {
       ? def.fill({ vol1: v1, vol2: v2 })
       : def.fill({ vol1, vol2 });
 
-  for (const [n, v] of Object.entries(fields)) {
+  const boldFieldNames = [];
+
+  for (const [name, val] of Object.entries(fields)) {
+    if (typeof val === "boolean") {
+      const cb = form.getCheckBox(name);
+      val ? cb.check() : cb.uncheck();
+      continue;
+    }
+
+    const tf = form.getTextField(name);
+    const value = String(val ?? "").toUpperCase();
+    tf.setText(value);
+
+    const isName = name.includes("NOM PRENOM");
+    tf.setAlignment(isName ? PDFLib.TextAlignment.Left : PDFLib.TextAlignment.Center);
+
+    // ✅ compat pdf-lib: certaines versions n'ont pas defaultUpdateAppearances
+    const f = (value === "X") ? fontBold : font;
+    if (typeof tf.defaultUpdateAppearances === "function") {
+      tf.defaultUpdateAppearances(f);
+    } else {
+      tf.updateAppearances(f);
+    }
+
+    if (value === "X") boldFieldNames.push(name);
+  }
+
+  // ✅ force une régénération globale en Arial (écrase les DA du template)
+  form.updateFieldAppearances(font);
+
+  // ✅ puis remet les X en Arial Bold
+  for (const name of boldFieldNames) {
     try {
-      if (typeof v === "boolean") {
-        const cb = form.getCheckBox(n);
-        v ? cb.check() : cb.uncheck();
-        continue;
-      }
-
-      const tf = form.getTextField(n);
-      const value = String(v ?? "").toUpperCase();
-      tf.setText(value);
-
-      const isName = n.includes("NOM PRENOM");
-      tf.setAlignment(isName ? PDFLib.TextAlignment.Left : PDFLib.TextAlignment.Center);
-
-      // force Arial (Arial Bold si "X")
-      tf.defaultUpdateAppearances(value === "X" ? fontBold : font);
-
-    } catch {}
+      const tf = form.getTextField(name);
+      tf.updateAppearances(fontBold);
+    } catch (e) {
+      console.error("Bold X failed for", name, e);
+    }
   }
 
   form.flatten();
