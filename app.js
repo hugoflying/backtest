@@ -260,8 +260,6 @@ async function fillAndPrint(docKey, volTarget = "1") {
       ? def.fill({ vol1: v1, vol2: v2 })
       : def.fill({ vol1, vol2 });
 
-  const boldX = [];
-
   for (const [n, v] of Object.entries(fields)) {
     try {
       if (typeof v === "boolean") {
@@ -277,16 +275,10 @@ async function fillAndPrint(docKey, volTarget = "1") {
       const isName = n.includes("NOM PRENOM");
       tf.setAlignment(isName ? PDFLib.TextAlignment.Left : PDFLib.TextAlignment.Center);
 
-      if (value === "X") boldX.push(tf);
+      // force Arial (Arial Bold si "X")
+      tf.defaultUpdateAppearances(value === "X" ? fontBold : font);
+
     } catch {}
-  }
-
-  // Arial partout
-  form.updateFieldAppearances(font);
-
-  // X en Arial Bold
-  for (const tf of boldX) {
-    try { tf.updateAppearances(fontBold); } catch {}
   }
 
   form.flatten();
