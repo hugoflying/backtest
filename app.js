@@ -246,7 +246,9 @@ async function fillAndPrint(docKey, volTarget = "1") {
 
   const form = pdfDoc.getForm();
 
+  // ✅ chemin compatible GitHub Pages + local
   const BASE = location.pathname.replace(/\/[^\/]*$/, "/");
+
   const arialBytes = await fetch(BASE + "fonts/ARIAL.TTF").then(r => r.arrayBuffer());
   const arialBoldBytes = await fetch(BASE + "fonts/ARIAL-BOLD.TTF").then(r => r.arrayBuffer());
 
@@ -258,43 +260,39 @@ async function fillAndPrint(docKey, volTarget = "1") {
       ? def.fill({ vol1: v1, vol2: v2 })
       : def.fill({ vol1, vol2 });
 
-  const boldFieldNames = [];
-
-  for (const [name, val] of Object.entries(fields)) {
-    if (typeof val === "boolean") {
-      const cb = form.getCheckBox(name);
-      val ? cb.check() : cb.uncheck();
-      continue;
-    }
-
-    const tf = form.getTextField(name);
-    const value = String(val ?? "").toUpperCase();
-    tf.setText(value);
-
-    const isName = name.includes("NOM PRENOM");
-    tf.setAlignment(isName ? PDFLib.TextAlignment.Left : PDFLib.TextAlignment.Center);
-
-    // ✅ compat pdf-lib: certaines versions n'ont pas defaultUpdateAppearances
-    const f = (value === "X") ? fontBold : font;
-    if (typeof tf.defaultUpdateAppearances === "function") {
-      tf.defaultUpdateAppearances(f);
-    } else {
-      tf.updateAppearances(f);
-    }
-
-    if (value === "X") boldFieldNames.push(name);
-  }
-
-  // ✅ force une régénération globale en Arial (écrase les DA du template)
-  form.updateFieldAppearances(font);
-
-  // ✅ puis remet les X en Arial Bold
-  for (const name of boldFieldNames) {
+  for (const [name, raw] of Object.entries(fields)) {
     try {
+      // 1) bool -> checkbox
+      if (typeof raw === "boolean") {
+        const cb = form.getCheckBox(name);
+        raw ? cb.check() : cb.uncheck();
+        continue;
+      }
+
+      const value = String(raw ?? "").toUpperCase();
+
+      // 2) Si le champ est une checkbox (cas fréquent pour les "cases")
+      //    et qu’on veut mettre "X" => on coche.
+      try {
+        const cb = form.getCheckBox(name);
+        if (value === "X") cb.check();
+        else cb.uncheck();
+        continue; // si ça a marché, on ne traite pas en TextField
+      } catch {}
+
+      // 3) Sinon c’est un TextField : on écrit en Arial / Arial Bold
       const tf = form.getTextField(name);
-      tf.updateAppearances(fontBold);
+      tf.setText(value);
+
+      const isName = name.includes("NOM PRENOM");
+      tf.setAlignment(isName ? PDFLib.TextAlignment.Left : PDFLib.TextAlignment.Center);
+
+      // ✅ Arial pour tout, Arial Bold pour "X"
+      tf.updateAppearances(value === "X" ? fontBold : font);
+
     } catch (e) {
-      console.error("Bold X failed for", name, e);
+      // champ absent dans ce template -> on ignore sans casser
+      console.warn("Champ PDF introuvable ou incompatible:", name);
     }
   }
 
@@ -302,12 +300,14 @@ async function fillAndPrint(docKey, volTarget = "1") {
 
   const bytes = await pdfDoc.save();
   const url = URL.createObjectURL(new Blob([bytes], { type: "application/pdf" }));
+
   const iframe = document.createElement("iframe");
   iframe.style.display = "none";
   iframe.src = url;
   document.body.appendChild(iframe);
   iframe.onload = () => iframe.contentWindow.print();
 }
+
 
 // ===== boutons PDF =====
 document.addEventListener("click", async (e) => {
