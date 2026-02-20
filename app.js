@@ -504,40 +504,57 @@ function applyDepToVol(n, dep, arrAll){
   if(!dep) return;
 
   // ===== DEPART =====
-  const depIso = dep?.sobt || dep?.eobt || dep?.aobt || dep?.pobt || dep?.ctot || dep?.etot || dep?.atot || "";
+  const depIso =
+    dep?.sobt ||
+    dep?.eobt ||
+    dep?.aobt ||
+    dep?.pobt ||
+    dep?.ctot ||
+    dep?.etot ||
+    dep?.atot ||
+    "";
+
   setVal(`dep_date_${n}`, isoToYYYYMMDD(depIso));
   setVal(`dep_flt_${n}`, upper(dep?.fullFlightNumber || dep?.callsign || ""));
   setVal(`dep_to_${n}`, upper(dep?.adesIata || dep?.adesIcao || ""));
   setVal(`dep_reg_${n}`, upper(dep?.reg || ""));
   setVal(`dep_type_${n}`, akAcType(dep));
 
-  // ✅ STAND DÉPART
+  // ✅ PARKING DÉPART
   const standDep = (dep?.pkg || "").toString().replace(/^P/i,"").trim();
   setVal(`parking_${n}`, standDep);
 
-  // ===== ARRIVEE liée =====
+  // ===== ARRIVEE liée (linkedId + même jour obligatoire) =====
   const prevArr = findLinkedArrForDepSameDay(dep, arrAll);
 
   if(prevArr){
-    const arrIso = prevArr?.sibt || prevArr?.eibt || prevArr?.aibt || prevArr?.aldt || prevArr?.eldt || prevArr?.afat || prevArr?.efat || "";
+    const arrIso =
+      prevArr?.sibt ||
+      prevArr?.eibt ||
+      prevArr?.aibt ||
+      prevArr?.aldt ||
+      prevArr?.eldt ||
+      prevArr?.afat ||
+      prevArr?.efat ||
+      "";
+
     setVal(`arr_date_${n}`, isoToYYYYMMDD(arrIso));
     setVal(`arr_flt_${n}`, upper(prevArr?.fullFlightNumber || prevArr?.callsign || ""));
     setVal(`arr_from_${n}`, upper(prevArr?.adepIata || prevArr?.adepIcao || ""));
     setVal(`arr_reg_${n}`, upper(prevArr?.reg || dep?.reg || ""));
     setVal(`arr_type_${n}`, akAcType(prevArr) || akAcType(dep));
 
-    // ✅ STAND ARRIVÉE (c’était souvent oublié)
+    // ✅ PARKING ARRIVÉE
     const standArr = (prevArr?.pkg || "").toString().replace(/^P/i,"").trim();
     setVal(`arr_parking_${n}`, standArr);
 
   } else {
-    setVal(`arr_reg_${n}`, "");
-    setVal(`arr_type_${n}`, "");
+    // clear arrivée si pas liée
     setVal(`arr_date_${n}`, "");
     setVal(`arr_flt_${n}`, "");
     setVal(`arr_from_${n}`, "");
-
-    // ✅ clear parking arrivée
+    setVal(`arr_reg_${n}`, "");
+    setVal(`arr_type_${n}`, "");
     setVal(`arr_parking_${n}`, "");
   }
 }
