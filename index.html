@@ -6,7 +6,6 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bulma@1.0.2/css/bulma.min.css">
 
-  <!-- ✅ Styles popup AK (si tu l'utilises encore) -->
   <style>
     #akBackdrop{
       position: fixed;
@@ -56,11 +55,9 @@
       <!-- ================= VOL 1 ================= -->
       <div class="column">
 
-        <!-- LISTE VOLS (AK) -->
         <div class="box">
           <h2 class="title is-5">Liste Vols</h2>
 
-          <!-- ✅ Switch Départs / Arrivées -->
           <div class="field mb-2">
             <div class="select is-fullwidth">
               <select id="ak_flow_1">
@@ -81,47 +78,40 @@
         </div>
 
         <div class="box">
-          <h2 class="title is-4">VOL 1 — ARRIVÉE</h2>
+          <h2 class="title is-4">VOL 1</h2>
 
-          <!-- ✅ Badges ARR (retard / à l'heure / avance) -->
-          <div class="tags mb-2" id="arr_badges_1"></div>
+          <div class="columns">
 
-          <label class="checkbox mb-2">
-            <input id="hold_search_1" type="checkbox">
-            HOLD SECURITY SEARCH
-          </label>
+            <!-- ARRIVÉE -->
+            <div class="column">
+              <h3 class="title is-6">ARRIVÉE</h3>
+              <div class="tags mb-2" id="arr_badges_1"></div>
 
-          <input id="arr_date_1" type="date" class="input mb-2">
-          <input id="arr_flt_1" class="input mb-2" placeholder="Flight Number">
-          <input id="arr_from_1" class="input mb-2" placeholder="From">
-          <input id="arr_reg_1" class="input mb-2" placeholder="Registration">
-          <input id="arr_type_1" class="input mb-2" placeholder="A/C Type">
-        </div>
+              <label class="checkbox mb-2">
+                <input id="hold_search_1" type="checkbox">
+                HOLD SECURITY SEARCH
+              </label>
 
-        <div class="box">
-          <h2 class="title is-4">VOL 1 — DÉPART</h2>
+              <input id="arr_date_1" type="date" class="input mb-2">
+              <input id="arr_flt_1" class="input mb-2" placeholder="Flight Number">
+              <input id="arr_from_1" class="input mb-2" placeholder="From">
+              <input id="arr_reg_1" class="input mb-2" placeholder="Registration">
+              <input id="arr_type_1" class="input mb-2" placeholder="A/C Type">
+            </div>
 
-          <!-- ✅ Badges DEP (retard / à l'heure / avance) -->
-          <div class="tags mb-2" id="dep_badges_1"></div>
+            <!-- DÉPART -->
+            <div class="column">
+              <h3 class="title is-6">DÉPART</h3>
+              <div class="tags mb-2" id="dep_badges_1"></div>
 
-          <input id="dep_date_1" type="date" class="input mb-2">
-          <input id="dep_flt_1" class="input mb-2" placeholder="Flight number">
-          <input id="dep_to_1" class="input mb-2" placeholder="To">
-          <input id="parking_1" class="input mb-2" placeholder="Parking">
-          <input id="dep_reg_1" class="input mb-2" placeholder="Registration">
-          <input id="dep_type_1" class="input mb-2" placeholder="A/C Type">
-        </div>
+              <input id="dep_date_1" type="date" class="input mb-2">
+              <input id="dep_flt_1" class="input mb-2" placeholder="Flight Number">
+              <input id="dep_to_1" class="input mb-2" placeholder="To">
+              <input id="parking_1" class="input mb-2" placeholder="Parking">
+              <input id="dep_reg_1" class="input mb-2" placeholder="Registration">
+              <input id="dep_type_1" class="input mb-2" placeholder="A/C Type">
+            </div>
 
-        <div class="box">
-          <h2 class="title is-5">Documents VOL 1</h2>
-          <div class="buttons">
-            <button class="button is-dark" data-doc="LIR_RYANAIR" data-vol="1">LIR Ryanair</button>
-            <button class="button is-dark" data-doc="LIR_LAUDA" data-vol="1">LIR Lauda</button>
-            <button class="button is-dark" data-doc="BINGO_FR" data-vol="1">Bingo Gate</button>
-
-            <button class="button is-link" data-doc="BBCG_GATE" data-vol="1">BBCG Gate</button>
-            <button class="button is-link" data-doc="WAIF" data-vol="1">Walkaround</button>
-            <button class="button is-link" data-doc="RTB" data-vol="1">Ready To Board</button>
           </div>
         </div>
 
@@ -130,11 +120,9 @@
       <!-- ================= VOL 2 ================= -->
       <div class="column">
 
-        <!-- LISTE VOLS (AK) -->
         <div class="box">
           <h2 class="title is-5">Liste Vols</h2>
 
-          <!-- ✅ Switch Départs / Arrivées -->
           <div class="field mb-2">
             <div class="select is-fullwidth">
               <select id="ak_flow_2">
@@ -155,67 +143,49 @@
         </div>
 
         <div class="box">
-          <h2 class="title is-4">VOL 2 — ARRIVÉE</h2>
+          <h2 class="title is-4">VOL 2</h2>
 
-          <!-- ✅ Badges ARR (retard / à l'heure / avance) -->
-          <div class="tags mb-2" id="arr_badges_2"></div>
+          <div class="columns">
 
-          <label class="checkbox mb-2">
-            <input id="hold_search_2" type="checkbox">
-            HOLD SECURITY SEARCH
-          </label>
+            <!-- ARRIVÉE -->
+            <div class="column">
+              <h3 class="title is-6">ARRIVÉE</h3>
+              <div class="tags mb-2" id="arr_badges_2"></div>
 
-          <input id="arr_date_2" type="date" class="input mb-2">
-          <input id="arr_flt_2" class="input mb-2" placeholder="Flight Number">
-          <input id="arr_from_2" class="input mb-2" placeholder="From">
-          <input id="arr_reg_2" class="input mb-2" placeholder="Registration">
-          <input id="arr_type_2" class="input mb-2" placeholder="A/C Type">
-        </div>
+              <label class="checkbox mb-2">
+                <input id="hold_search_2" type="checkbox">
+                HOLD SECURITY SEARCH
+              </label>
 
-        <div class="box">
-          <h2 class="title is-4">VOL 2 — DÉPART</h2>
+              <input id="arr_date_2" type="date" class="input mb-2">
+              <input id="arr_flt_2" class="input mb-2" placeholder="Flight Number">
+              <input id="arr_from_2" class="input mb-2" placeholder="From">
+              <input id="arr_reg_2" class="input mb-2" placeholder="Registration">
+              <input id="arr_type_2" class="input mb-2" placeholder="A/C Type">
+            </div>
 
-          <!-- ✅ Badges DEP (retard / à l'heure / avance) -->
-          <div class="tags mb-2" id="dep_badges_2"></div>
+            <!-- DÉPART -->
+            <div class="column">
+              <h3 class="title is-6">DÉPART</h3>
+              <div class="tags mb-2" id="dep_badges_2"></div>
 
-          <input id="dep_date_2" type="date" class="input mb-2">
-          <input id="dep_flt_2" class="input mb-2" placeholder="Flight Number">
-          <input id="dep_to_2" class="input mb-2" placeholder="To">
-          <input id="parking_2" class="input mb-2" placeholder="Parking">
-          <input id="dep_reg_2" class="input mb-2" placeholder="Registration">
-          <input id="dep_type_2" class="input mb-2" placeholder="A/C Type">
-        </div>
+              <input id="dep_date_2" type="date" class="input mb-2">
+              <input id="dep_flt_2" class="input mb-2" placeholder="Flight Number">
+              <input id="dep_to_2" class="input mb-2" placeholder="To">
+              <input id="parking_2" class="input mb-2" placeholder="Parking">
+              <input id="dep_reg_2" class="input mb-2" placeholder="Registration">
+              <input id="dep_type_2" class="input mb-2" placeholder="A/C Type">
+            </div>
 
-        <div class="box">
-          <h2 class="title is-5">Documents VOL 2</h2>
-          <div class="buttons">
-            <button class="button is-dark" data-doc="LIR_RYANAIR" data-vol="2">LIR Ryanair</button>
-            <button class="button is-dark" data-doc="LIR_LAUDA" data-vol="2">LIR Lauda</button>
-            <button class="button is-dark" data-doc="BINGO_FR" data-vol="2">Bingo Gate</button>
-
-            <button class="button is-link" data-doc="BBCG_GATE" data-vol="2">BBCG Gate</button>
-            <button class="button is-link" data-doc="WAIF" data-vol="2">Walkaround</button>
-            <button class="button is-link" data-doc="RTB" data-vol="2">Ready To Board</button>
           </div>
         </div>
 
       </div>
     </div>
 
-    <!-- DOCS DOUBLES -->
-    <div class="box">
-      <h2 class="title is-4">Documents 2 vols</h2>
-      <div class="buttons">
-        <button class="button is-warning" data-doc="AUTOCONTROLE" data-vol="both">Autocontrôle</button>
-        <button class="button is-warning" data-doc="PRESTA_DEP" data-vol="both">Prestations départ</button>
-        <button class="button is-warning" data-doc="PRESTA_RET" data-vol="both">Prestations arrivée</button>
-      </div>
-    </div>
-
   </div>
 </section>
 
-<!-- ✅ POPUP AK (si tu utilises openAKMenu/closeAKMenu/renderAKMenu) -->
 <div id="akBackdrop" style="display:none;" onclick="closeAKMenu()"></div>
 
 <div id="akPopover" style="display:none;">
