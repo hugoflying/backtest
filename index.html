@@ -41,15 +41,6 @@
 
     <h1 class="title has-text-centered">Flight PDF Filler</h1>
 
-    <!-- AGENT -->
-    <div class="box">
-      <h2 class="title is-4">Agent</h2>
-      <div class="field">
-        <label class="label">Nom Prénom</label>
-        <input id="full_name" class="input" placeholder="DUPONT JEAN">
-      </div>
-    </div>
-
     <div class="columns">
 
       <!-- ================= VOL 1 ================= -->
@@ -82,7 +73,6 @@
 
           <div class="columns">
 
-            <!-- ARRIVÉE -->
             <div class="column">
               <h3 class="title is-6">ARRIVÉE</h3>
               <div class="tags mb-2" id="arr_badges_1"></div>
@@ -99,7 +89,6 @@
               <input id="arr_type_1" class="input mb-2" placeholder="A/C Type">
             </div>
 
-            <!-- DÉPART -->
             <div class="column">
               <h3 class="title is-6">DÉPART</h3>
               <div class="tags mb-2" id="dep_badges_1"></div>
@@ -112,6 +101,20 @@
               <input id="dep_type_1" class="input mb-2" placeholder="A/C Type">
             </div>
 
+          </div>
+        </div>
+
+        <!-- DOCUMENTS VOL 1 -->
+        <div class="box">
+          <h2 class="title is-5">Documents VOL 1</h2>
+          <div class="buttons">
+            <button class="button is-dark" data-doc="LIR_RYANAIR" data-vol="1">LIR Ryanair</button>
+            <button class="button is-dark" data-doc="LIR_LAUDA" data-vol="1">LIR Lauda</button>
+            <button class="button is-dark" data-doc="BINGO_FR" data-vol="1">Bingo Gate</button>
+
+            <button class="button is-link" data-doc="BBCG_GATE" data-vol="1">BBCG Gate</button>
+            <button class="button is-link" data-doc="WAIF" data-vol="1">Walkaround</button>
+            <button class="button is-link" data-doc="RTB" data-vol="1">Ready To Board</button>
           </div>
         </div>
 
@@ -147,7 +150,6 @@
 
           <div class="columns">
 
-            <!-- ARRIVÉE -->
             <div class="column">
               <h3 class="title is-6">ARRIVÉE</h3>
               <div class="tags mb-2" id="arr_badges_2"></div>
@@ -164,7 +166,6 @@
               <input id="arr_type_2" class="input mb-2" placeholder="A/C Type">
             </div>
 
-            <!-- DÉPART -->
             <div class="column">
               <h3 class="title is-6">DÉPART</h3>
               <div class="tags mb-2" id="dep_badges_2"></div>
@@ -180,12 +181,52 @@
           </div>
         </div>
 
+        <!-- DOCUMENTS VOL 2 -->
+        <div class="box">
+          <h2 class="title is-5">Documents VOL 2</h2>
+          <div class="buttons">
+            <button class="button is-dark" data-doc="LIR_RYANAIR" data-vol="2">LIR Ryanair</button>
+            <button class="button is-dark" data-doc="LIR_LAUDA" data-vol="2">LIR Lauda</button>
+            <button class="button is-dark" data-doc="BINGO_FR" data-vol="2">Bingo Gate</button>
+
+            <button class="button is-link" data-doc="BBCG_GATE" data-vol="2">BBCG Gate</button>
+            <button class="button is-link" data-doc="WAIF" data-vol="2">Walkaround</button>
+            <button class="button is-link" data-doc="RTB" data-vol="2">Ready To Board</button>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- AGENT GLOBAL -->
+    <div class="box">
+      <h2 class="title is-4">Agent</h2>
+      <div class="field">
+        <label class="label">Nom Prénom</label>
+        <input id="full_name" class="input" placeholder="DUPONT JEAN">
+      </div>
+    </div>
+
+    <!-- DOCS DOUBLES -->
+    <div class="box">
+      <h2 class="title is-4">Documents 2 vols</h2>
+      <div class="buttons">
+        <button class="button is-warning" data-doc="AUTOCONTROLE" data-vol="both">Autocontrôle</button>
+        <button class="button is-warning" data-doc="PRESTA_DEP" data-vol="both">Prestations départ</button>
+        <button class="button is-warning" data-doc="PRESTA_RET" data-vol="both">Prestations arrivée</button>
       </div>
     </div>
 
   </div>
 </section>
 
+<script src="https://unpkg.com/pdf-lib@1.17.1/dist/pdf-lib.min.js"></script>
+<script type="module" src="app.js"></script>
+
+</body>
+</html>
+
+<!-- POPUP AK -->
 <div id="akBackdrop" style="display:none;" onclick="closeAKMenu()"></div>
 
 <div id="akPopover" style="display:none;">
