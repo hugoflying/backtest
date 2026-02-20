@@ -352,7 +352,7 @@ function lirTypeX(acType){
      * <=-5  => en avance bleu
    ========================= */
 
-const AK_PROXY = "https://airportkeeper-proxy.deruellehugo-49c.workers.dev/ak";
+const AK_PROXY = "/ak";
 
 function $(id){ return document.getElementById(id); }
 
