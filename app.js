@@ -29,6 +29,7 @@ function getVol(n){
       date:g("dep_date"),
       flt:g("dep_flt"),
       to:g("dep_to"),
+      parking:g("parking"),
       reg:g("dep_reg"),
       type:g("dep_type")
     }
