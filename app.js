@@ -1,6 +1,6 @@
 import fontkit from "https://cdn.skypack.dev/@pdf-lib/fontkit";
 
-const TEMPLATE_BASE = ""; // same-origin: /templates/... via route pdf.bvaops.com/templates*
+const TEMPLATE_BASE = "https://pdf.bvaops.com"; 
 const { PDFDocument, StandardFonts } = PDFLib;
 
 function isoToDDMMYYYY(iso){
