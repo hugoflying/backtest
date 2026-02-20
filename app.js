@@ -473,6 +473,7 @@ function applyArrToVol(n, arr){
   if(!arr) return;
 
   const arrIso = arr?.sibt || arr?.eibt || arr?.aibt || arr?.aldt || arr?.eldt || arr?.afat || arr?.efat || "";
+
   setVal(`arr_date_${n}`, isoToYYYYMMDD(arrIso));
   setVal(`arr_flt_${n}`, upper(arr?.fullFlightNumber || arr?.callsign || ""));
   setVal(`arr_from_${n}`, upper(arr?.adepIata || arr?.adepIcao || ""));
@@ -480,7 +481,7 @@ function applyArrToVol(n, arr){
   setVal(`arr_type_${n}`, akAcType(arr));
 
   const stand = (arr?.pkg || "").toString().replace(/^P/i,"").trim();
-  if(stand) setVal(`parking_${n}`, stand);
+  setVal(`arr_parking_${n}`, stand);  // important : champ ARR
 }
 
 function applyDepOnlyToVol(n, dep){
