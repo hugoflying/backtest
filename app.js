@@ -230,29 +230,62 @@ PRESTA_RET:{
 
 /* ---------- MOTEUR PDF ---------- */
 
+function sleep(ms){
+  return new Promise(r => setTimeout(r, ms));
+}
+
+async function fetchArrayBuffer(url, label){
+  try{
+    const res = await fetch(url, { cache: "no-store" });
+    if(!res.ok) throw new Error(`${label} HTTP ${res.status} (${url})`);
+    return await res.arrayBuffer();
+  }catch(e){
+    // "Failed to fetch" => erreur réseau/CORS/blocage
+    throw new Error(`${label} FETCH ERROR (${url}) → ${e?.message || e}`);
+  }
+}
+
+async function fetchArrayBufferRetry(url, label, tries = 3){
+  let lastErr;
+  for(let i=1;i<=tries;i++){
+    try{
+      // cache-bust pour éviter cache/proxy foireux
+      const u = url + (url.includes("?") ? "&" : "?") + "v=" + Date.now();
+      return await fetchArrayBuffer(u, label);
+    }catch(e){
+      lastErr = e;
+      if(i < tries) await sleep(250 * i); // 250ms, 500ms…
+    }
+  }
+  throw lastErr;
+}
+
 async function fillAndPrint(docKey, volTarget = "1") {
+
   const def = DOCS[docKey];
   if (!def) return;
 
-  const v1 = getVol(1), v2 = getVol(2);
+  const v1 = getVol(1);
+  const v2 = getVol(2);
+
   const vol1 = (volTarget === "2") ? v2 : v1;
   const vol2 = (volTarget === "2") ? v1 : v2;
 
-  const res = await fetch(def.file);
-  if (!res.ok) throw new Error(`Template fetch failed (${res.status})`);
-
-  const pdfDoc = await PDFDocument.load(await res.arrayBuffer());
+  // ===== TEMPLATE =====
+  const templateBytes = await fetchArrayBufferRetry(def.file, "TEMPLATE", 3);
+  const pdfDoc = await PDFDocument.load(templateBytes);
   pdfDoc.registerFontkit(fontkit);
 
   const form = pdfDoc.getForm();
 
-  // ✅ chemin compatible GitHub Pages + local
-  const BASE = location.pathname.replace(/\/[^\/]*$/, "/");
+  // ✅ base stable (gère /index.html, /, /subdir/)
+  const BASE = new URL("./", location.href).toString();
 
-  const arialBytes = await fetch(BASE + "fonts/ARIAL.TTF").then(r => r.arrayBuffer());
-  const arialBoldBytes = await fetch(BASE + "fonts/ARIAL-BOLD.TTF").then(r => r.arrayBuffer());
+  // ===== FONTS =====
+  const arialBytes     = await fetchArrayBufferRetry(BASE + "fonts/ARIAL.TTF",       "FONT ARIAL", 3);
+  const arialBoldBytes = await fetchArrayBufferRetry(BASE + "fonts/ARIAL-BOLD.TTF",  "FONT ARIAL-BOLD", 3);
 
-  const font = await pdfDoc.embedFont(arialBytes);
+  const font     = await pdfDoc.embedFont(arialBytes);
   const fontBold = await pdfDoc.embedFont(arialBoldBytes);
 
   const fields =
@@ -262,6 +295,7 @@ async function fillAndPrint(docKey, volTarget = "1") {
 
   for (const [name, raw] of Object.entries(fields)) {
     try {
+
       // 1) bool -> checkbox
       if (typeof raw === "boolean") {
         const cb = form.getCheckBox(name);
@@ -271,27 +305,24 @@ async function fillAndPrint(docKey, volTarget = "1") {
 
       const value = String(raw ?? "").toUpperCase();
 
-      // 2) Si le champ est une checkbox (cas fréquent pour les "cases")
-      //    et qu’on veut mettre "X" => on coche.
+      // 2) si c'est une checkbox et qu'on veut "X" => on coche
       try {
         const cb = form.getCheckBox(name);
         if (value === "X") cb.check();
         else cb.uncheck();
-        continue; // si ça a marché, on ne traite pas en TextField
+        continue;
       } catch {}
 
-      // 3) Sinon c’est un TextField : on écrit en Arial / Arial Bold
+      // 3) sinon textfield
       const tf = form.getTextField(name);
       tf.setText(value);
 
       const isName = name.includes("NOM PRENOM");
       tf.setAlignment(isName ? PDFLib.TextAlignment.Left : PDFLib.TextAlignment.Center);
 
-      // ✅ Arial pour tout, Arial Bold pour "X"
       tf.updateAppearances(value === "X" ? fontBold : font);
 
     } catch (e) {
-      // champ absent dans ce template -> on ignore sans casser
       console.warn("Champ PDF introuvable ou incompatible:", name);
     }
   }
@@ -305,9 +336,9 @@ async function fillAndPrint(docKey, volTarget = "1") {
   iframe.style.display = "none";
   iframe.src = url;
   document.body.appendChild(iframe);
+
   iframe.onload = () => iframe.contentWindow.print();
 }
-
 
 // ===== boutons PDF =====
 document.addEventListener("click", async (e) => {
