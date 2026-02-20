@@ -477,9 +477,8 @@ function applyArrToVol(n, arr){
   setVal(`arr_reg_${n}`, upper(arr?.reg || ""));
   setVal(`arr_type_${n}`, akAcType(arr));
 
-  // ✅ pkg ARR -> Parking colonne ARRIVÉE
   const stand = (arr?.pkg || "").toString().replace(/^P/i,"").trim();
-  setVal(`arr_parking_${n}`, stand); // <-- IMPORTANT
+  if(stand) setVal(`parking_${n}`, stand);
 }
 
 function applyDepOnlyToVol(n, dep){
@@ -492,9 +491,8 @@ function applyDepOnlyToVol(n, dep){
   setVal(`dep_reg_${n}`, upper(dep?.reg || ""));
   setVal(`dep_type_${n}`, akAcType(dep));
 
-  // ✅ pkg DEP -> Parking colonne DÉPART
   const stand = (dep?.pkg || "").toString().replace(/^P/i,"").trim();
-  setVal(`parking_${n}`, stand);
+  if(stand) setVal(`parking_${n}`, stand);
 }
 
 function applyDepToVol(n, dep, arrAll){
@@ -503,14 +501,14 @@ function applyDepToVol(n, dep, arrAll){
   // ===== DEPART =====
   const depIso = dep?.sobt || dep?.eobt || dep?.aobt || dep?.pobt || dep?.ctot || dep?.etot || dep?.atot || "";
   setVal(`dep_date_${n}`, isoToYYYYMMDD(depIso));
+
   setVal(`dep_flt_${n}`, upper(dep?.fullFlightNumber || dep?.callsign || ""));
   setVal(`dep_to_${n}`, upper(dep?.adesIata || dep?.adesIcao || ""));
   setVal(`dep_reg_${n}`, upper(dep?.reg || ""));
   setVal(`dep_type_${n}`, akAcType(dep));
 
-  // ✅ pkg DEP -> Parking DÉPART
-  const standDep = (dep?.pkg || "").toString().replace(/^P/i,"").trim();
-  setVal(`parking_${n}`, standDep);
+  const stand = (dep?.pkg || "").toString().replace(/^P/i,"").trim();
+  if(stand) setVal(`parking_${n}`, stand);
 
   // ===== ARRIVEE liée (linkedId + même jour obligatoire) =====
   const prevArr = findLinkedArrForDepSameDay(dep, arrAll);
@@ -518,23 +516,19 @@ function applyDepToVol(n, dep, arrAll){
   if(prevArr){
     const arrIso = prevArr?.sibt || prevArr?.eibt || prevArr?.aibt || prevArr?.aldt || prevArr?.eldt || prevArr?.afat || prevArr?.efat || "";
     setVal(`arr_date_${n}`, isoToYYYYMMDD(arrIso));
+
     setVal(`arr_flt_${n}`, upper(prevArr?.fullFlightNumber || prevArr?.callsign || ""));
     setVal(`arr_from_${n}`, upper(prevArr?.adepIata || prevArr?.adepIcao || ""));
     setVal(`arr_reg_${n}`, upper(prevArr?.reg || dep?.reg || ""));
     setVal(`arr_type_${n}`, akAcType(prevArr) || akAcType(dep));
-
-    // ✅ pkg ARR -> Parking ARRIVÉE
-    const standArr = (prevArr?.pkg || "").toString().replace(/^P/i,"").trim();
-    setVal(`arr_parking_${n}`, standArr);
   } else {
+    // si pas de liée (ou pas le même jour), on ne remplit pas l'arrivée
+    // mais on garde au minimum reg/type côté ARR si tu veux
     setVal(`arr_reg_${n}`, "");
     setVal(`arr_type_${n}`, "");
     setVal(`arr_date_${n}`, "");
     setVal(`arr_flt_${n}`, "");
     setVal(`arr_from_${n}`, "");
-
-    // ✅ clear Parking ARRIVÉE
-    setVal(`arr_parking_${n}`, "");
   }
 }
 
