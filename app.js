@@ -20,7 +20,6 @@ function getVol(n){
       date:g("arr_date"),
       flt:g("arr_flt"),
       from:g("arr_from"),
-      parking:g("arr_parking"),
       reg:g("arr_reg"),
       type:g("arr_type"),
       hold_search: c("hold_search")
@@ -29,7 +28,6 @@ function getVol(n){
       date:g("dep_date"),
       flt:g("dep_flt"),
       to:g("dep_to"),
-      parking:g("parking"),
       reg:g("dep_reg"),
       type:g("dep_type")
     }
@@ -40,8 +38,7 @@ function isVolEmpty(v){
   return !v.arr.date&&!v.arr.flt&&!v.dep.date&&!v.dep.flt;
 }
 
-function parkingDep(n){ return document.getElementById(`parking_${n}`)?.value || "" }
-function parkingArr(n){ return document.getElementById(`arr_parking_${n}`)?.value || "" }
+function parking(n){ return document.getElementById(`parking_${n}`)?.value||"" }
 function agent(){ return upper(document.getElementById("full_name")?.value) }
 
 const DOCS={
@@ -480,9 +477,8 @@ function applyArrToVol(n, arr){
   setVal(`arr_reg_${n}`, upper(arr?.reg || ""));
   setVal(`arr_type_${n}`, akAcType(arr));
 
-  // ✅ STAND ARRIVÉE -> champ Parking ARR
-  const standArr = (arr?.pkg || "").toString().replace(/^P/i,"").trim();
-  setVal(`arr_parking_${n}`, standArr);
+  const stand = (arr?.pkg || "").toString().replace(/^P/i,"").trim();
+  if(stand) setVal(`parking_${n}`, stand);
 }
 
 function applyDepOnlyToVol(n, dep){
@@ -495,67 +491,44 @@ function applyDepOnlyToVol(n, dep){
   setVal(`dep_reg_${n}`, upper(dep?.reg || ""));
   setVal(`dep_type_${n}`, akAcType(dep));
 
-  // ✅ STAND DÉPART -> champ Parking DEP
-  const standDep = (dep?.pkg || "").toString().replace(/^P/i,"").trim();
-  setVal(`parking_${n}`, standDep);
+  const stand = (dep?.pkg || "").toString().replace(/^P/i,"").trim();
+  if(stand) setVal(`parking_${n}`, stand);
 }
 
 function applyDepToVol(n, dep, arrAll){
   if(!dep) return;
 
   // ===== DEPART =====
-  const depIso =
-    dep?.sobt ||
-    dep?.eobt ||
-    dep?.aobt ||
-    dep?.pobt ||
-    dep?.ctot ||
-    dep?.etot ||
-    dep?.atot ||
-    "";
-
+  const depIso = dep?.sobt || dep?.eobt || dep?.aobt || dep?.pobt || dep?.ctot || dep?.etot || dep?.atot || "";
   setVal(`dep_date_${n}`, isoToYYYYMMDD(depIso));
+
   setVal(`dep_flt_${n}`, upper(dep?.fullFlightNumber || dep?.callsign || ""));
   setVal(`dep_to_${n}`, upper(dep?.adesIata || dep?.adesIcao || ""));
   setVal(`dep_reg_${n}`, upper(dep?.reg || ""));
   setVal(`dep_type_${n}`, akAcType(dep));
 
-  // ✅ PARKING DÉPART
-  const standDep = (dep?.pkg || "").toString().replace(/^P/i,"").trim();
-  setVal(`parking_${n}`, standDep);
+  const stand = (dep?.pkg || "").toString().replace(/^P/i,"").trim();
+  if(stand) setVal(`parking_${n}`, stand);
 
   // ===== ARRIVEE liée (linkedId + même jour obligatoire) =====
   const prevArr = findLinkedArrForDepSameDay(dep, arrAll);
 
   if(prevArr){
-    const arrIso =
-      prevArr?.sibt ||
-      prevArr?.eibt ||
-      prevArr?.aibt ||
-      prevArr?.aldt ||
-      prevArr?.eldt ||
-      prevArr?.afat ||
-      prevArr?.efat ||
-      "";
-
+    const arrIso = prevArr?.sibt || prevArr?.eibt || prevArr?.aibt || prevArr?.aldt || prevArr?.eldt || prevArr?.afat || prevArr?.efat || "";
     setVal(`arr_date_${n}`, isoToYYYYMMDD(arrIso));
+
     setVal(`arr_flt_${n}`, upper(prevArr?.fullFlightNumber || prevArr?.callsign || ""));
     setVal(`arr_from_${n}`, upper(prevArr?.adepIata || prevArr?.adepIcao || ""));
     setVal(`arr_reg_${n}`, upper(prevArr?.reg || dep?.reg || ""));
     setVal(`arr_type_${n}`, akAcType(prevArr) || akAcType(dep));
-
-    // ✅ PARKING ARRIVÉE
-    const standArr = (prevArr?.pkg || "").toString().replace(/^P/i,"").trim();
-    setVal(`arr_parking_${n}`, standArr);
-
   } else {
-    // clear arrivée si pas liée
+    // si pas de liée (ou pas le même jour), on ne remplit pas l'arrivée
+    // mais on garde au minimum reg/type côté ARR si tu veux
+    setVal(`arr_reg_${n}`, "");
+    setVal(`arr_type_${n}`, "");
     setVal(`arr_date_${n}`, "");
     setVal(`arr_flt_${n}`, "");
     setVal(`arr_from_${n}`, "");
-    setVal(`arr_reg_${n}`, "");
-    setVal(`arr_type_${n}`, "");
-    setVal(`arr_parking_${n}`, "");
   }
 }
 
