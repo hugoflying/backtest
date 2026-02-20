@@ -20,6 +20,7 @@ function getVol(n){
       date:g("arr_date"),
       flt:g("arr_flt"),
       from:g("arr_from"),
+      parking:g("arr_parking"),
       reg:g("arr_reg"),
       type:g("arr_type"),
       hold_search: c("hold_search")
@@ -38,7 +39,8 @@ function isVolEmpty(v){
   return !v.arr.date&&!v.arr.flt&&!v.dep.date&&!v.dep.flt;
 }
 
-function parking(n){ return document.getElementById(`parking_${n}`)?.value||"" }
+function parkingDep(n){ return document.getElementById(`parking_${n}`)?.value || "" }
+function parkingArr(n){ return document.getElementById(`arr_parking_${n}`)?.value || "" }
 function agent(){ return upper(document.getElementById("full_name")?.value) }
 
 const DOCS={
