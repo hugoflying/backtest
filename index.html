@@ -5,34 +5,6 @@
   <title>Flight PDF Filler</title>
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bulma@1.0.2/css/bulma.min.css">
-
-  <style>
-    #akBackdrop{
-      position: fixed;
-      inset: 0;
-      background: rgba(0,0,0,.35);
-      z-index: 4600;
-    }
-    #akPopover{
-      position: fixed;
-      inset: 10px;
-      background: #fff;
-      border-radius: 16px;
-      z-index: 4700;
-      padding: 12px;
-      overflow: auto;
-      box-shadow: 0 10px 28px rgba(0,0,0,.08);
-      border: 1px solid rgba(0,0,0,.08);
-    }
-    #akPopover .ak-header{
-      position: sticky;
-      top: 0;
-      z-index: 2;
-      background: #fff;
-      padding: 10px 0;
-      border-bottom: 1px solid rgba(0,0,0,.08);
-    }
-  </style>
 </head>
 
 <body>
@@ -47,32 +19,11 @@
 <div class="column">
 
   <div class="box">
-    <h2 class="title is-5">Liste Vols</h2>
-
-    <div class="field mb-2">
-      <div class="select is-fullwidth">
-        <select id="ak_flow_1">
-          <option value="DEP" selected>Départs</option>
-          <option value="ARR">Arrivées</option>
-        </select>
-      </div>
-    </div>
-
-    <div class="field">
-      <div class="select is-fullwidth">
-        <select id="ak_flight_1">
-          <option value="">-- Choisir un vol --</option>
-        </select>
-      </div>
-      <p class="help" id="ak_status_1">—</p>
-    </div>
-  </div>
-
-  <div class="box">
     <h2 class="title is-4">VOL 1</h2>
 
     <div class="columns">
 
+      <!-- ARRIVÉE -->
       <div class="column">
         <h3 class="title is-6">ARRIVÉE</h3>
         <div class="tags mb-2" id="arr_badges_1"></div>
@@ -82,6 +33,7 @@
         <input id="arr_from_1" class="input mb-2" placeholder="From">
       </div>
 
+      <!-- DÉPART -->
       <div class="column">
         <h3 class="title is-6">DÉPART</h3>
         <div class="tags mb-2" id="dep_badges_1"></div>
@@ -89,7 +41,6 @@
         <input id="dep_date_1" type="date" class="input mb-2">
         <input id="dep_flt_1" class="input mb-2" placeholder="Flight Number">
         <input id="dep_to_1" class="input mb-2" placeholder="To">
-        <input id="parking_1" class="input mb-2" placeholder="Parking">
       </div>
 
     </div>
@@ -97,6 +48,7 @@
     <!-- FULL WIDTH -->
     <div class="columns">
       <div class="column">
+        <input id="parking_1" class="input mb-2" placeholder="Parking">
         <input id="arr_reg_1" class="input mb-2" placeholder="Registration">
         <input id="arr_type_1" class="input mb-2" placeholder="A/C Type">
       </div>
@@ -111,45 +63,11 @@
 
   </div>
 
-  <div class="box">
-    <h2 class="title is-5">Documents VOL 1</h2>
-    <div class="buttons">
-      <button class="button is-dark" data-doc="LIR_RYANAIR" data-vol="1">LIR Ryanair</button>
-      <button class="button is-dark" data-doc="LIR_LAUDA" data-vol="1">LIR Lauda</button>
-      <button class="button is-dark" data-doc="BINGO_FR" data-vol="1">Bingo Gate</button>
-      <button class="button is-link" data-doc="BBCG_GATE" data-vol="1">BBCG Gate</button>
-      <button class="button is-link" data-doc="WAIF" data-vol="1">Walkaround</button>
-      <button class="button is-link" data-doc="RTB" data-vol="1">Ready To Board</button>
-    </div>
-  </div>
-
 </div>
 
 
 <!-- ================= VOL 2 ================= -->
 <div class="column">
-
-  <div class="box">
-    <h2 class="title is-5">Liste Vols</h2>
-
-    <div class="field mb-2">
-      <div class="select is-fullwidth">
-        <select id="ak_flow_2">
-          <option value="DEP" selected>Départs</option>
-          <option value="ARR">Arrivées</option>
-        </select>
-      </div>
-    </div>
-
-    <div class="field">
-      <div class="select is-fullwidth">
-        <select id="ak_flight_2">
-          <option value="">-- Choisir un vol --</option>
-        </select>
-      </div>
-      <p class="help" id="ak_status_2">—</p>
-    </div>
-  </div>
 
   <div class="box">
     <h2 class="title is-4">VOL 2</h2>
@@ -172,13 +90,13 @@
         <input id="dep_date_2" type="date" class="input mb-2">
         <input id="dep_flt_2" class="input mb-2" placeholder="Flight Number">
         <input id="dep_to_2" class="input mb-2" placeholder="To">
-        <input id="parking_2" class="input mb-2" placeholder="Parking">
       </div>
 
     </div>
 
     <div class="columns">
       <div class="column">
+        <input id="parking_2" class="input mb-2" placeholder="Parking">
         <input id="arr_reg_2" class="input mb-2" placeholder="Registration">
         <input id="arr_type_2" class="input mb-2" placeholder="A/C Type">
       </div>
@@ -193,34 +111,8 @@
 
   </div>
 
-  <div class="box">
-    <h2 class="title is-5">Documents VOL 2</h2>
-    <div class="buttons">
-      <button class="button is-dark" data-doc="LIR_RYANAIR" data-vol="2">LIR Ryanair</button>
-      <button class="button is-dark" data-doc="LIR_LAUDA" data-vol="2">LIR Lauda</button>
-      <button class="button is-dark" data-doc="BINGO_FR" data-vol="2">Bingo Gate</button>
-      <button class="button is-link" data-doc="BBCG_GATE" data-vol="2">BBCG Gate</button>
-      <button class="button is-link" data-doc="WAIF" data-vol="2">Walkaround</button>
-      <button class="button is-link" data-doc="RTB" data-vol="2">Ready To Board</button>
-    </div>
-  </div>
-
 </div>
 
-</div>
-
-<div class="box">
-  <h2 class="title is-4">Agent</h2>
-  <input id="full_name" class="input" placeholder="DUPONT JEAN">
-</div>
-
-<div class="box">
-  <h2 class="title is-4">Documents 2 vols</h2>
-  <div class="buttons">
-    <button class="button is-warning" data-doc="AUTOCONTROLE" data-vol="both">Autocontrôle</button>
-    <button class="button is-warning" data-doc="PRESTA_DEP" data-vol="both">Prestations départ</button>
-    <button class="button is-warning" data-doc="PRESTA_RET" data-vol="both">Prestations arrivée</button>
-  </div>
 </div>
 
 </div>
