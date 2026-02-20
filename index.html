@@ -73,7 +73,6 @@
 
     <div class="columns">
 
-      <!-- ARRIVÉE -->
       <div class="column">
         <h3 class="title is-6">ARRIVÉE</h3>
         <div class="tags mb-2" id="arr_badges_1"></div>
@@ -81,12 +80,8 @@
         <input id="arr_date_1" type="date" class="input mb-2">
         <input id="arr_flt_1" class="input mb-2" placeholder="Flight Number">
         <input id="arr_from_1" class="input mb-2" placeholder="From">
-        <input id="arr_parking_1" class="input mb-2" placeholder="Parking">
-        <input id="arr_reg_1" class="input mb-2" placeholder="Registration">
-        <input id="arr_type_1" class="input mb-2" placeholder="A/C Type">
       </div>
 
-      <!-- DÉPART -->
       <div class="column">
         <h3 class="title is-6">DÉPART</h3>
         <div class="tags mb-2" id="dep_badges_1"></div>
@@ -95,10 +90,16 @@
         <input id="dep_flt_1" class="input mb-2" placeholder="Flight Number">
         <input id="dep_to_1" class="input mb-2" placeholder="To">
         <input id="parking_1" class="input mb-2" placeholder="Parking">
-        <input id="dep_reg_1" class="input mb-2" placeholder="Registration">
-        <input id="dep_type_1" class="input mb-2" placeholder="A/C Type">
       </div>
 
+    </div>
+
+    <!-- FULL WIDTH -->
+    <div class="columns">
+      <div class="column">
+        <input id="arr_reg_1" class="input mb-2" placeholder="Registration">
+        <input id="arr_type_1" class="input mb-2" placeholder="A/C Type">
+      </div>
     </div>
 
     <div class="mt-3">
@@ -110,7 +111,6 @@
 
   </div>
 
-  <!-- DOCUMENTS VOL 1 -->
   <div class="box">
     <h2 class="title is-5">Documents VOL 1</h2>
     <div class="buttons">
@@ -163,9 +163,6 @@
         <input id="arr_date_2" type="date" class="input mb-2">
         <input id="arr_flt_2" class="input mb-2" placeholder="Flight Number">
         <input id="arr_from_2" class="input mb-2" placeholder="From">
-        <input id="arr_parking_2" class="input mb-2" placeholder="Parking">
-        <input id="arr_reg_2" class="input mb-2" placeholder="Registration">
-        <input id="arr_type_2" class="input mb-2" placeholder="A/C Type">
       </div>
 
       <div class="column">
@@ -176,10 +173,15 @@
         <input id="dep_flt_2" class="input mb-2" placeholder="Flight Number">
         <input id="dep_to_2" class="input mb-2" placeholder="To">
         <input id="parking_2" class="input mb-2" placeholder="Parking">
-        <input id="dep_reg_2" class="input mb-2" placeholder="Registration">
-        <input id="dep_type_2" class="input mb-2" placeholder="A/C Type">
       </div>
 
+    </div>
+
+    <div class="columns">
+      <div class="column">
+        <input id="arr_reg_2" class="input mb-2" placeholder="Registration">
+        <input id="arr_type_2" class="input mb-2" placeholder="A/C Type">
+      </div>
     </div>
 
     <div class="mt-3">
@@ -191,7 +193,6 @@
 
   </div>
 
-  <!-- DOCUMENTS VOL 2 -->
   <div class="box">
     <h2 class="title is-5">Documents VOL 2</h2>
     <div class="buttons">
@@ -206,18 +207,13 @@
 
 </div>
 
-</div> <!-- FIN columns -->
-
-<!-- AGENT pleine largeur -->
-<div class="box">
-  <h2 class="title is-4">Agent</h2>
-  <div class="field">
-    <label class="label">Nom Prénom</label>
-    <input id="full_name" class="input" placeholder="DUPONT JEAN">
-  </div>
 </div>
 
-<!-- DOCUMENTS 2 VOLS -->
+<div class="box">
+  <h2 class="title is-4">Agent</h2>
+  <input id="full_name" class="input" placeholder="DUPONT JEAN">
+</div>
+
 <div class="box">
   <h2 class="title is-4">Documents 2 vols</h2>
   <div class="buttons">
@@ -229,20 +225,6 @@
 
 </div>
 </section>
-
-<!-- POPUP AK -->
-<div id="akBackdrop" style="display:none;" onclick="closeAKMenu()"></div>
-<div id="akPopover" style="display:none;">
-  <div class="ak-header">
-    <div style="display:flex; gap:10px; flex-wrap:wrap; align-items:center;">
-      <span class="tag is-light" id="akMenuTitle">AK</span>
-      <button class="button is-small is-link" type="button" id="akMenuRefresh">Rafraîchir</button>
-      <span class="tag is-light" id="akMenuStatus">—</span>
-      <button class="button is-small is-light" style="margin-left:auto" onclick="closeAKMenu()">Fermer</button>
-    </div>
-  </div>
-  <div id="akMenuList" style="margin-top:10px;"></div>
-</div>
 
 <script src="https://unpkg.com/pdf-lib@1.17.1/dist/pdf-lib.min.js"></script>
 <script type="module" src="app.js"></script>
