@@ -146,27 +146,31 @@ RTB:{
 /* ========= AUTOCONTROLE ========= */
 
 AUTOCONTROLE:{
- file: `${TEMPLATE_BASE}/templates/Autocontrôle.pdf`,
- fill:({vol1,vol2})=>{
-   const o={},name=rzaName();
+  file: `${TEMPLATE_BASE}/templates/Autocontrôle.pdf`,
+  fill:({vol1,vol2})=>{
+    const o = {}, name = rzaName();
 
-   if(!isVolEmpty(vol1)){
-     o["FLIGHT A - DEPARTURE FLIGHT NUMBER"] = vol1.dep.flt;
-     o["FLIGHT A - DATE"] = isoToDDMMYYYY(vol1.dep.date);
-     o["FLIGHT A - TO"] = vol1.dep.to;
-     o["VOL A - NOM PRENOM"] = name;
-   }
+    // ✅ Nom toujours rempli
+    o["VOL A - NOM PRENOM"] = name;
+    o["VOL B - NOM PRENOM"] = name;
 
-   if(!isVolEmpty(vol2)){
-     o["FLIGHT B - DEPARTURE FLIGHT NUMBER"] = vol2.dep.flt;
-     o["FLIGHT B - DATE"] = isoToDDMMYYYY(vol2.dep.date);
-     o["FLIGHT B - TO"] = vol2.dep.to;
-     o["VOL B - NOM PRENOM"] = name;
-   }
+    // Vol A : infos seulement si vol1 existe
+    if(!isVolEmpty(vol1)){
+      o["FLIGHT A - DEPARTURE FLIGHT NUMBER"] = vol1.dep.flt;
+      o["FLIGHT A - DATE"] = isoToDDMMYYYY(vol1.dep.date);
+      o["FLIGHT A - TO"] = vol1.dep.to;
+    }
 
-   return o;
- },
- flatten:true
+    // Vol B : infos seulement si vol2 existe
+    if(!isVolEmpty(vol2)){
+      o["FLIGHT B - DEPARTURE FLIGHT NUMBER"] = vol2.dep.flt;
+      o["FLIGHT B - DATE"] = isoToDDMMYYYY(vol2.dep.date);
+      o["FLIGHT B - TO"] = vol2.dep.to;
+    }
+
+    return o;
+  },
+  flatten:true
 },
 
 /* ========= PRESTATIONS DÉPART ========= */
