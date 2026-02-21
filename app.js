@@ -582,6 +582,35 @@ function akAcType(f){
   );
 }
 
+function resetVolUI(volNum) {
+  const ids = [
+    `arr_date_${volNum}`,
+    `arr_flt_${volNum}`,
+    `arr_from_${volNum}`,
+    `dep_date_${volNum}`,
+    `dep_flt_${volNum}`,
+    `dep_to_${volNum}`,
+    `parking_${volNum}`,
+    `dep_reg_${volNum}`,
+    `dep_type_${volNum}`,
+    `arr_reg_${volNum}`,
+    `arr_type_${volNum}`
+  ];
+
+  ids.forEach(id => {
+    const el = document.getElementById(id);
+    if (!el) return;
+
+    if (el.type === "checkbox") el.checked = false;
+    else el.value = "";
+  });
+
+  const arrBadges = document.getElementById(`arr_badges_${volNum}`);
+  const depBadges = document.getElementById(`dep_badges_${volNum}`);
+  if (arrBadges) arrBadges.innerHTML = "";
+  if (depBadges) depBadges.innerHTML = "";
+}
+
 /* =========================
    BADGES RETARD (UI)
    ========================= */
