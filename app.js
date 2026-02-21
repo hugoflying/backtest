@@ -236,17 +236,6 @@ function sleep(ms){
 
 async function fetchArrayBuffer(url, label){
   try{
-    const res = await fetch(url, { cache: "no-store" });
-    if(!res.ok) throw new Error(`${label} HTTP ${res.status} (${url})`);
-    return await res.arrayBuffer();
-  }catch(e){
-    // "Failed to fetch" => erreur réseau/CORS/blocage
-    throw new Error(`${label} FETCH ERROR (${url}) → ${e?.message || e}`);
-  }
-}
-
-async function fetchArrayBuffer(url, label){
-  try{
     const res = await fetch(url, {
       cache: "no-store",
       credentials: "include"   // 👈 IMPORTANT
