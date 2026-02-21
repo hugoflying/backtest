@@ -233,13 +233,13 @@
   <div id="akMenuList" style="margin-top:10px;"></div>
 </div>
 
-<!-- ===== RZA MODAL (nom complet) ===== -->
+<!-- ===== RZA MODAL ===== -->
 <div id="rzaBackdrop"
      style="display:none; position:fixed; inset:0; background:rgba(0,0,0,.35); z-index:6000;"
      onclick="closeRZAModal(false)"></div>
 
 <div id="rzaModal"
-     style="display:none; position:fixed; inset:0; z-index:6100; display:flex; align-items:center; justify-content:center; padding:14px;">
+     style="display:none; position:fixed; inset:0; z-index:6100; align-items:center; justify-content:center; padding:14px;">
   <div class="box" style="width:min(420px, 100%); border-radius:16px;">
     <h2 class="title is-5">Nom du RZA requis</h2>
 
@@ -253,7 +253,8 @@
                spellcheck="false"
                placeholder="Nom Prénom">
       </div>
-      <p class="help" id="rzaHelp" style="display:none; color:#ef4444; font-weight:800;">
+      <p class="help" id="rzaHelp"
+         style="display:none; color:#ef4444; font-weight:800;">
         Merci de saisir le nom complet.
       </p>
     </div>
@@ -264,7 +265,7 @@
     </div>
   </div>
 </div>
-
+  
 <script src="https://unpkg.com/pdf-lib@1.17.1/dist/pdf-lib.min.js"></script>
 <script type="module" src="app.js"></script>
 
