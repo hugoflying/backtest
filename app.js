@@ -39,7 +39,7 @@ function isVolEmpty(v){
 }
 
 function parking(n){ return document.getElementById(`parking_${n}`)?.value||"" }
-function agent(){ return upper(document.getElementById("full_name")?.value) }
+function rzaName(){ return upper(window._rzaName || ""); }
 
 const DOCS={
 
@@ -148,7 +148,7 @@ RTB:{
 AUTOCONTROLE:{
  file: `${TEMPLATE_BASE}/templates/Autocontrôle.pdf`,
  fill:({vol1,vol2})=>{
-   const o={},name=agent();
+   const o={},name=rzaName();
 
    if(!isVolEmpty(vol1)){
      o["FLIGHT A - DEPARTURE FLIGHT NUMBER"] = vol1.dep.flt;
@@ -421,12 +421,11 @@ function closeRZAModal(keepPending){
   if(!keepPending) _pendingPrint = null;
 }
 
-function submitRZAModal(){
+async function submitRZAModal(){
   const i = document.getElementById("rzaModalInput");
   const h = document.getElementById("rzaHelp");
 
   const v = (i?.value || "").trim();
-
   if(!v){
     if(h) h.style.display = "block";
     if(i) i.focus();
@@ -440,9 +439,14 @@ function submitRZAModal(){
   _pendingPrint = null;
 
   if(p){
-    fillAndPrint(p.docKey, p.volTarget);
+    await fillAndPrint(p.docKey, p.volTarget);
   }
 }
+
+// IMPORTANT (car app.js est en module)
+window.openRZAModal = openRZAModal;
+window.closeRZAModal = closeRZAModal;
+window.submitRZAModal = submitRZAModal;
 
 /* =========================
    AirportKeeper
