@@ -245,19 +245,18 @@ async function fetchArrayBuffer(url, label){
   }
 }
 
-async function fetchArrayBufferRetry(url, label, tries = 3){
-  let lastErr;
-  for(let i=1;i<=tries;i++){
-    try{
-      // cache-bust pour éviter cache/proxy foireux
-      const u = url + (url.includes("?") ? "&" : "?") + "v=" + Date.now();
-      return await fetchArrayBuffer(u, label);
-    }catch(e){
-      lastErr = e;
-      if(i < tries) await sleep(250 * i); // 250ms, 500ms…
-    }
+async function fetchArrayBuffer(url, label){
+  try{
+    const res = await fetch(url, {
+      cache: "no-store",
+      credentials: "include"   // 👈 IMPORTANT
+    });
+
+    if(!res.ok) throw new Error(`${label} HTTP ${res.status} (${url})`);
+    return await res.arrayBuffer();
+  }catch(e){
+    throw new Error(`${label} FETCH ERROR (${url}) → ${e?.message || e}`);
   }
-  throw lastErr;
 }
 
 async function fillAndPrint(docKey, volTarget = "1") {
