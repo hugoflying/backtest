@@ -238,7 +238,7 @@ async function fetchArrayBuffer(url, label){
   try{
     const res = await fetch(url, {
       cache: "no-store",
-      credentials: "include"   // 👈 IMPORTANT
+      credentials: "include"   // IMPORTANT (Cloudflare Access / cookies)
     });
 
     if(!res.ok) throw new Error(`${label} HTTP ${res.status} (${url})`);
@@ -246,6 +246,28 @@ async function fetchArrayBuffer(url, label){
   }catch(e){
     throw new Error(`${label} FETCH ERROR (${url}) → ${e?.message || e}`);
   }
+}
+
+// ✅ version retry qui colle à ton usage (label + retries) + credentials/include
+async function fetchArrayBufferRetry(url, label, retries = 3, delayMs = 400){
+  let lastErr;
+  for(let i = 0; i <= retries; i++){
+    try{
+      const res = await fetch(url, {
+        cache: "no-store",
+        credentials: "include"
+      });
+
+      if(!res.ok) throw new Error(`${label} HTTP ${res.status} (${url})`);
+      return await res.arrayBuffer();
+
+    }catch(e){
+      lastErr = e;
+      if(i === retries) break;
+      await sleep(delayMs * (i + 1));
+    }
+  }
+  throw new Error(`${label} FETCH ERROR (${url}) → ${lastErr?.message || lastErr}`);
 }
 
 async function fillAndPrint(docKey, volTarget = "1") {
@@ -259,6 +281,9 @@ async function fillAndPrint(docKey, volTarget = "1") {
   const vol1 = (volTarget === "2") ? v2 : v1;
   const vol2 = (volTarget === "2") ? v1 : v2;
 
+  // ✅ base stable (gère /index.html, /, /subdir/)
+  const BASE = new URL("./", location.href).toString();
+
   // ===== TEMPLATE =====
   const templateBytes = await fetchArrayBufferRetry(def.file, "TEMPLATE", 3);
   const pdfDoc = await PDFDocument.load(templateBytes);
@@ -266,12 +291,9 @@ async function fillAndPrint(docKey, volTarget = "1") {
 
   const form = pdfDoc.getForm();
 
-  // ✅ base stable (gère /index.html, /, /subdir/)
-  const BASE = new URL("./", location.href).toString();
-
   // ===== FONTS =====
-  const arialBytes     = await fetchArrayBufferRetry(BASE + "fonts/ARIAL.TTF",       "FONT ARIAL", 3);
-  const arialBoldBytes = await fetchArrayBufferRetry(BASE + "fonts/ARIAL-BOLD.TTF",  "FONT ARIAL-BOLD", 3);
+  const arialBytes     = await fetchArrayBufferRetry(BASE + "fonts/ARIAL.TTF", "FONT ARIAL", 3);
+  const arialBoldBytes = await fetchArrayBufferRetry(BASE + "fonts/ARIAL-BOLD.TTF", "FONT ARIAL-BOLD", 3);
 
   const font     = await pdfDoc.embedFont(arialBytes);
   const fontBold = await pdfDoc.embedFont(arialBoldBytes);
@@ -293,7 +315,7 @@ async function fillAndPrint(docKey, volTarget = "1") {
 
       const value = String(raw ?? "").toUpperCase();
 
-      // 2) si c'est une checkbox et qu'on veut "X" => on coche
+      // 2) checkbox avec "X"
       try {
         const cb = form.getCheckBox(name);
         if (value === "X") cb.check();
