@@ -771,14 +771,18 @@ function bindAK(n){
   flowSel.addEventListener("change", ()=>{
     refreshAKDropdown(n);
     clearBadges(n);
+    resetVolUI(n); // ✅ reset quand tu changes DEP/ARR
   });
 
   sel.addEventListener("change", ()=>{
     const id = sel.value;
     if(!id){
       clearBadges(n);
+      resetVolUI(n); // ✅ reset si tu remets "-- Choisir un vol --"
       return;
     }
+
+    resetVolUI(n); // ✅ reset avant de remplir
 
     const flow = flowSel.value;
 
