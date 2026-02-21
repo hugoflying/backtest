@@ -355,8 +355,17 @@ document.addEventListener("click", async (e) => {
   const b = e.target.closest("button[data-doc]");
   if (!b) return;
 
+  const docKey = b.dataset.doc;
+  const volTarget = b.dataset.vol || "1";
+
+  // Popup uniquement pour Autocontrôle
+  if(docKey === "AUTOCONTROLE"){
+    openRZAModal({ docKey, volTarget });
+    return;
+  }
+
   try {
-    await fillAndPrint(b.dataset.doc, b.dataset.vol || "1");
+    await fillAndPrint(docKey, volTarget);
   } catch (err) {
     console.error(err);
     alert(err?.message || String(err));
@@ -377,6 +386,62 @@ function lirTypeX(acType){
     B738: (isB738 ? "" : "X"),
     B38M: (isB38M ? "" : "X"),
   };
+}
+
+// ===== RZA MODAL (Autocontrôle uniquement) =====
+let _pendingPrint = null;
+
+function openRZAModal(pending){
+  _pendingPrint = pending;
+
+  const b = document.getElementById("rzaBackdrop");
+  const m = document.getElementById("rzaModal");
+  const i = document.getElementById("rzaModalInput");
+  const h = document.getElementById("rzaHelp");
+
+  if(h) h.style.display = "none";
+  if(i){
+    i.value = window._rzaName || "";
+    setTimeout(()=> i.focus(), 0);
+  }
+
+  if(b) b.style.display = "block";
+  if(m) m.style.display = "flex";
+}
+
+function closeRZAModal(keepPending){
+  const b = document.getElementById("rzaBackdrop");
+  const m = document.getElementById("rzaModal");
+  const h = document.getElementById("rzaHelp");
+
+  if(h) h.style.display = "none";
+  if(b) b.style.display = "none";
+  if(m) m.style.display = "none";
+
+  if(!keepPending) _pendingPrint = null;
+}
+
+function submitRZAModal(){
+  const i = document.getElementById("rzaModalInput");
+  const h = document.getElementById("rzaHelp");
+
+  const v = (i?.value || "").trim();
+
+  if(!v){
+    if(h) h.style.display = "block";
+    if(i) i.focus();
+    return;
+  }
+
+  window._rzaName = v;
+
+  const p = _pendingPrint;
+  closeRZAModal(true);
+  _pendingPrint = null;
+
+  if(p){
+    fillAndPrint(p.docKey, p.volTarget);
+  }
 }
 
 /* =========================
