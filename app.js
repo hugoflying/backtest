@@ -52,8 +52,7 @@ BINGO_FR:{
    "DEPARTURE FLIGHT NUMBER": vol1.dep.flt,
    "REGISTRATION": vol1.dep.reg,
    "TO": vol1.dep.to,
-   "Agent": agent()
- }),
+   }),
  flatten:true
 },
 
