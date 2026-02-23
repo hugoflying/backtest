@@ -466,7 +466,7 @@ window.submitRZAModal = submitRZAModal;
      * <=-5  => en avance bleu
    ========================= */
 
-const AK_PROXY = "/ak";
+const AK_PROXY = "https://airportkeeper-proxy.deruellehugo-49c.workers.dev/ak";
 
 function $(id){ return document.getElementById(id); }
 
