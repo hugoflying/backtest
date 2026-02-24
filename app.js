@@ -245,8 +245,8 @@ function sleep(ms){
 async function fetchArrayBuffer(url, label){
   try{
     const res = await fetch(url, {
-      cache: "no-store",
-      credentials: "include"   // IMPORTANT (Cloudflare Access / cookies)
+      cache: "force-cache",
+      credentials: "include"
     });
 
     if(!res.ok) throw new Error(`${label} HTTP ${res.status} (${url})`);
@@ -256,7 +256,7 @@ async function fetchArrayBuffer(url, label){
   }
 }
 
-// ✅ version retry qui colle à ton usage (label + retries) + credentials/include
+// ✅ version retry (label + retries) + credentials/include
 async function fetchArrayBufferRetry(url, label, retries = 3, delayMs = 400){
   let lastErr;
   for(let i = 0; i <= retries; i++){
@@ -279,7 +279,6 @@ async function fetchArrayBufferRetry(url, label, retries = 3, delayMs = 400){
 }
 
 const _templateCache = new Map();
-
 async function getTemplateBytes(def, docKey) {
   if (_templateCache.has(docKey)) return _templateCache.get(docKey);
   const bytes = await fetchArrayBufferRetry(def.file, "TEMPLATE", 3);
@@ -289,7 +288,6 @@ async function getTemplateBytes(def, docKey) {
 
 let _arialBytes = null;
 let _arialBoldBytes = null;
-
 async function getFontsBytes(BASE) {
   if (_arialBytes && _arialBoldBytes) return { arial: _arialBytes, bold: _arialBoldBytes };
 
@@ -301,6 +299,34 @@ async function getFontsBytes(BASE) {
   _arialBytes = a;
   _arialBoldBytes = b;
   return { arial: _arialBytes, bold: _arialBoldBytes };
+}
+
+function safeFilePart(s){
+  return String(s || "")
+    .trim()
+    .replace(/[\/\\?%*:|"<>]/g, "-")
+    .replace(/\s+/g, "_");
+}
+
+function ymd(isoDate){
+  if(!isoDate) return "";
+  // isoDate attendu: YYYY-MM-DD
+  const [y,m,d] = String(isoDate).split("-");
+  if(!y || !m || !d) return "";
+  return `${y}${m}${d}`;
+}
+
+function buildPdfFilename(docKey, volTarget, v1, v2){
+  if(volTarget === "both"){
+    const d1 = ymd(v1?.dep?.date || v1?.arr?.date);
+    const d2 = ymd(v2?.dep?.date || v2?.arr?.date);
+    return `${safeFilePart(docKey)}_${d1 || "VOL1"}_${d2 || "VOL2"}.pdf`;
+  }
+
+  const v = (volTarget === "2") ? v2 : v1;
+  const date = ymd(v?.dep?.date || v?.arr?.date);
+  const flt  = safeFilePart(v?.dep?.flt || v?.arr?.flt || "");
+  return `${safeFilePart(docKey)}_${date || "DATE"}${flt ? "_" + flt : ""}.pdf`;
 }
 
 async function fillAndPrint(docKey, volTarget = "1") {
@@ -361,14 +387,31 @@ async function fillAndPrint(docKey, volTarget = "1") {
   form.flatten();
 
   const bytes = await pdfDoc.save();
-  const url = URL.createObjectURL(new Blob([bytes], { type: "application/pdf" }));
+  const blob = new Blob([bytes], { type: "application/pdf" });
+  const url = URL.createObjectURL(blob);
 
+  // ✅ Nom de fichier (download) + ouvre l'aperçu ensuite
+  const filename = buildPdfFilename(docKey, volTarget, v1, v2);
+
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = filename;
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+
+  // (optionnel) aperçu + impression comme avant
   const iframe = document.createElement("iframe");
   iframe.style.display = "none";
   iframe.src = url;
   document.body.appendChild(iframe);
-
   iframe.onload = () => iframe.contentWindow.print();
+
+  // nettoyage (laisse un peu de temps pour print)
+  setTimeout(() => {
+    URL.revokeObjectURL(url);
+    iframe.remove();
+  }, 60_000);
 }
 
 // ===== boutons PDF =====
