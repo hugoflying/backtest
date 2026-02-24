@@ -41,9 +41,44 @@
     }
     .doc-grid .button{
       width: 100%;
-      min-height: 44px; /* ajuste si tu veux */
+      min-height: 44px;
       white-space: nowrap;
     }
+
+    /* ✅ Couleurs boutons impression */
+    .btn-lir-ryanair{
+      background-color:#ECC532 !important;
+      border-color:#ECC532 !important;
+      color:#111 !important;
+      font-weight:800;
+    }
+    .btn-lir-ryanair:hover{ filter: brightness(.95); }
+
+    .btn-lir-lauda{
+      background-color:#E71B43 !important;
+      border-color:#E71B43 !important;
+      color:#fff !important;
+      font-weight:800;
+    }
+    .btn-lir-lauda:hover{ filter: brightness(.95); }
+
+    /* ✅ Dégradé BBCG / Walkaround / RTB */
+    .btn-gradient{
+      background: linear-gradient(180deg, #C3017E 0%, #0E058E 100%) !important;
+      border: none !important;
+      color: #fff !important;
+      font-weight:800;
+    }
+    .btn-gradient:hover{ filter: brightness(1.05); }
+
+    /* ✅ Prestations */
+    .btn-presta{
+      background-color:#C6E0B4 !important;
+      border-color:#C6E0B4 !important;
+      color:#1e1e1e !important;
+      font-weight:800;
+    }
+    .btn-presta:hover{ filter: brightness(.95); }
   </style>
 </head>
 
@@ -51,7 +86,7 @@
 <section class="section">
 <div class="container">
 
-<h1 class="title has-text-centered">Flight PDF Filler</h1>
+<h1 class="title has-text-centered">Préparation des vols</h1>
 
 <div class="columns">
 
@@ -122,13 +157,13 @@
     <h2 class="title is-5">Documents VOL 1</h2>
 
     <div class="doc-grid">
-      <button class="button is-dark" data-doc="LIR_RYANAIR" data-vol="1">LIR Ryanair</button>
-      <button class="button is-dark" data-doc="LIR_LAUDA" data-vol="1">LIR Lauda</button>
+      <button class="button btn-lir-ryanair" data-doc="LIR_RYANAIR" data-vol="1">LIR Ryanair</button>
+      <button class="button btn-lir-lauda" data-doc="LIR_LAUDA" data-vol="1">LIR Lauda</button>
       <button class="button is-dark" data-doc="BINGO_FR" data-vol="1">Bingo Gate</button>
 
-      <button class="button is-link" data-doc="BBCG_GATE" data-vol="1">BBCG Gate</button>
-      <button class="button is-link" data-doc="WAIF" data-vol="1">Walkaround</button>
-      <button class="button is-link" data-doc="RTB" data-vol="1">Ready To Board</button>
+      <button class="button btn-gradient" data-doc="BBCG_GATE" data-vol="1">BBCG Gate</button>
+      <button class="button btn-gradient" data-doc="WAIF" data-vol="1">Walkaround</button>
+      <button class="button btn-gradient" data-doc="RTB" data-vol="1">Ready To Board</button>
     </div>
   </div>
 
@@ -201,13 +236,13 @@
     <h2 class="title is-5">Documents VOL 2</h2>
 
     <div class="doc-grid">
-      <button class="button is-dark" data-doc="LIR_RYANAIR" data-vol="2">LIR Ryanair</button>
-      <button class="button is-dark" data-doc="LIR_LAUDA" data-vol="2">LIR Lauda</button>
+      <button class="button btn-lir-ryanair" data-doc="LIR_RYANAIR" data-vol="2">LIR Ryanair</button>
+      <button class="button btn-lir-lauda" data-doc="LIR_LAUDA" data-vol="2">LIR Lauda</button>
       <button class="button is-dark" data-doc="BINGO_FR" data-vol="2">Bingo Gate</button>
 
-      <button class="button is-link" data-doc="BBCG_GATE" data-vol="2">BBCG Gate</button>
-      <button class="button is-link" data-doc="WAIF" data-vol="2">Walkaround</button>
-      <button class="button is-link" data-doc="RTB" data-vol="2">Ready To Board</button>
+      <button class="button btn-gradient" data-doc="BBCG_GATE" data-vol="2">BBCG Gate</button>
+      <button class="button btn-gradient" data-doc="WAIF" data-vol="2">Walkaround</button>
+      <button class="button btn-gradient" data-doc="RTB" data-vol="2">Ready To Board</button>
     </div>
   </div>
 
@@ -219,8 +254,8 @@
   <h2 class="title is-4">Documents 2 vols</h2>
   <div class="doc-grid">
     <button class="button is-warning" data-doc="AUTOCONTROLE" data-vol="both">Autocontrôle</button>
-    <button class="button is-warning" data-doc="PRESTA_DEP" data-vol="both">Prestations départ</button>
-    <button class="button is-warning" data-doc="PRESTA_RET" data-vol="both">Prestations arrivée</button>
+    <button class="button btn-presta" data-doc="PRESTA_DEP" data-vol="both">Prestations départ</button>
+    <button class="button btn-presta" data-doc="PRESTA_RET" data-vol="both">Prestations arrivée</button>
   </div>
 </div>
 
