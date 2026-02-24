@@ -2,7 +2,7 @@ export async function onRequest({ request, env }) {
   const url = new URL(request.url);
 
   const cors = {
-    "Access-Control-Allow-Origin": url.origin, // ou mets flight-pdf.pages.dev en dur
+    "Access-Control-Allow-Origin": url.origin,
     "Access-Control-Allow-Methods": "GET,OPTIONS",
     "Access-Control-Allow-Headers": "Content-Type",
   };
