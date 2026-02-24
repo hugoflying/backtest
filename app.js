@@ -61,9 +61,8 @@ BINGO_FR:{
 LIR_RYANAIR:{
   file: `${TEMPLATE_BASE}/templates/LIR RYANAIR BELLOVA.pdf`,
   fill:({vol1})=>{
-    const x = lirTypeX(vol1.dep.type); // A/C Type UI (ICAO)
-
-    return {
+    const x = lirTypeX(vol1.dep.type);
+    const o = {
       "DATE": isoToDDMMYYYY(vol1.dep.date),
       "REGISTRATION": vol1.dep.reg,
       "DEPARTURE FLIGHT NUMBER": vol1.dep.flt,
@@ -71,18 +70,22 @@ LIR_RYANAIR:{
 
       "A/C TYPE": vol1.dep.type,
 
-      // ✅ met "X" dans les 2 autres cases
       "B737": x.B737,
       "B738": x.B738,
       "B38M": x.B38M,
-
-      "ARRIVAL FLIGHT NUMBER": vol1.arr.flt || "",
-      "HOLD SECURITY SEARCH": !!vol1.arr.hold_search,
 
       "POUSSETTE PORTE": "",
       "POUSSETTE CBS": "",
       "MAX 5": "",
     };
+
+    // ✅ HOLD conditionnel
+    if (vol1.arr?.hold_search) {
+      o["ARRIVAL FLIGHT NUMBER"] = vol1.arr.flt || "";
+      o["HOLD SECURITY SEARCH"] = true;
+    }
+
+    return o;
   },
   flatten:true
 },
