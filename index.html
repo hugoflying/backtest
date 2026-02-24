@@ -2,7 +2,7 @@
 <html lang="fr">
 <head>
   <meta charset="utf-8">
-  <title>Flight PDF Filler</title>
+  <title>Préparation des vols</title>
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bulma@1.0.2/css/bulma.min.css">
 
@@ -31,6 +31,18 @@
       background: #fff;
       padding: 10px 0;
       border-bottom: 1px solid rgba(0,0,0,.08);
+    }
+
+    /* ✅ Grille boutons: 3 colonnes + même taille */
+    .doc-grid{
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 12px;
+    }
+    .doc-grid .button{
+      width: 100%;
+      min-height: 44px; /* ajuste si tu veux */
+      white-space: nowrap;
     }
   </style>
 </head>
@@ -109,16 +121,14 @@
   <div class="box">
     <h2 class="title is-5">Documents VOL 1</h2>
 
-    <div class="buttons is-flex-wrap-nowrap">
-      <button class="button is-dark is-flex-grow-1" data-doc="LIR_RYANAIR" data-vol="1">LIR Ryanair</button>
-      <button class="button is-dark is-flex-grow-1" data-doc="LIR_LAUDA" data-vol="1">LIR Lauda</button>
-      <button class="button is-dark is-flex-grow-1" data-doc="BINGO_FR" data-vol="1">Bingo Gate</button>
-    </div>
+    <div class="doc-grid">
+      <button class="button is-dark" data-doc="LIR_RYANAIR" data-vol="1">LIR Ryanair</button>
+      <button class="button is-dark" data-doc="LIR_LAUDA" data-vol="1">LIR Lauda</button>
+      <button class="button is-dark" data-doc="BINGO_FR" data-vol="1">Bingo Gate</button>
 
-    <div class="buttons is-flex-wrap-nowrap">
-      <button class="button is-link is-flex-grow-1" data-doc="BBCG_GATE" data-vol="1">BBCG Gate</button>
-      <button class="button is-link is-flex-grow-1" data-doc="WAIF" data-vol="1">Walkaround</button>
-      <button class="button is-link is-flex-grow-1" data-doc="RTB" data-vol="1">Ready To Board</button>
+      <button class="button is-link" data-doc="BBCG_GATE" data-vol="1">BBCG Gate</button>
+      <button class="button is-link" data-doc="WAIF" data-vol="1">Walkaround</button>
+      <button class="button is-link" data-doc="RTB" data-vol="1">Ready To Board</button>
     </div>
   </div>
 
@@ -190,16 +200,14 @@
   <div class="box">
     <h2 class="title is-5">Documents VOL 2</h2>
 
-    <div class="buttons is-flex-wrap-nowrap">
-      <button class="button is-dark is-flex-grow-1" data-doc="LIR_RYANAIR" data-vol="2">LIR Ryanair</button>
-      <button class="button is-dark is-flex-grow-1" data-doc="LIR_LAUDA" data-vol="2">LIR Lauda</button>
-      <button class="button is-dark is-flex-grow-1" data-doc="BINGO_FR" data-vol="2">Bingo Gate</button>
-    </div>
+    <div class="doc-grid">
+      <button class="button is-dark" data-doc="LIR_RYANAIR" data-vol="2">LIR Ryanair</button>
+      <button class="button is-dark" data-doc="LIR_LAUDA" data-vol="2">LIR Lauda</button>
+      <button class="button is-dark" data-doc="BINGO_FR" data-vol="2">Bingo Gate</button>
 
-    <div class="buttons is-flex-wrap-nowrap">
-      <button class="button is-link is-flex-grow-1" data-doc="BBCG_GATE" data-vol="2">BBCG Gate</button>
-      <button class="button is-link is-flex-grow-1" data-doc="WAIF" data-vol="2">Walkaround</button>
-      <button class="button is-link is-flex-grow-1" data-doc="RTB" data-vol="2">Ready To Board</button>
+      <button class="button is-link" data-doc="BBCG_GATE" data-vol="2">BBCG Gate</button>
+      <button class="button is-link" data-doc="WAIF" data-vol="2">Walkaround</button>
+      <button class="button is-link" data-doc="RTB" data-vol="2">Ready To Board</button>
     </div>
   </div>
 
@@ -209,7 +217,7 @@
 <!-- DOCUMENTS 2 VOLS -->
 <div class="box">
   <h2 class="title is-4">Documents 2 vols</h2>
-  <div class="buttons">
+  <div class="doc-grid">
     <button class="button is-warning" data-doc="AUTOCONTROLE" data-vol="both">Autocontrôle</button>
     <button class="button is-warning" data-doc="PRESTA_DEP" data-vol="both">Prestations départ</button>
     <button class="button is-warning" data-doc="PRESTA_RET" data-vol="both">Prestations arrivée</button>
@@ -265,7 +273,7 @@
     </div>
   </div>
 </div>
-  
+
 <script src="https://unpkg.com/pdf-lib@1.17.1/dist/pdf-lib.min.js"></script>
 <script type="module" src="app.js"></script>
 
