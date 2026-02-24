@@ -149,19 +149,19 @@ AUTOCONTROLE:{
   fill:({vol1,vol2})=>{
     const o = {}, name = rzaName();
 
-    // ✅ Nom toujours rempli
-    o["VOL A - NOM PRENOM"] = name;
-    o["VOL B - NOM PRENOM"] = name;
-
-    // Vol A : infos seulement si vol1 existe
+    // VOL A → seulement si vol1 existe
     if(!isVolEmpty(vol1)){
+      o["VOL A - NOM PRENOM"] = name;
+
       o["FLIGHT A - DEPARTURE FLIGHT NUMBER"] = vol1.dep.flt;
       o["FLIGHT A - DATE"] = isoToDDMMYYYY(vol1.dep.date);
       o["FLIGHT A - TO"] = vol1.dep.to;
     }
 
-    // Vol B : infos seulement si vol2 existe
+    // VOL B → seulement si vol2 existe
     if(!isVolEmpty(vol2)){
+      o["VOL B - NOM PRENOM"] = name;
+
       o["FLIGHT B - DEPARTURE FLIGHT NUMBER"] = vol2.dep.flt;
       o["FLIGHT B - DATE"] = isoToDDMMYYYY(vol2.dep.date);
       o["FLIGHT B - TO"] = vol2.dep.to;
