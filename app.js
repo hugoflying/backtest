@@ -147,21 +147,23 @@ RTB:{
 AUTOCONTROLE:{
   file: `${TEMPLATE_BASE}/templates/Autocontrôle.pdf`,
   fill:({vol1,vol2})=>{
-    const o = {}, name = rzaName();
+    const o = {};
+    const name = rzaName();
 
-    // VOL A → seulement si vol1 existe
-    if(!isVolEmpty(vol1)){
+    const hasV1 = !isVolEmpty(vol1);
+    const hasV2 = !isVolEmpty(vol2);
+
+    // ===== VOL A =====
+    if(hasV1){
       o["VOL A - NOM PRENOM"] = name;
-
       o["FLIGHT A - DEPARTURE FLIGHT NUMBER"] = vol1.dep.flt;
       o["FLIGHT A - DATE"] = isoToDDMMYYYY(vol1.dep.date);
       o["FLIGHT A - TO"] = vol1.dep.to;
     }
 
-    // VOL B → seulement si vol2 existe
-    if(!isVolEmpty(vol2)){
+    // ===== VOL B =====
+    if(hasV2){
       o["VOL B - NOM PRENOM"] = name;
-
       o["FLIGHT B - DEPARTURE FLIGHT NUMBER"] = vol2.dep.flt;
       o["FLIGHT B - DATE"] = isoToDDMMYYYY(vol2.dep.date);
       o["FLIGHT B - TO"] = vol2.dep.to;
@@ -171,7 +173,7 @@ AUTOCONTROLE:{
   },
   flatten:true
 },
-
+  
 /* ========= PRESTATIONS DÉPART ========= */
 
 PRESTA_DEP:{
