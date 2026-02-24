@@ -43,25 +43,34 @@
       width: 100%;
       min-height: 44px;
       white-space: nowrap;
+      justify-content: flex-start;
     }
-  
-    /* ✅ Dégradé BBCG / Walkaround / RTB */
-    .btn-gradient{
-      background: linear-gradient(180deg, #C3017E 0%, #0E058E 100%) !important;
-      border: none !important;
-      color: #fff !important;
-      font-weight:800;
-    }
-    .btn-gradient:hover{ filter: brightness(1.05); }
 
-    /* ✅ Prestations */
-    .btn-presta{
-      background-color:#C6E0B4 !important;
-      border-color:#C6E0B4 !important;
-      color:#1e1e1e !important;
-      font-weight:800;
+    /* ===== Bandeau gauche (tous les boutons restent gris Bulma) ===== */
+    .btn-band{
+      position: relative;
+      padding-left: 18px; /* place pour le bandeau */
+      overflow: hidden;
     }
-    .btn-presta:hover{ filter: brightness(.95); }
+    .btn-band::before{
+      content: "";
+      position: absolute;
+      left: 0;
+      top: 0;
+      bottom: 0;
+      width: 8px;
+      background: #6b7280; /* défaut (gris) */
+    }
+
+    /* Couleurs bandeau */
+    .band-ryanair::before{ background: #ECC532; }
+    .band-lauda::before{ background: #E71B43; }
+    .band-presta::before{ background: #C6E0B4; }
+
+    /* Dégradé bandeau */
+    .band-gradient::before{
+      background: linear-gradient(180deg, #C3017E 0%, #0E058E 100%);
+    }
   </style>
 </head>
 
@@ -69,7 +78,7 @@
 <section class="section">
 <div class="container">
 
-<h1 class="title has-text-centered">Préparation des vols</h1>
+<h1 class="title has-text-centered">Flight PDF Filler</h1>
 
 <div class="columns">
 
@@ -140,13 +149,13 @@
     <h2 class="title is-5">Documents VOL 1</h2>
 
     <div class="doc-grid">
-      <button class="button is-dark" data-doc="LIR_RYANAIR" data-vol="1">LIR Ryanair</button>
-      <button class="button is-dark" data-doc="LIR_LAUDA" data-vol="1">LIR Lauda</button>
-      <button class="button is-dark" data-doc="BINGO_FR" data-vol="1">Bingo Gate</button>
+      <button class="button is-dark btn-band band-ryanair" data-doc="LIR_RYANAIR" data-vol="1">LIR Ryanair</button>
+      <button class="button is-dark btn-band band-lauda" data-doc="LIR_LAUDA" data-vol="1">LIR Lauda</button>
+      <button class="button is-dark btn-band" data-doc="BINGO_FR" data-vol="1">Bingo Gate</button>
 
-      <button class="button btn-gradient" data-doc="BBCG_GATE" data-vol="1">BBCG Gate</button>
-      <button class="button btn-gradient" data-doc="WAIF" data-vol="1">Walkaround</button>
-      <button class="button btn-gradient" data-doc="RTB" data-vol="1">Ready To Board</button>
+      <button class="button is-dark btn-band band-gradient" data-doc="BBCG_GATE" data-vol="1">BBCG Gate</button>
+      <button class="button is-dark btn-band band-gradient" data-doc="WAIF" data-vol="1">Walkaround</button>
+      <button class="button is-dark btn-band band-gradient" data-doc="RTB" data-vol="1">Ready To Board</button>
     </div>
   </div>
 
@@ -219,13 +228,13 @@
     <h2 class="title is-5">Documents VOL 2</h2>
 
     <div class="doc-grid">
-      <button class="button is-dark" data-doc="LIR_RYANAIR" data-vol="2">LIR Ryanair</button>
-      <button class="button is-dark" data-doc="LIR_LAUDA" data-vol="2">LIR Lauda</button>
-      <button class="button is-dark" data-doc="BINGO_FR" data-vol="2">Bingo Gate</button>
+      <button class="button is-dark btn-band band-ryanair" data-doc="LIR_RYANAIR" data-vol="2">LIR Ryanair</button>
+      <button class="button is-dark btn-band band-lauda" data-doc="LIR_LAUDA" data-vol="2">LIR Lauda</button>
+      <button class="button is-dark btn-band" data-doc="BINGO_FR" data-vol="2">Bingo Gate</button>
 
-      <button class="button btn-gradient" data-doc="BBCG_GATE" data-vol="2">BBCG Gate</button>
-      <button class="button btn-gradient" data-doc="WAIF" data-vol="2">Walkaround</button>
-      <button class="button btn-gradient" data-doc="RTB" data-vol="2">Ready To Board</button>
+      <button class="button is-dark btn-band band-gradient" data-doc="BBCG_GATE" data-vol="2">BBCG Gate</button>
+      <button class="button is-dark btn-band band-gradient" data-doc="WAIF" data-vol="2">Walkaround</button>
+      <button class="button is-dark btn-band band-gradient" data-doc="RTB" data-vol="2">Ready To Board</button>
     </div>
   </div>
 
@@ -236,9 +245,9 @@
 <div class="box">
   <h2 class="title is-4">Documents 2 vols</h2>
   <div class="doc-grid">
-    <button class="button is-dark" data-doc="AUTOCONTROLE" data-vol="both">Autocontrôle</button>
-    <button class="button btn-presta" data-doc="PRESTA_DEP" data-vol="both">Prestations départ</button>
-    <button class="button btn-presta" data-doc="PRESTA_RET" data-vol="both">Prestations arrivée</button>
+    <button class="button is-dark btn-band" data-doc="AUTOCONTROLE" data-vol="both">Autocontrôle</button>
+    <button class="button is-dark btn-band band-presta" data-doc="PRESTA_DEP" data-vol="both">Prestations départ</button>
+    <button class="button is-dark btn-band band-presta" data-doc="PRESTA_RET" data-vol="both">Prestations arrivée</button>
   </div>
 </div>
 
