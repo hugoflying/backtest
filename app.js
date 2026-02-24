@@ -390,28 +390,26 @@ async function fillAndPrint(docKey, volTarget = "1") {
   const blob = new Blob([bytes], { type: "application/pdf" });
   const url = URL.createObjectURL(blob);
 
-  // ✅ Nom de fichier (download) + ouvre l'aperçu ensuite
-  const filename = buildPdfFilename(docKey, volTarget, v1, v2);
-
-  const a = document.createElement("a");
-  a.href = url;
-  a.download = filename;
-  document.body.appendChild(a);
-  a.click();
-  a.remove();
-
-  // (optionnel) aperçu + impression comme avant
   const iframe = document.createElement("iframe");
-  iframe.style.display = "none";
+  iframe.style.position = "fixed";
+  iframe.style.right = "0";
+  iframe.style.bottom = "0";
+  iframe.style.width = "0";
+  iframe.style.height = "0";
+  iframe.style.border = "0";
   iframe.src = url;
-  document.body.appendChild(iframe);
-  iframe.onload = () => iframe.contentWindow.print();
 
-  // nettoyage (laisse un peu de temps pour print)
+  document.body.appendChild(iframe);
+
+  iframe.onload = () => {
+    iframe.contentWindow.focus();
+    iframe.contentWindow.print();
+  };
+
   setTimeout(() => {
     URL.revokeObjectURL(url);
     iframe.remove();
-  }, 60_000);
+  }, 60000);
 }
 
 // ===== boutons PDF =====
