@@ -278,6 +278,31 @@ async function fetchArrayBufferRetry(url, label, retries = 3, delayMs = 400){
   throw new Error(`${label} FETCH ERROR (${url}) → ${lastErr?.message || lastErr}`);
 }
 
+const _templateCache = new Map();
+
+async function getTemplateBytes(def, docKey) {
+  if (_templateCache.has(docKey)) return _templateCache.get(docKey);
+  const bytes = await fetchArrayBufferRetry(def.file, "TEMPLATE", 3);
+  _templateCache.set(docKey, bytes);
+  return bytes;
+}
+
+let _arialBytes = null;
+let _arialBoldBytes = null;
+
+async function getFontsBytes(BASE) {
+  if (_arialBytes && _arialBoldBytes) return { arial: _arialBytes, bold: _arialBoldBytes };
+
+  const [a, b] = await Promise.all([
+    fetchArrayBufferRetry(BASE + "fonts/ARIAL.TTF", "FONT ARIAL", 3),
+    fetchArrayBufferRetry(BASE + "fonts/ARIAL-BOLD.TTF", "FONT ARIAL-BOLD", 3),
+  ]);
+
+  _arialBytes = a;
+  _arialBoldBytes = b;
+  return { arial: _arialBytes, bold: _arialBoldBytes };
+}
+
 async function fillAndPrint(docKey, volTarget = "1") {
   const def = DOCS[docKey];
   if (!def) return;
@@ -288,33 +313,16 @@ async function fillAndPrint(docKey, volTarget = "1") {
   const vol1 = (volTarget === "2") ? v2 : v1;
   const vol2 = (volTarget === "2") ? v1 : v2;
 
-  // ✅ base stable (gère /index.html, /, /subdir/)
   const BASE = new URL("./", location.href).toString();
 
-  // ===== TEMPLATE (cache mémoire) =====
-  window._templateCache ||= new Map();
-  let templateBytes = window._templateCache.get(docKey);
-  if (!templateBytes) {
-    templateBytes = await fetchArrayBufferRetry(def.file, "TEMPLATE", 3);
-    window._templateCache.set(docKey, templateBytes);
-  }
-
+  const templateBytes = await getTemplateBytes(def, docKey);
   const pdfDoc = await PDFDocument.load(templateBytes);
   pdfDoc.registerFontkit(fontkit);
   const form = pdfDoc.getForm();
 
-  // ===== FONTS (cache mémoire) =====
-  if (!window._arialBytes || !window._arialBoldBytes) {
-    const [a, b] = await Promise.all([
-      fetchArrayBufferRetry(BASE + "fonts/ARIAL.TTF", "FONT ARIAL", 3),
-      fetchArrayBufferRetry(BASE + "fonts/ARIAL-BOLD.TTF", "FONT ARIAL-BOLD", 3),
-    ]);
-    window._arialBytes = a;
-    window._arialBoldBytes = b;
-  }
-
-  const font     = await pdfDoc.embedFont(window._arialBytes);
-  const fontBold = await pdfDoc.embedFont(window._arialBoldBytes);
+  const { arial, bold } = await getFontsBytes(BASE);
+  const font     = await pdfDoc.embedFont(arial);
+  const fontBold = await pdfDoc.embedFont(bold);
 
   const fields =
     (volTarget === "both")
@@ -323,7 +331,6 @@ async function fillAndPrint(docKey, volTarget = "1") {
 
   for (const [name, raw] of Object.entries(fields)) {
     try {
-      // 1) bool -> checkbox
       if (typeof raw === "boolean") {
         const cb = form.getCheckBox(name);
         raw ? cb.check() : cb.uncheck();
@@ -332,7 +339,6 @@ async function fillAndPrint(docKey, volTarget = "1") {
 
       const value = String(raw ?? "").toUpperCase();
 
-      // 2) checkbox avec "X"
       try {
         const cb = form.getCheckBox(name);
         if (value === "X") cb.check();
@@ -340,7 +346,6 @@ async function fillAndPrint(docKey, volTarget = "1") {
         continue;
       } catch {}
 
-      // 3) sinon textfield
       const tf = form.getTextField(name);
       tf.setText(value);
 
@@ -348,7 +353,7 @@ async function fillAndPrint(docKey, volTarget = "1") {
       tf.setAlignment(isName ? PDFLib.TextAlignment.Left : PDFLib.TextAlignment.Center);
 
       tf.updateAppearances(value === "X" ? fontBold : font);
-    } catch (e) {
+    } catch {
       console.warn("Champ PDF introuvable ou incompatible:", name);
     }
   }
