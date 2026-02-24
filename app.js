@@ -262,7 +262,7 @@ async function fetchArrayBufferRetry(url, label, retries = 3, delayMs = 400){
   for(let i = 0; i <= retries; i++){
     try{
       const res = await fetch(url, {
-        cache: "no-store",
+        cache: "force-cache",
         credentials: "include"
       });
 
@@ -279,7 +279,6 @@ async function fetchArrayBufferRetry(url, label, retries = 3, delayMs = 400){
 }
 
 async function fillAndPrint(docKey, volTarget = "1") {
-
   const def = DOCS[docKey];
   if (!def) return;
 
@@ -292,19 +291,30 @@ async function fillAndPrint(docKey, volTarget = "1") {
   // ✅ base stable (gère /index.html, /, /subdir/)
   const BASE = new URL("./", location.href).toString();
 
-  // ===== TEMPLATE =====
-  const templateBytes = await fetchArrayBufferRetry(def.file, "TEMPLATE", 3);
+  // ===== TEMPLATE (cache mémoire) =====
+  window._templateCache ||= new Map();
+  let templateBytes = window._templateCache.get(docKey);
+  if (!templateBytes) {
+    templateBytes = await fetchArrayBufferRetry(def.file, "TEMPLATE", 3);
+    window._templateCache.set(docKey, templateBytes);
+  }
+
   const pdfDoc = await PDFDocument.load(templateBytes);
   pdfDoc.registerFontkit(fontkit);
-
   const form = pdfDoc.getForm();
 
-  // ===== FONTS =====
-  const arialBytes     = await fetchArrayBufferRetry(BASE + "fonts/ARIAL.TTF", "FONT ARIAL", 3);
-  const arialBoldBytes = await fetchArrayBufferRetry(BASE + "fonts/ARIAL-BOLD.TTF", "FONT ARIAL-BOLD", 3);
+  // ===== FONTS (cache mémoire) =====
+  if (!window._arialBytes || !window._arialBoldBytes) {
+    const [a, b] = await Promise.all([
+      fetchArrayBufferRetry(BASE + "fonts/ARIAL.TTF", "FONT ARIAL", 3),
+      fetchArrayBufferRetry(BASE + "fonts/ARIAL-BOLD.TTF", "FONT ARIAL-BOLD", 3),
+    ]);
+    window._arialBytes = a;
+    window._arialBoldBytes = b;
+  }
 
-  const font     = await pdfDoc.embedFont(arialBytes);
-  const fontBold = await pdfDoc.embedFont(arialBoldBytes);
+  const font     = await pdfDoc.embedFont(window._arialBytes);
+  const fontBold = await pdfDoc.embedFont(window._arialBoldBytes);
 
   const fields =
     (volTarget === "both")
@@ -313,7 +323,6 @@ async function fillAndPrint(docKey, volTarget = "1") {
 
   for (const [name, raw] of Object.entries(fields)) {
     try {
-
       // 1) bool -> checkbox
       if (typeof raw === "boolean") {
         const cb = form.getCheckBox(name);
@@ -339,7 +348,6 @@ async function fillAndPrint(docKey, volTarget = "1") {
       tf.setAlignment(isName ? PDFLib.TextAlignment.Left : PDFLib.TextAlignment.Center);
 
       tf.updateAppearances(value === "X" ? fontBold : font);
-
     } catch (e) {
       console.warn("Champ PDF introuvable ou incompatible:", name);
     }
