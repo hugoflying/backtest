@@ -7,7 +7,16 @@ export async function onRequestGet({ env, params }) {
     return new Response("Missing path", { status: 400 });
   }
 
-  const key = `templates/${params.path}`;
+  // Décode correctement les espaces (%20) et caractères spéciaux
+  const filename = decodeURIComponent(params.path);
+
+  // Sécurité basique contre ../
+  if (filename.includes("..")) {
+    return new Response("Invalid path", { status: 400 });
+  }
+
+  const key = `templates/${filename}`;
+
   const obj = await env.TEMPLATES_BUCKET.get(key);
 
   if (!obj) {
@@ -16,7 +25,8 @@ export async function onRequestGet({ env, params }) {
 
   return new Response(obj.body, {
     headers: {
-      "Content-Type": "application/pdf"
+      "Content-Type": "application/pdf",
+      "Cache-Control": "public, max-age=3600"
     }
   });
 }
