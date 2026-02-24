@@ -1,13 +1,22 @@
 export async function onRequestGet({ env, params }) {
-  const key = params.path ? `templates/${params.path}` : null;
-  if (!key) return new Response("Missing key", { status: 400 });
+  if (!env?.TEMPLATES_BUCKET) {
+    return new Response("Missing R2 binding", { status: 500 });
+  }
 
+  if (!params?.path) {
+    return new Response("Missing path", { status: 400 });
+  }
+
+  const key = `templates/${params.path}`;
   const obj = await env.TEMPLATES_BUCKET.get(key);
-  if (!obj) return new Response("Not found", { status: 404 });
 
-  const headers = new Headers();
-  obj.writeHttpMetadata(headers);
-  headers.set("etag", obj.httpEtag);
+  if (!obj) {
+    return new Response("Not found", { status: 404 });
+  }
 
-  return new Response(obj.body, { headers });
+  return new Response(obj.body, {
+    headers: {
+      "Content-Type": "application/pdf"
+    }
+  });
 }
