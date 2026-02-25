@@ -250,7 +250,7 @@ function sleep(ms){
 async function fetchArrayBuffer(url, label){
   try{
     const res = await fetch(url, {
-      cache: "force-cache",
+      cache: "no-store",
       credentials: "include"
     });
 
