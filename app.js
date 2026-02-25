@@ -355,15 +355,15 @@ async function fillAndPrint(docKey, volTarget = "1", extra = null) {
   const font     = await pdfDoc.embedFont(arial);
   const fontBold = await pdfDoc.embedFont(bold);
 
-  // ✅ passe extra au fill
+  // ✅ FIX : extra passé en 2e argument
   const fields =
     (volTarget === "both")
-      ? def.fill({ vol1: v1, vol2: v2, extra })
-      : def.fill({ vol1, vol2, extra });
+      ? def.fill({ vol1: v1, vol2: v2 }, extra)
+      : def.fill({ vol1, vol2 }, extra);
 
   for (const [name, raw] of Object.entries(fields)) {
     try {
-      // 1) bool -> checkbox
+      // 1) bool → checkbox
       if (typeof raw === "boolean") {
         const cb = form.getCheckBox(name);
         raw ? cb.check() : cb.uncheck();
@@ -372,10 +372,10 @@ async function fillAndPrint(docKey, volTarget = "1", extra = null) {
 
       const rawStr = String(raw ?? "");
 
-      // ✅ SI reste tel quel (multi-ligne / minuscules)
+      // SI reste tel quel (multiligne conservé)
       const value = (name === "SI") ? rawStr : rawStr.toUpperCase();
 
-      // 2) checkbox avec "X"
+      // 2) tentative checkbox "X"
       try {
         const cb = form.getCheckBox(name);
         if (value === "X") cb.check();
