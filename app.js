@@ -355,7 +355,7 @@ async function fillAndPrint(docKey, volTarget = "1", extra = null) {
   const font     = await pdfDoc.embedFont(arial);
   const fontBold = await pdfDoc.embedFont(bold);
 
-  // ✅ FIX : extra passé en 2e argument
+  // ✅ extra passé en 2e argument
   const fields =
     (volTarget === "both")
       ? def.fill({ vol1: v1, vol2: v2 }, extra)
@@ -363,7 +363,7 @@ async function fillAndPrint(docKey, volTarget = "1", extra = null) {
 
   for (const [name, raw] of Object.entries(fields)) {
     try {
-      // 1) bool → checkbox
+      // 1) bool -> checkbox
       if (typeof raw === "boolean") {
         const cb = form.getCheckBox(name);
         raw ? cb.check() : cb.uncheck();
@@ -372,23 +372,30 @@ async function fillAndPrint(docKey, volTarget = "1", extra = null) {
 
       const rawStr = String(raw ?? "");
 
-      // SI reste tel quel (multiligne conservé)
+      // ✅ SI reste tel quel (multiligne / minuscules / \n conservés)
       const value = (name === "SI") ? rawStr : rawStr.toUpperCase();
 
-      // 2) tentative checkbox "X"
-      try {
-        const cb = form.getCheckBox(name);
-        if (value === "X") cb.check();
-        else cb.uncheck();
-        continue;
-      } catch {}
+      // 2) checkbox avec "X" (⚠️ sauf SI / MAX 5)
+      if (name !== "SI" && name !== "MAX 5") {
+        try {
+          const cb = form.getCheckBox(name);
+          if (value === "X") cb.check();
+          else cb.uncheck();
+          continue;
+        } catch {}
+      }
 
       // 3) sinon textfield
       const tf = form.getTextField(name);
       tf.setText(value);
 
-      const isName = name.includes("NOM PRENOM");
-      tf.setAlignment(isName ? PDFLib.TextAlignment.Left : PDFLib.TextAlignment.Center);
+      // ✅ alignements : SI et NOM PRENOM à gauche, le reste centré
+      if (name === "SI") {
+        tf.setAlignment(PDFLib.TextAlignment.Left);
+      } else {
+        const isName = name.includes("NOM PRENOM");
+        tf.setAlignment(isName ? PDFLib.TextAlignment.Left : PDFLib.TextAlignment.Center);
+      }
 
       tf.updateAppearances(value === "X" ? fontBold : font);
 
@@ -505,13 +512,13 @@ async function submitSIModal(){
   if(!p) return;
 
   const vol = String(p.volTarget || "1");
-  const v = getVol(Number(vol));
+  const v = getVol(Number(vol)); // gardé si tu t'en sers ailleurs
 
   const si = (t?.value || "");
   window._lirSiByVol[vol] = si;
 
-  const isB38M = upper(v?.dep?.type) === "B38M";
-  const max5 = isB38M && !!cbMax5?.checked;
+  // ✅ MAX 5 = ce que tu coches, point.
+  const max5 = !!cbMax5?.checked;
 
   const hold_search = !!cbHold?.checked;
 
