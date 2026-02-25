@@ -351,26 +351,42 @@ async function fillAndPrint(docKey, volTarget = "1", extra = null) {
   pdfDoc.registerFontkit(fontkit);
   const form = pdfDoc.getForm();
 
+  // 🔎 DEBUG : liste exacte des champs
+  console.log("=== CHAMPS PDF ===");
+  const allFields = form.getFields();
+  allFields.forEach(f => console.log("[" + f.getName() + "]"));
+
   const { arial, bold } = await getFontsBytes(BASE);
   const font     = await pdfDoc.embedFont(arial);
   const fontBold = await pdfDoc.embedFont(bold);
 
-  // ✅ extra passé correctement
   const fields =
     (volTarget === "both")
       ? def.fill({ vol1: v1, vol2: v2 }, extra)
       : def.fill({ vol1, vol2 }, extra);
 
-  // ✅ Trouve le VRAI nom du champ SI (trim + case-insensitive)
-  let siRealName = null;
-  try {
-    const names = form.getFields().map(f => f.getName());
-    siRealName = names.find(n => String(n).trim().toUpperCase() === "SI") || null;
-  } catch {}
+  // 🔎 Trouve automatiquement le vrai champ SI
+  let siFieldName = null;
+  for (const f of allFields) {
+    const n = f.getName();
+    if (n.trim().toUpperCase() === "SI" ||
+        n.toUpperCase().endsWith(".SI") ||
+        n.toUpperCase().includes("SI")) {
+      siFieldName = n;
+      break;
+    }
+  }
+
+  if (siFieldName) {
+    console.log("SI détecté sous le nom :", siFieldName);
+  } else {
+    console.warn("⚠ Aucun champ SI détecté dans le PDF");
+  }
 
   for (const [name, raw] of Object.entries(fields)) {
     try {
-      // 1) bool -> checkbox
+
+      // ===== BOOLEAN -> CHECKBOX =====
       if (typeof raw === "boolean") {
         const cb = form.getCheckBox(name);
         raw ? cb.check() : cb.uncheck();
@@ -380,7 +396,7 @@ async function fillAndPrint(docKey, volTarget = "1", extra = null) {
       const rawStr = String(raw ?? "");
       const value = (name === "SI") ? rawStr : rawStr.toUpperCase();
 
-      // 2) checkbox avec "X" (sauf SI / MAX 5)
+      // ===== CHECKBOX "X" (sauf SI / MAX 5) =====
       if (name !== "SI" && name !== "MAX 5") {
         try {
           const cb = form.getCheckBox(name);
@@ -390,27 +406,22 @@ async function fillAndPrint(docKey, volTarget = "1", extra = null) {
         } catch {}
       }
 
-      // 3) textfield
+      // ===== TEXTFIELDS =====
       if (name === "SI") {
-        if (!siRealName) {
-          console.warn("Champ SI introuvable (nom réel non trouvé).");
-          continue;
-        }
+        if (!siFieldName) continue;
 
-        const tf = form.getTextField(siRealName);
+        const tf = form.getTextField(siFieldName);
 
-        // ✅ garde retours ligne
-        const multiline = rawStr.replace(/\r\n/g, "\n");
-
-        tf.setText(multiline);
+        tf.setText(rawStr.replace(/\r\n/g, "\n"));
         tf.setAlignment(PDFLib.TextAlignment.Left);
 
-        // évite un crash si indispo
-        if (typeof tf.setFontSize === "function") tf.setFontSize(10);
+        if (typeof tf.setFontSize === "function")
+          tf.setFontSize(10);
 
         tf.updateAppearances(font);
       } else {
         const tf = form.getTextField(name);
+
         tf.setText(value);
 
         const isName = name.includes("NOM PRENOM");
@@ -441,18 +452,9 @@ async function fillAndPrint(docKey, volTarget = "1", extra = null) {
 
   document.body.appendChild(iframe);
 
-  const cleanup = () => {
-    try { URL.revokeObjectURL(url); } catch {}
-    try { iframe.remove(); } catch {}
-  };
-
   iframe.onload = () => {
-    try {
-      iframe.contentWindow.focus();
-      iframe.contentWindow.print();
-    } finally {
-      setTimeout(cleanup, 60000);
-    }
+    iframe.contentWindow.focus();
+    iframe.contentWindow.print();
   };
 }
 
