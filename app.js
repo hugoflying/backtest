@@ -355,7 +355,7 @@ async function fillAndPrint(docKey, volTarget = "1", extra = null) {
   const font     = await pdfDoc.embedFont(arial);
   const fontBold = await pdfDoc.embedFont(bold);
 
-  // ✅ passage propre de extra
+  // ✅ extra passé correctement
   const fields =
     (volTarget === "both")
       ? def.fill({ vol1: v1, vol2: v2 }, extra)
@@ -363,8 +363,7 @@ async function fillAndPrint(docKey, volTarget = "1", extra = null) {
 
   for (const [name, raw] of Object.entries(fields)) {
     try {
-
-      // ===== BOOLEAN → CHECKBOX =====
+      // 1) bool -> checkbox
       if (typeof raw === "boolean") {
         const cb = form.getCheckBox(name);
         raw ? cb.check() : cb.uncheck();
@@ -372,9 +371,11 @@ async function fillAndPrint(docKey, volTarget = "1", extra = null) {
       }
 
       const rawStr = String(raw ?? "");
+
+      // ✅ SI = texte brut (multiligne conservé)
       const value = (name === "SI") ? rawStr : rawStr.toUpperCase();
 
-      // ===== CHECKBOX "X" (sauf SI / MAX 5) =====
+      // 2) checkbox avec "X" (sauf SI / MAX 5)
       if (name !== "SI" && name !== "MAX 5") {
         try {
           const cb = form.getCheckBox(name);
@@ -384,20 +385,20 @@ async function fillAndPrint(docKey, volTarget = "1", extra = null) {
         } catch {}
       }
 
-      // ===== TEXTFIELD =====
+      // 3) textfield
       const tf = form.getTextField(name);
 
       if (name === "SI") {
-        // Normalisation retours ligne pour PDF
-        const multiline = rawStr
-          .replace(/\r\n/g, "\n")
-          .replace(/\n/g, "\r");
+        // ✅ garde les retours à la ligne (pdf-lib aime \n)
+        const multiline = rawStr.replace(/\r\n/g, "\n");
 
         tf.setText(multiline);
         tf.setAlignment(PDFLib.TextAlignment.Left);
-        tf.setFontSize(10);        // ajuste si besoin
-        tf.updateAppearances(font);
 
+        // ✅ ne pas planter si setFontSize n'existe pas
+        if (typeof tf.setFontSize === "function") tf.setFontSize(10);
+
+        tf.updateAppearances(font);
       } else {
         tf.setText(value);
 
@@ -408,7 +409,7 @@ async function fillAndPrint(docKey, volTarget = "1", extra = null) {
       }
 
     } catch (e) {
-      console.warn("Champ PDF introuvable ou incompatible:", name);
+      console.warn("Champ PDF introuvable ou incompatible:", name, e?.message || e);
     }
   }
 
