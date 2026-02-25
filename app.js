@@ -361,6 +361,13 @@ async function fillAndPrint(docKey, volTarget = "1", extra = null) {
       ? def.fill({ vol1: v1, vol2: v2 }, extra)
       : def.fill({ vol1, vol2 }, extra);
 
+  // ✅ Trouve le VRAI nom du champ SI (trim + case-insensitive)
+  let siRealName = null;
+  try {
+    const names = form.getFields().map(f => f.getName());
+    siRealName = names.find(n => String(n).trim().toUpperCase() === "SI") || null;
+  } catch {}
+
   for (const [name, raw] of Object.entries(fields)) {
     try {
       // 1) bool -> checkbox
@@ -371,8 +378,6 @@ async function fillAndPrint(docKey, volTarget = "1", extra = null) {
       }
 
       const rawStr = String(raw ?? "");
-
-      // ✅ SI = texte brut (multiligne conservé)
       const value = (name === "SI") ? rawStr : rawStr.toUpperCase();
 
       // 2) checkbox avec "X" (sauf SI / MAX 5)
@@ -386,20 +391,26 @@ async function fillAndPrint(docKey, volTarget = "1", extra = null) {
       }
 
       // 3) textfield
-      const tf = form.getTextField(name);
-
       if (name === "SI") {
-        // ✅ garde les retours à la ligne (pdf-lib aime \n)
+        if (!siRealName) {
+          console.warn("Champ SI introuvable (nom réel non trouvé).");
+          continue;
+        }
+
+        const tf = form.getTextField(siRealName);
+
+        // ✅ garde retours ligne
         const multiline = rawStr.replace(/\r\n/g, "\n");
 
         tf.setText(multiline);
         tf.setAlignment(PDFLib.TextAlignment.Left);
 
-        // ✅ ne pas planter si setFontSize n'existe pas
+        // évite un crash si indispo
         if (typeof tf.setFontSize === "function") tf.setFontSize(10);
 
         tf.updateAppearances(font);
       } else {
+        const tf = form.getTextField(name);
         tf.setText(value);
 
         const isName = name.includes("NOM PRENOM");
