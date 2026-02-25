@@ -355,7 +355,7 @@ async function fillAndPrint(docKey, volTarget = "1", extra = null) {
   const font     = await pdfDoc.embedFont(arial);
   const fontBold = await pdfDoc.embedFont(bold);
 
-  // ✅ extra passé en 2e argument
+  // ✅ passage propre de extra
   const fields =
     (volTarget === "both")
       ? def.fill({ vol1: v1, vol2: v2 }, extra)
@@ -363,7 +363,8 @@ async function fillAndPrint(docKey, volTarget = "1", extra = null) {
 
   for (const [name, raw] of Object.entries(fields)) {
     try {
-      // 1) bool -> checkbox
+
+      // ===== BOOLEAN → CHECKBOX =====
       if (typeof raw === "boolean") {
         const cb = form.getCheckBox(name);
         raw ? cb.check() : cb.uncheck();
@@ -371,11 +372,9 @@ async function fillAndPrint(docKey, volTarget = "1", extra = null) {
       }
 
       const rawStr = String(raw ?? "");
-
-      // ✅ SI reste tel quel (multiligne / minuscules / \n conservés)
       const value = (name === "SI") ? rawStr : rawStr.toUpperCase();
 
-      // 2) checkbox avec "X" (⚠️ sauf SI / MAX 5)
+      // ===== CHECKBOX "X" (sauf SI / MAX 5) =====
       if (name !== "SI" && name !== "MAX 5") {
         try {
           const cb = form.getCheckBox(name);
@@ -385,19 +384,28 @@ async function fillAndPrint(docKey, volTarget = "1", extra = null) {
         } catch {}
       }
 
-      // 3) sinon textfield
+      // ===== TEXTFIELD =====
       const tf = form.getTextField(name);
-      tf.setText(value);
 
-      // ✅ alignements : SI et NOM PRENOM à gauche, le reste centré
       if (name === "SI") {
+        // Normalisation retours ligne pour PDF
+        const multiline = rawStr
+          .replace(/\r\n/g, "\n")
+          .replace(/\n/g, "\r");
+
+        tf.setText(multiline);
         tf.setAlignment(PDFLib.TextAlignment.Left);
+        tf.setFontSize(10);        // ajuste si besoin
+        tf.updateAppearances(font);
+
       } else {
+        tf.setText(value);
+
         const isName = name.includes("NOM PRENOM");
         tf.setAlignment(isName ? PDFLib.TextAlignment.Left : PDFLib.TextAlignment.Center);
-      }
 
-      tf.updateAppearances(value === "X" ? fontBold : font);
+        tf.updateAppearances(value === "X" ? fontBold : font);
+      }
 
     } catch (e) {
       console.warn("Champ PDF introuvable ou incompatible:", name);
