@@ -12,26 +12,29 @@ function isoToDDMMYYYY(iso){
 function upper(s){ return (s||"").toUpperCase().trim(); }
 
 function getVol(n){
-  const g=id=>document.getElementById(`${id}_${n}`)?.value||"";
-  const c=id=>!!document.getElementById(`${id}_${n}`)?.checked;
+  const g = id => (document.getElementById(`${id}_${n}`)?.value || "").trim();
+  const c = id => !!document.getElementById(`${id}_${n}`)?.checked;
+
+  const up = s => (s || "").toUpperCase().trim();
 
   return {
-    arr:{
-      date:g("arr_date"),
-      flt:g("arr_flt"),
-      from:g("arr_from"),
-      reg:g("arr_reg"),
-      type:g("arr_type"),
-      hold_search: c("hold_search")
+    arr: {
+      date: g("arr_date"),
+      flt: up(g("arr_flt")),
+      from: up(g("arr_from")),
+      reg: up(g("arr_reg")),
+      type: up(g("arr_type")),
+      hold_search: c("hold_search"),
+      max5: c("max5") // checkbox id expected: max5_1 / max5_2
     },
-    dep:{
-      date:g("dep_date"),
-      flt:g("dep_flt"),
-      to:g("dep_to"),
-      reg:g("dep_reg"),
-      type:g("dep_type")
+    dep: {
+      date: g("dep_date"),
+      flt: up(g("dep_flt")),
+      to: up(g("dep_to")),
+      reg: up(g("dep_reg")),
+      type: up(g("dep_type"))
     }
-  }
+  };
 }
 
 function isVolEmpty(v){
@@ -60,7 +63,7 @@ BINGO_FR:{
 
 LIR_RYANAIR:{
   file: `${TEMPLATE_BASE}/templates/LIR RYANAIR BELLOVA.pdf`,
-  fill:({vol1})=>{
+  fill:({vol1, extra})=>{
     const x = lirTypeX(vol1.dep.type);
     const o = {
       "DATE": isoToDDMMYYYY(vol1.dep.date),
@@ -74,9 +77,11 @@ LIR_RYANAIR:{
       "B738": x.B738,
       "B38M": x.B38M,
 
-      "POUSSETTE PORTE": "",
-      "POUSSETTE CBS": "",
-      "MAX 5": "",
+      // ✅ nouveau champ SI (multiligne)
+      "SI": (extra?.si || "").trim(),
+
+      // ✅ MAX 5 (texte)
+      "MAX 5": (extra?.max5 ? "MAX 5" : ""),
     };
 
     // ✅ HOLD conditionnel
@@ -301,6 +306,7 @@ async function getFontsBytes(BASE) {
   return { arial: _arialBytes, bold: _arialBoldBytes };
 }
 
+// (optionnel) utilitaires de nom de fichier — pas utilisés pour l'impression iframe
 function safeFilePart(s){
   return String(s || "")
     .trim()
@@ -310,7 +316,6 @@ function safeFilePart(s){
 
 function ymd(isoDate){
   if(!isoDate) return "";
-  // isoDate attendu: YYYY-MM-DD
   const [y,m,d] = String(isoDate).split("-");
   if(!y || !m || !d) return "";
   return `${y}${m}${d}`;
@@ -329,7 +334,7 @@ function buildPdfFilename(docKey, volTarget, v1, v2){
   return `${safeFilePart(docKey)}_${date || "DATE"}${flt ? "_" + flt : ""}.pdf`;
 }
 
-async function fillAndPrint(docKey, volTarget = "1") {
+async function fillAndPrint(docKey, volTarget = "1", extra = null) {
   const def = DOCS[docKey];
   if (!def) return;
 
@@ -352,11 +357,12 @@ async function fillAndPrint(docKey, volTarget = "1") {
 
   const fields =
     (volTarget === "both")
-      ? def.fill({ vol1: v1, vol2: v2 })
-      : def.fill({ vol1, vol2 });
+      ? def.fill({ vol1: v1, vol2: v2, extra })
+      : def.fill({ vol1, vol2, extra });
 
   for (const [name, raw] of Object.entries(fields)) {
     try {
+      // 1) bool -> checkbox
       if (typeof raw === "boolean") {
         const cb = form.getCheckBox(name);
         raw ? cb.check() : cb.uncheck();
@@ -365,6 +371,7 @@ async function fillAndPrint(docKey, volTarget = "1") {
 
       const value = String(raw ?? "").toUpperCase();
 
+      // 2) checkbox avec "X"
       try {
         const cb = form.getCheckBox(name);
         if (value === "X") cb.check();
@@ -372,6 +379,7 @@ async function fillAndPrint(docKey, volTarget = "1") {
         continue;
       } catch {}
 
+      // 3) sinon textfield
       const tf = form.getTextField(name);
       tf.setText(value);
 
@@ -390,6 +398,7 @@ async function fillAndPrint(docKey, volTarget = "1") {
   const blob = new Blob([bytes], { type: "application/pdf" });
   const url = URL.createObjectURL(blob);
 
+  // ✅ impression via iframe (évite le téléchargement)
   const iframe = document.createElement("iframe");
   iframe.style.position = "fixed";
   iframe.style.right = "0";
@@ -401,15 +410,20 @@ async function fillAndPrint(docKey, volTarget = "1") {
 
   document.body.appendChild(iframe);
 
-  iframe.onload = () => {
-    iframe.contentWindow.focus();
-    iframe.contentWindow.print();
+  const cleanup = () => {
+    try { URL.revokeObjectURL(url); } catch {}
+    try { iframe.remove(); } catch {}
   };
 
-  setTimeout(() => {
-    URL.revokeObjectURL(url);
-    iframe.remove();
-  }, 60000);
+  iframe.onload = () => {
+    try {
+      iframe.contentWindow.focus();
+      iframe.contentWindow.print();
+    } finally {
+      // laisse le temps au print dialog de s'ouvrir sur machines lentes
+      setTimeout(cleanup, 60000);
+    }
+  };
 }
 
 // ===== boutons PDF =====
@@ -420,9 +434,14 @@ document.addEventListener("click", async (e) => {
   const docKey = b.dataset.doc;
   const volTarget = b.dataset.vol || "1";
 
-  // Popup uniquement pour Autocontrôle
   if(docKey === "AUTOCONTROLE"){
     openRZAModal({ docKey, volTarget });
+    return;
+  }
+
+  // ✅ popup SI uniquement pour LIR_RYANAIR (vol 1 ou 2)
+  if(docKey === "LIR_RYANAIR" && volTarget !== "both"){
+    openSIModal({ docKey, volTarget });
     return;
   }
 
@@ -434,11 +453,73 @@ document.addEventListener("click", async (e) => {
   }
 });
 
+// ===== SI MODAL (LIR Ryanair) =====
+let _pendingSIPrint = null;
+window._lirSiByVol ||= { "1": "", "2": "" };
+
+function openSIModal(pending){
+  _pendingSIPrint = pending;
+
+  const vol = String(pending?.volTarget || "1");
+  const v = getVol(Number(vol));
+
+  const b = document.getElementById("siBackdrop");
+  const m = document.getElementById("siModal");
+  const t = document.getElementById("siModalInput");
+  const cb = document.getElementById("siModalMax5");
+
+  if(t){
+    t.value = window._lirSiByVol[vol] || "";
+    setTimeout(()=> t.focus(), 0);
+  }
+
+  // ✅ default MAX5 : coché si B38M, sinon reprend le checkbox UI
+  const isB38M = upper(v?.dep?.type) === "B38M";
+  const uiMax5 = !!document.getElementById(`max5_${vol}`)?.checked;
+  if(cb) cb.checked = isB38M ? true : uiMax5;
+
+  if(b) b.style.display = "block";
+  if(m) m.style.display = "flex";
+}
+
+function closeSIModal(keepPending){
+  const b = document.getElementById("siBackdrop");
+  const m = document.getElementById("siModal");
+  if(b) b.style.display = "none";
+  if(m) m.style.display = "none";
+  if(!keepPending) _pendingSIPrint = null;
+}
+
+async function submitSIModal(){
+  const t = document.getElementById("siModalInput");
+  const cb = document.getElementById("siModalMax5");
+
+  const p = _pendingSIPrint;
+  if(!p) return;
+
+  const vol = String(p.volTarget || "1");
+  const si = (t?.value || "");
+  window._lirSiByVol[vol] = si;
+
+  // ✅ max5 autorisé seulement si B38M
+  const v = getVol(Number(vol));
+  const isB38M = upper(v?.dep?.type) === "B38M";
+  const max5 = isB38M && !!cb?.checked;
+
+  closeSIModal(true);
+  _pendingSIPrint = null;
+
+  await fillAndPrint(p.docKey, p.volTarget, { si, max5 });
+}
+
+// IMPORTANT (car app.js est en module)
+window.openSIModal = openSIModal;
+window.closeSIModal = closeSIModal;
+window.submitSIModal = submitSIModal;
+
 function lirTypeX(acType){
   const t = upper(acType);
 
-  // on ne garde que ces 3 valeurs
-  // (si tu veux gérer d'autres variantes, je te l'étends)
   const isB737 = t === "B737";
   const isB738 = t === "B738";
   const isB38M = t === "B38M";
