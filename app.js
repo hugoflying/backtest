@@ -63,38 +63,38 @@ BINGO_FR:{
 
 LIR_RYANAIR:{
   file: `${TEMPLATE_BASE}/templates/LIR RYANAIR BELLOVA.pdf`,
-  fill:({vol1, extra})=>{
+  fill:({vol1}, extra = null)=>{
     const x = lirTypeX(vol1.dep.type);
-    const o = {
+
+    const hold = !!extra?.hold_search;
+    const max5 = !!extra?.max5;
+
+    return {
       "DATE": isoToDDMMYYYY(vol1.dep.date),
       "REGISTRATION": vol1.dep.reg,
       "DEPARTURE FLIGHT NUMBER": vol1.dep.flt,
       "TO": vol1.dep.to,
-
       "A/C TYPE": vol1.dep.type,
 
       "B737": x.B737,
       "B738": x.B738,
       "B38M": x.B38M,
 
-      // ✅ nouveau champ SI (multiligne)
-      "SI": (extra?.si || "").trim(),
+      // ✅ SI multiligne
+      "SI": extra?.si || "",
 
       // ✅ MAX 5 (texte)
-      "MAX 5": (extra?.max5 ? "MAX 5" : ""),
+      "MAX 5": max5 ? "MAX 5" : "",
+
+      // ✅ HOLD conditionnel
+      "ARRIVAL FLIGHT NUMBER": hold ? (vol1.arr.flt || "") : "",
+      "HOLD SECURITY SEARCH": hold,
+     
     };
-
-    // ✅ HOLD conditionnel
-    if (vol1.arr?.hold_search) {
-      o["ARRIVAL FLIGHT NUMBER"] = vol1.arr.flt || "";
-      o["HOLD SECURITY SEARCH"] = true;
-    }
-
-    return o;
   },
   flatten:true
 },
-
+  
 /* ========= LIR LAUDA ========= */
 
 LIR_LAUDA:{
@@ -355,6 +355,7 @@ async function fillAndPrint(docKey, volTarget = "1", extra = null) {
   const font     = await pdfDoc.embedFont(arial);
   const fontBold = await pdfDoc.embedFont(bold);
 
+  // ✅ passe extra au fill
   const fields =
     (volTarget === "both")
       ? def.fill({ vol1: v1, vol2: v2, extra })
@@ -369,7 +370,10 @@ async function fillAndPrint(docKey, volTarget = "1", extra = null) {
         continue;
       }
 
-      const value = String(raw ?? "").toUpperCase();
+      const rawStr = String(raw ?? "");
+
+      // ✅ SI reste tel quel (multi-ligne / minuscules)
+      const value = (name === "SI") ? rawStr : rawStr.toUpperCase();
 
       // 2) checkbox avec "X"
       try {
@@ -387,7 +391,8 @@ async function fillAndPrint(docKey, volTarget = "1", extra = null) {
       tf.setAlignment(isName ? PDFLib.TextAlignment.Left : PDFLib.TextAlignment.Center);
 
       tf.updateAppearances(value === "X" ? fontBold : font);
-    } catch {
+
+    } catch (e) {
       console.warn("Champ PDF introuvable ou incompatible:", name);
     }
   }
@@ -398,7 +403,6 @@ async function fillAndPrint(docKey, volTarget = "1", extra = null) {
   const blob = new Blob([bytes], { type: "application/pdf" });
   const url = URL.createObjectURL(blob);
 
-  // ✅ impression via iframe (évite le téléchargement)
   const iframe = document.createElement("iframe");
   iframe.style.position = "fixed";
   iframe.style.right = "0";
@@ -420,7 +424,6 @@ async function fillAndPrint(docKey, volTarget = "1", extra = null) {
       iframe.contentWindow.focus();
       iframe.contentWindow.print();
     } finally {
-      // laisse le temps au print dialog de s'ouvrir sur machines lentes
       setTimeout(cleanup, 60000);
     }
   };
@@ -466,17 +469,20 @@ function openSIModal(pending){
   const b = document.getElementById("siBackdrop");
   const m = document.getElementById("siModal");
   const t = document.getElementById("siModalInput");
-  const cb = document.getElementById("siModalMax5");
+  const cbMax5 = document.getElementById("siModalMax5");
+  const cbHold = document.getElementById("siModalHold");
 
   if(t){
     t.value = window._lirSiByVol[vol] || "";
     setTimeout(()=> t.focus(), 0);
   }
 
-  // ✅ default MAX5 : coché si B38M, sinon reprend le checkbox UI
+  // MAX5 default: coché si B38M
   const isB38M = upper(v?.dep?.type) === "B38M";
-  const uiMax5 = !!document.getElementById(`max5_${vol}`)?.checked;
-  if(cb) cb.checked = isB38M ? true : uiMax5;
+  if(cbMax5) cbMax5.checked = isB38M;
+
+  // HOLD default: décoché
+  if(cbHold) cbHold.checked = false;
 
   if(b) b.style.display = "block";
   if(m) m.style.display = "flex";
@@ -491,25 +497,28 @@ function closeSIModal(keepPending){
 }
 
 async function submitSIModal(){
-  const t = document.getElementById("siModalInput");
-  const cb = document.getElementById("siModalMax5");
+  const t  = document.getElementById("siModalInput");
+  const cbMax5 = document.getElementById("siModalMax5");
+  const cbHold = document.getElementById("siModalHold");
 
   const p = _pendingSIPrint;
   if(!p) return;
 
   const vol = String(p.volTarget || "1");
+  const v = getVol(Number(vol));
+
   const si = (t?.value || "");
   window._lirSiByVol[vol] = si;
 
-  // ✅ max5 autorisé seulement si B38M
-  const v = getVol(Number(vol));
   const isB38M = upper(v?.dep?.type) === "B38M";
-  const max5 = isB38M && !!cb?.checked;
+  const max5 = isB38M && !!cbMax5?.checked;
+
+  const hold_search = !!cbHold?.checked;
 
   closeSIModal(true);
   _pendingSIPrint = null;
 
-  await fillAndPrint(p.docKey, p.volTarget, { si, max5 });
+  await fillAndPrint(p.docKey, p.volTarget, { si, max5, hold_search });
 }
 
 // IMPORTANT (car app.js est en module)
