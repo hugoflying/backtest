@@ -700,18 +700,25 @@ function buildDepLabel(f){
   const t   = hhmmFromMs(depListMs(f));
   const ff  = upper(f?.fullFlightNumber || f?.callsign || "");
   const to  = upper(f?.adesIata || f?.adesIcao || "");
-  const reg = upper(f?.reg || "");
+  const regRaw = upper(f?.reg || "");
+  const reg = regRaw || "--";
   const stand = (f?.pkg || "").toString().replace(/^P/i,"").trim();
-  return `${t || "—"} ${ff || "(sans numéro)"} → ${to || "---"} (${reg || "REG?"}${stand ? ` · P${stand}` : ""})`;
+
+  // ✅ Décollé si ATOT existe
+  const departed = Number.isFinite(Date.parse(f?.atot || ""));
+
+  return `${t || "—"} ${ff || "(sans numéro)"} → ${to || "---"} (${reg}${stand ? ` · P${stand}` : ""})${departed ? " · DÉCOLLÉ" : ""}`;
 }
 
 function buildArrLabel(f){
   const t   = hhmmFromMs(arrListMs(f));
   const ff  = upper(f?.fullFlightNumber || f?.callsign || "");
   const from= upper(f?.adepIata || f?.adepIcao || "");
-  const reg = upper(f?.reg || "");
+  const regRaw = upper(f?.reg || "");
+  const reg = regRaw || "--";
   const stand = (f?.pkg || "").toString().replace(/^P/i,"").trim();
-  return `${t || "—"} ${ff || "(sans numéro)"} ← ${from || "---"} (${reg || "REG?"}${stand ? ` · P${stand}` : ""})`;
+
+  return `${t || "—"} ${ff || "(sans numéro)"} ← ${from || "---"} (${reg}${stand ? ` · P${stand}` : ""})`;
 }
 
 function setVal(id, v){
