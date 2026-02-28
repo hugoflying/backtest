@@ -675,7 +675,24 @@ async function fetchAK(flow, from, to){
     `&from=${encodeURIComponent(from)}` +
     `&to=${encodeURIComponent(to)}`;
 
-  const res = await fetch(url);
+  let res;
+  try{
+    res = await fetch(url, {
+      cache: "no-store",
+      credentials: "include",
+    });
+  }catch(e){
+    throw new Error(`AK fetch network error: ${e?.message || e}`);
+  }
+
+  // Si ton backend renvoie une redirection (souvent vers login),
+  // fetch peut “casser” ou te ramener autre chose que /ak.
+  if(res.redirected){
+    // la session a sauté → on force un vrai reload navigateur
+    window.location.reload();
+    return [];
+  }
+
   if(!res.ok) throw new Error(`AK error ${res.status}`);
 
   const data = await res.json();
@@ -1078,6 +1095,22 @@ async function loadAKAll(){
   }
 }
 
+function startAKAutoRefresh(){
+  setInterval(async ()=>{
+    try{
+      await loadAKAll();
+    }catch(e){
+      const msg = String(e?.message || e);
+      // si réseau / redirect / session cassée → reload = comme F5
+      if(/failed to fetch|network error|fetch/i.test(msg)){
+        window.location.reload();
+        return;
+      }
+      console.warn("Auto-refresh AK:", e);
+    }
+  }, 30 * 60 * 1000);
+}
+
 function refreshAKDropdown(n){
   const flowSel = $(`ak_flow_${n}`);
   const sel = $(`ak_flight_${n}`);
@@ -1149,9 +1182,5 @@ document.addEventListener("DOMContentLoaded", ()=>{
   bindAK(1);
   bindAK(2);
   loadAKAll();
-
-  // ✅ Auto refresh toutes les 30 minutes
-  setInterval(() => {
-    loadAKAll();
-  }, 30 * 60 * 1000);
+  startAKAutoRefresh();
 });
