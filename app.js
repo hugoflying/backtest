@@ -1123,4 +1123,9 @@ document.addEventListener("DOMContentLoaded", ()=>{
   bindAK(1);
   bindAK(2);
   loadAKAll();
+
+  // ✅ Auto refresh toutes les 30 minutes
+  setInterval(() => {
+    loadAKAll();
+  }, 30 * 60 * 1000);
 });
