@@ -356,8 +356,8 @@ async function fillAndPrint(docKey, volTarget = "1", extra = null) {
   const allFields = form.getFields();
   allFields.forEach(f => console.log("[" + f.getName() + "]"));
 
-  const { arial, bold } = await getFontsBytes(BASE);
-  const font     = await pdfDoc.embedFont(arial);
+  // ✅ Roboto Condensed Bold uniquement
+  const { bold } = await getFontsBytes(BASE);
   const fontBold = await pdfDoc.embedFont(bold);
 
   const fields =
@@ -369,23 +369,18 @@ async function fillAndPrint(docKey, volTarget = "1", extra = null) {
   let siFieldName = null;
   for (const f of allFields) {
     const n = f.getName();
-    if (n.trim().toUpperCase() === "SI" ||
-        n.toUpperCase().endsWith(".SI") ||
-        n.toUpperCase().includes("SI")) {
+    const u = n.trim().toUpperCase();
+    if (u === "SI" || u.endsWith(".SI") || u.includes("SI")) {
       siFieldName = n;
       break;
     }
   }
 
-  if (siFieldName) {
-    console.log("SI détecté sous le nom :", siFieldName);
-  } else {
-    console.warn("⚠ Aucun champ SI détecté dans le PDF");
-  }
+  if (siFieldName) console.log("SI détecté sous le nom :", siFieldName);
+  else console.warn("⚠ Aucun champ SI détecté dans le PDF");
 
   for (const [name, raw] of Object.entries(fields)) {
     try {
-
       // ===== BOOLEAN -> CHECKBOX =====
       if (typeof raw === "boolean") {
         const cb = form.getCheckBox(name);
@@ -411,17 +406,14 @@ async function fillAndPrint(docKey, volTarget = "1", extra = null) {
         if (!siFieldName) continue;
 
         const tf = form.getTextField(siFieldName);
-
         tf.setText(rawStr.replace(/\r\n/g, "\n"));
         tf.setAlignment(PDFLib.TextAlignment.Left);
 
-        if (typeof tf.setFontSize === "function")
-          tf.setFontSize(12);
+        if (typeof tf.setFontSize === "function") tf.setFontSize(12);
 
         tf.updateAppearances(fontBold);
       } else {
         const tf = form.getTextField(name);
-
         tf.setText(value);
 
         const isName = name.includes("NOM PRENOM");
@@ -435,6 +427,8 @@ async function fillAndPrint(docKey, volTarget = "1", extra = null) {
     }
   }
 
+  // ✅ Force toutes les appearances avant flatten
+  form.updateFieldAppearances(fontBold);
   form.flatten();
 
   const bytes = await pdfDoc.save();
