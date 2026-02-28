@@ -409,7 +409,7 @@ async function fillAndPrint(docKey, volTarget = "1", extra = null) {
         tf.setText(rawStr.replace(/\r\n/g, "\n"));
         tf.setAlignment(PDFLib.TextAlignment.Left);
 
-        if (typeof tf.setFontSize === "function") tf.setFontSize(12);
+        if (typeof tf.setFontSize === "function") tf.setFontSize(14);
 
         tf.updateAppearances(fontBold);
       } else {
