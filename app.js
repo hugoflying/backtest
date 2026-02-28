@@ -948,28 +948,6 @@ async function loadAKAll(){
   if(st2) st2.textContent = "Chargement…";
 
   const now = new Date();
-  const startDay = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 0,0,0,0);
-  const endDay   = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 23,59,59,999);
-
-  // fenêtre large pour récupérer toutes les liaisons
-  const linkFromDate = new Date(startDay.getTime() - 12*60*60*1000);
-  const linkToDate   = new Date(endDay.getTime()   + 12*60*60*1000);
-  const linkFrom = linkFromDate.toISOString().replace(/\.\d{3}Z$/, "Z");
-  const linkTo   = linkToDate.toISOString().replace(/\.\d{3}Z$/, "Z");
-
-  try{
-    const [arrAll, depAll] = await Promise.all([
-      fetchAK("ARR", linkFrom, linkTo),
-      fetchAK("DEP", linkFrom, linkTo),
-    ]);
-
-   async function loadAKAll(){
-  const st1 = $("ak_status_1");
-  const st2 = $("ak_status_2");
-  if(st1) st1.textContent = "Chargement…";
-  if(st2) st2.textContent = "Chargement…";
-
-  const now = new Date();
   const nowMs = now.getTime();
 
   const startDay = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 0,0,0,0);
@@ -1022,26 +1000,6 @@ async function loadAKAll(){
     if(st1) st1.textContent = msg;
     if(st2) st2.textContent = msg;
   }
-}
-    
-function refreshAKDropdown(n){
-  const flowSel = $(`ak_flow_${n}`);
-  const sel = $(`ak_flight_${n}`);
-  const st  = $(`ak_status_${n}`);
-  if(!flowSel || !sel) return;
-
-  const flow = flowSel.value; // "DEP" ou "ARR"
-  const list = (flow === "DEP") ? (window._akDepToday || []) : (window._akArrToday || []);
-
-  sel.innerHTML = `<option value="">-- Choisir un vol --</option>`;
-  for(const f of list){
-    const opt = document.createElement("option");
-    opt.value = String(f?.id ?? "");
-    opt.textContent = (flow === "DEP") ? buildDepLabel(f) : buildArrLabel(f);
-    sel.appendChild(opt);
-  }
-
-  if(st) st.textContent = `${list.length} vol(s)`;
 }
 
 function bindAK(n){
