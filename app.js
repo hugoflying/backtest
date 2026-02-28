@@ -736,7 +736,10 @@ function buildArrLabel(f){
   const stand = (f?.pkg || "").toString().replace(/^P/i,"").trim();
   const p     = stand ? `P${stand}` : "";
 
-  // ✅ “DÉCOLLÉ” basé sur le DEP lié (si dispo)
+  // ✅ ARRIVÉ si AIBT connu
+  const arrived = Number.isFinite(Date.parse(f?.aibt || ""));
+
+  // ✅ DÉCOLLÉ basé sur le DEP lié
   const lid = String(f?.linkedId || "").trim();
   const dep = lid ? (window._akDepById?.get(lid) || null) : null;
   const departed = Number.isFinite(Date.parse(dep?.atot || ""));
@@ -747,7 +750,7 @@ function buildArrLabel(f){
   const cReg  = padCol(reg, 7);
   const cPk   = padCol(p || "", 5);
 
-  return `${cTime}${cFlt}← ${cFrom}${cReg}${cPk}${departed ? "DÉCOLLÉ" : ""}`;
+  return `${cTime}${cFlt}← ${cFrom}${cReg}${cPk}${arrived ? "ARRIVÉ " : ""}${departed ? "DÉCOLLÉ" : ""}`;
 }
 
 function setVal(id, v){
