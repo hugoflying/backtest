@@ -1,229 +1,228 @@
-<!doctype html>
-<html lang="fr">
-<head>
-  <meta charset="utf-8">
-  <title>Préparation des vols</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bulma@1.0.2/css/bulma.min.css">
+<style>
+  /* =========================
+     AK overlay
+     ========================= */
+  #akBackdrop{
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,.35);
+    z-index: 4600;
+  }
 
-  <style>
-    /* =========================
-       AK overlay
-       ========================= */
-    #akBackdrop{
-      position: fixed;
-      inset: 0;
-      background: rgba(0,0,0,.35);
-      z-index: 4600;
-    }
-    #akPopover{
-      position: fixed;
-      inset: 10px;
-      background: #fff;
-      border-radius: 16px;
-      z-index: 4700;
-      padding: 12px;
-      overflow: auto;
-      box-shadow: 0 10px 28px rgba(0,0,0,.08);
-      border: 1px solid rgba(0,0,0,.08);
-    }
-    #akPopover .ak-header{
-      position: sticky;
-      top: 0;
-      z-index: 2;
-      background: #fff;
-      padding: 10px 0;
-      border-bottom: 1px solid rgba(0,0,0,.08);
-    }
+  #akPopover{
+    position: fixed;
+    inset: 10px;
+    background: #fff;
+    border-radius: 16px;
+    z-index: 4700;
+    padding: 12px;
+    overflow: auto;
+    box-shadow: 0 10px 28px rgba(0,0,0,.08);
+    border: 1px solid rgba(0,0,0,.08);
+  }
 
-    /* =========================
-       Docs grid + band buttons
-       ========================= */
-    .doc-grid{
-      display: grid;
-      grid-template-columns: repeat(3, minmax(0, 1fr));
-      gap: 12px;
-    }
-    .doc-grid .button{
-      width: 100%;
-      min-height: 44px;
-      white-space: nowrap;
-      justify-content: flex-start;
-    }
+  #akPopover .ak-header{
+    position: sticky;
+    top: 0;
+    z-index: 2;
+    background: #fff;
+    padding: 10px 0;
+    border-bottom: 1px solid rgba(0,0,0,.08);
+  }
 
-    .btn-band{
-      position: relative;
-      padding-left: 18px;
-      overflow: hidden;
-    }
-    .btn-band::before{
-      content: "";
-      position: absolute;
-      left: 0;
-      top: 0;
-      bottom: 0;
-      width: 8px;
-      background: #6b7280;
-    }
+  /* =========================
+     Docs grid + band buttons
+     ========================= */
+  .doc-grid{
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 12px;
+  }
 
-    .band-ryanair::before{ background: #ECC532; }
-    .band-lauda::before{ background: #E71B43; }
-    .band-presta::before{ background: #C6E0B4; }
-    .band-gradient::before{
-      background: linear-gradient(180deg, #C3017E 0%, #0E058E 100%);
-    }
+  .doc-grid .button{
+    width: 100%;
+    min-height: 44px;
+    white-space: nowrap;
+    justify-content: flex-start;
+  }
 
-    /* =========================
-       AK dropdown alignment
-       ========================= */
-    #ak_flight_1, #ak_flight_2,
-    #ak_flight_1 option, #ak_flight_2 option{
-      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas,
-                   "Liberation Mono", "Courier New", monospace;
-      font-variant-numeric: tabular-nums;
-      white-space: pre;
-    }
+  .btn-band{
+    position: relative;
+    padding-left: 18px;
+    overflow: hidden;
+  }
 
-    /* =========================
-       Center headers + badges
-       ========================= */
-    .box h2.title,
-    .box h3.title{
-      text-align: center;
-    }
+  .btn-band::before{
+    content: "";
+    position: absolute;
+    left: 0;
+    top: 0;
+    bottom: 0;
+    width: 8px;
+    background: #6b7280;
+  }
 
-    #arr_badges_1,
-    #dep_badges_1,
-    #arr_badges_2,
-    #dep_badges_2{
-      display: flex;
-      justify-content: center;
-    }
+  .band-ryanair::before{ background: #ECC532; }
+  .band-lauda::before{ background: #E71B43; }
+  .band-presta::before{ background: #C6E0B4; }
 
-    /* =========================
-       iOS Glass buttons (clean & readable)
-       ========================= */
-    .button.btn-band{
-      position: relative;
-      overflow: hidden;
-      border-radius: 16px;
+  .band-gradient::before{
+    background: linear-gradient(180deg, #C3017E 0%, #0E058E 100%);
+  }
 
-      color: rgba(255,255,255,.92) !important;
-      text-shadow: 0 1px 0 rgba(0,0,0,.25);
+  /* =========================
+     AK dropdown alignment
+     ========================= */
+  #ak_flight_1, #ak_flight_2,
+  #ak_flight_1 option, #ak_flight_2 option{
+    font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas,
+                 "Liberation Mono", "Courier New", monospace;
+    font-variant-numeric: tabular-nums;
+    white-space: pre;
+  }
 
-      background: rgba(255,255,255,.08) !important;
-      border: 1px solid rgba(255,255,255,.14) !important;
+  /* =========================
+     Center headers + badges
+     ========================= */
+  .box h2.title,
+  .box h3.title{
+    text-align: center;
+  }
 
-      backdrop-filter: blur(10px) saturate(140%);
-      -webkit-backdrop-filter: blur(10px) saturate(140%);
+  #arr_badges_1,
+  #dep_badges_1,
+  #arr_badges_2,
+  #dep_badges_2{
+    display: flex;
+    justify-content: center;
+  }
 
-      box-shadow:
-        0 10px 20px rgba(0,0,0,.30),
-        inset 0 1px 0 rgba(255,255,255,.10);
+  /* =========================
+     iOS Glass buttons (clean & readable)
+     ========================= */
+  .button.btn-band{
+    position: relative;
+    overflow: hidden;
+    border-radius: 16px;
 
-      transition:
-        transform .14s ease,
-        box-shadow .14s ease,
-        border-color .14s ease,
-        background .14s ease;
-    }
+    color: rgba(255,255,255,.92) !important;
+    text-shadow: 0 1px 0 rgba(0,0,0,.25);
 
-    .button.btn-band::after{
-      content:"";
-      position:absolute;
-      left: 10px;
-      right: 10px;
-      top: 8px;
-      height: 40%;
-      border-radius: 14px;
-      background: linear-gradient(180deg, rgba(255,255,255,.14), rgba(255,255,255,0));
-      pointer-events:none;
-      opacity: .7;
-    }
+    background: rgba(255,255,255,.08) !important;
+    border: 1px solid rgba(255,255,255,.14) !important;
 
-    .button.btn-band:hover{
-      transform: translateY(-1px);
-      border-color: rgba(255,255,255,.18) !important;
-      background: rgba(255,255,255,.10) !important;
-      box-shadow:
-        0 14px 26px rgba(0,0,0,.34),
-        inset 0 1px 0 rgba(255,255,255,.12);
-    }
+    backdrop-filter: blur(10px) saturate(140%);
+    -webkit-backdrop-filter: blur(10px) saturate(140%);
 
-    .button.btn-band:active{
-      transform: translateY(0);
-      background: rgba(255,255,255,.07) !important;
-      box-shadow:
-        0 8px 16px rgba(0,0,0,.34),
-        inset 0 2px 6px rgba(0,0,0,.25);
-    }
+    box-shadow:
+      0 10px 20px rgba(0,0,0,.30),
+      inset 0 1px 0 rgba(255,255,255,.10);
 
-    .button.btn-band:focus-visible{
-      outline: none;
-      box-shadow:
-        0 0 0 3px rgba(59,130,246,.35),
-        0 14px 26px rgba(0,0,0,.34),
-        inset 0 1px 0 rgba(255,255,255,.12);
-    }
+    transition:
+      transform .14s ease,
+      box-shadow .14s ease,
+      border-color .14s ease,
+      background .14s ease;
+  }
 
-    @media (prefers-reduced-motion: reduce){
-      .button.btn-band{ transition:none; }
-      .button.btn-band:hover{ transform:none; }
-    }
+  .button.btn-band::after{
+    content:"";
+    position:absolute;
+    left: 10px;
+    right: 10px;
+    top: 8px;
+    height: 40%;
+    border-radius: 14px;
+    background: linear-gradient(180deg, rgba(255,255,255,.14), rgba(255,255,255,0));
+    pointer-events:none;
+    opacity: .7;
+  }
 
-    /* =========================
-       Bandeau VOL 1 / VOL 2
-       ========================= */
-    .vol-header{
-      position: relative;
-      text-align: center;
-      margin-bottom: 22px;
-      padding: 10px 0;
-      font-weight: 700;
-      letter-spacing: .5px;
-      color: rgba(255,255,255,.85);
-    }
+  .button.btn-band:hover{
+    transform: translateY(-1px);
+    border-color: rgba(255,255,255,.18) !important;
+    background: rgba(255,255,255,.10) !important;
+    box-shadow:
+      0 14px 26px rgba(0,0,0,.34),
+      inset 0 1px 0 rgba(255,255,255,.12);
+  }
 
-    .vol-header::before{
-      content: "";
-      position: absolute;
-      left: 0;
-      right: 0;
-      top: 50%;
-      height: 1px;
-      background: linear-gradient(
-        90deg,
-        transparent,
-        rgba(255,255,255,.12),
-        transparent
-      );
-      transform: translateY(-50%);
-    }
+  .button.btn-band:active{
+    transform: translateY(0);
+    background: rgba(255,255,255,.07) !important;
+    box-shadow:
+      0 8px 16px rgba(0,0,0,.34),
+      inset 0 2px 6px rgba(0,0,0,.25);
+  }
 
-    .vol-header span{
-      position: relative;
-      background: rgba(255,255,255,.06);
-      padding: 6px 18px;
-      border-radius: 999px;
-      backdrop-filter: blur(6px);
-      -webkit-backdrop-filter: blur(6px);
-      border: 1px solid rgba(255,255,255,.08);
-      box-shadow:
-        0 4px 12px rgba(0,0,0,.35),
-        inset 0 1px 0 rgba(255,255,255,.08);
-    }
+  .button.btn-band:focus-visible{
+    outline: none;
+    box-shadow:
+      0 0 0 3px rgba(59,130,246,.35),
+      0 14px 26px rgba(0,0,0,.34),
+      inset 0 1px 0 rgba(255,255,255,.12);
+  }
 
-  /* Rapproche ARRIVÉE / DÉPART du badge */
-.box h3.title{
-  margin-bottom: 10px !important;
-}
+  @media (prefers-reduced-motion: reduce){
+    .button.btn-band{ transition:none; }
+    .button.btn-band:hover{ transform:none; }
+  }
 
-/* Badge un peu plus proche du titre */
-.tags{
-  margin-top: 4px !important;
-  margin-bottom: 16px !important; /* plus d’espace avant la date */
-}
-  </style>
+  /* =========================
+     Bandeau VOL 1 / VOL 2
+     ========================= */
+  .vol-header{
+    position: relative;
+    text-align: center;
+    margin-bottom: 22px;
+    padding: 10px 0;
+    font-weight: 700;
+    letter-spacing: .5px;
+    color: rgba(255,255,255,.85);
+  }
+
+  .vol-header::before{
+    content: "";
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: 50%;
+    height: 1px;
+    background: linear-gradient(
+      90deg,
+      transparent,
+      rgba(255,255,255,.12),
+      transparent
+    );
+    transform: translateY(-50%);
+  }
+
+  .vol-header span{
+    position: relative;
+    background: rgba(255,255,255,.06);
+    padding: 6px 18px;
+    border-radius: 999px;
+    backdrop-filter: blur(6px);
+    -webkit-backdrop-filter: blur(6px);
+    border: 1px solid rgba(255,255,255,.08);
+    box-shadow:
+      0 4px 12px rgba(0,0,0,.35),
+      inset 0 1px 0 rgba(255,255,255,.08);
+  }
+
+  /* =========================
+     Spacing titres / badges
+     ========================= */
+  .box h3.title{
+    margin-bottom: 10px !important;
+  }
+
+  .tags{
+    margin-top: 4px !important;
+    margin-bottom: 16px !important;
+  }
+
+</style>
 </head>
 
 <body>
