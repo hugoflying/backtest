@@ -5,15 +5,33 @@
   <title>Préparation des vols</title>
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bulma@1.0.2/css/bulma.min.css">
-  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
 
 <style>
-
   /* =========================
-     Global Font
+     TYPOGRAPHY SYSTEM
      ========================= */
-  :root, body, button, input, select, textarea {
-    font-family: "JetBrains Mono", system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+  /* Base UI = Inter */
+  body,
+  .title,
+  .subtitle,
+  .label,
+  .help,
+  .button,
+  .box,
+  .vol-header{
+    font-family: "Inter", system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+  }
+
+  /* Inputs + selects = JetBrains Mono */
+  input,
+  select,
+  textarea,
+  #ak_flight_1, #ak_flight_2,
+  #ak_flight_1 option, #ak_flight_2 option{
+    font-family: "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas,
+                 "Liberation Mono", "Courier New", monospace;
+    font-variant-numeric: tabular-nums;
   }
 
   /* =========================
@@ -92,7 +110,6 @@
      ========================= */
   #ak_flight_1, #ak_flight_2,
   #ak_flight_1 option, #ak_flight_2 option{
-    font-variant-numeric: tabular-nums;
     white-space: pre;
   }
 
@@ -231,7 +248,6 @@
     margin-top: 4px !important;
     margin-bottom: 16px !important;
   }
-
 </style>
 </head>
 
