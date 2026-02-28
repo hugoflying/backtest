@@ -711,7 +711,7 @@ function buildDepLabel(f){
   const flt   = upper(f?.fullFlightNumber || f?.callsign || "");
   const to    = upper(f?.adesIata || f?.adesIcao || "");
   const regRaw= upper(f?.reg || "");
-  const reg   = regRaw || "--";
+  const reg   = regRaw || "-----";
   const stand = (f?.pkg || "").toString().replace(/^P/i,"").trim();
   const p     = stand ? `P${stand}` : "";
 
@@ -724,7 +724,7 @@ function buildDepLabel(f){
   const cReg  = padCol(reg, 7);
   const cPk   = padCol(p || "", 5);
 
-  return `${cTime}${cFlt}→ ${cTo}${cReg}${cPk}${departed ? "DÉCOLLÉ" : ""}`.trimEnd();
+  return `${cTime}${cFlt}→ ${cTo}${cReg}${cPk}${departed ? "DÉCOLLÉ" : ""}`;
 }
 
 function buildArrLabel(f){
@@ -732,7 +732,7 @@ function buildArrLabel(f){
   const flt   = upper(f?.fullFlightNumber || f?.callsign || "");
   const from  = upper(f?.adepIata || f?.adepIcao || "");
   const regRaw= upper(f?.reg || "");
-  const reg   = regRaw || "--";
+  const reg   = regRaw || "-----";
   const stand = (f?.pkg || "").toString().replace(/^P/i,"").trim();
   const p     = stand ? `P${stand}` : "";
 
@@ -747,7 +747,7 @@ function buildArrLabel(f){
   const cReg  = padCol(reg, 7);
   const cPk   = padCol(p || "", 5);
 
-  return `${cTime}${cFlt}← ${cFrom}${cReg}${cPk}${departed ? "DÉCOLLÉ" : ""}`.trimEnd();
+  return `${cTime}${cFlt}← ${cFrom}${cReg}${cPk}${departed ? "DÉCOLLÉ" : ""}`;
 }
 
 function setVal(id, v){
