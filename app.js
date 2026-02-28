@@ -963,9 +963,40 @@ async function loadAKAll(){
       fetchAK("DEP", linkFrom, linkTo),
     ]);
 
+   async function loadAKAll(){
+  const st1 = $("ak_status_1");
+  const st2 = $("ak_status_2");
+  if(st1) st1.textContent = "Chargement…";
+  if(st2) st2.textContent = "Chargement…";
+
+  const now = new Date();
+  const nowMs = now.getTime();
+
+  const startDay = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 0,0,0,0);
+  const endDay   = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 23,59,59,999);
+
+  // fenêtre large pour récupérer toutes les liaisons
+  const linkFromDate = new Date(startDay.getTime() - 12*60*60*1000);
+  const linkToDate   = new Date(endDay.getTime()   + 12*60*60*1000);
+  const linkFrom = linkFromDate.toISOString().replace(/\.\d{3}Z$/, "Z");
+  const linkTo   = linkToDate.toISOString().replace(/\.\d{3}Z$/, "Z");
+
+  try{
+    const [arrAll, depAll] = await Promise.all([
+      fetchAK("ARR", linkFrom, linkTo),
+      fetchAK("DEP", linkFrom, linkTo),
+    ]);
+
     const inTodayDep = (f)=>{
-      const t = Date.parse(f?.sobt || "");
-      return t && t >= startDay.getTime() && t <= endDay.getTime();
+      const sobt = Date.parse(f?.sobt || "");
+      if(!sobt) return false;
+      if(sobt < startDay.getTime() || sobt > endDay.getTime()) return false;
+
+      // ✅ masque si ATOT + 30 min est passé
+      const atot = Date.parse(f?.atot || "");
+      if(atot && (atot + 30*60*1000) < nowMs) return false;
+
+      return true;
     };
     const depToday = depAll.filter(inTodayDep);
 
@@ -992,7 +1023,7 @@ async function loadAKAll(){
     if(st2) st2.textContent = msg;
   }
 }
-
+    
 function refreshAKDropdown(n){
   const flowSel = $(`ak_flow_${n}`);
   const sel = $(`ak_flight_${n}`);
