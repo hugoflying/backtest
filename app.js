@@ -718,7 +718,12 @@ function buildArrLabel(f){
   const reg = regRaw || "--";
   const stand = (f?.pkg || "").toString().replace(/^P/i,"").trim();
 
-  return `${t || "—"} ${ff || "(sans numéro)"} ← ${from || "---"} (${reg}${stand ? ` · P${stand}` : ""})`;
+  // ✅ Décollé si le DEP lié a un ATOT
+  const lid = String(f?.linkedId || "").trim();
+  const dep = lid ? (window._akDepById?.get(lid) || null) : null;
+  const departed = Number.isFinite(Date.parse(dep?.atot || ""));
+
+  return `${t || "—"} ${ff || "(sans numéro)"} ← ${from || "---"} (${reg}${stand ? ` · P${stand}` : ""})${departed ? " · DÉCOLLÉ" : ""}`;
 }
 
 function setVal(id, v){
@@ -972,6 +977,10 @@ async function loadAKAll(){
       fetchAK("DEP", linkFrom, linkTo),
     ]);
 
+    // ✅ index DEP par id (utile pour ARR -> DEP lié)
+    const depById = new Map((depAll || []).map(d => [String(d?.id ?? ""), d]));
+    window._akDepById = depById;
+
     const inTodayDep = (f)=>{
       const sobt = Date.parse(f?.sobt || "");
       if(!sobt) return false;
@@ -987,7 +996,17 @@ async function loadAKAll(){
 
     const inTodayArr = (f)=>{
       const t = Date.parse(f?.sibt || "");
-      return t && t >= startDay.getTime() && t <= endDay.getTime();
+      if(!(t && t >= startDay.getTime() && t <= endDay.getTime())) return false;
+
+      // ✅ si arrivée liée à un DEP qui a ATOT+30 dépassé → on masque l’arrivée
+      const lid = String(f?.linkedId || "").trim();
+      if(lid){
+        const dep = window._akDepById?.get(lid) || null;
+        const atot = Date.parse(dep?.atot || "");
+        if(Number.isFinite(atot) && (atot + 30*60*1000) < nowMs) return false;
+      }
+
+      return true;
     };
     const arrToday = arrAll.filter(inTodayArr);
 
