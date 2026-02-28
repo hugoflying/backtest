@@ -707,7 +707,7 @@ function padCol(s, w){
 }
 
 function buildDepLabel(f){
-  const t     = hhmmFromMs(depListMs(f)); // "09:55"
+  const t     = hhmmFromMs(depListMs(f));
   const flt   = upper(f?.fullFlightNumber || f?.callsign || "");
   const to    = upper(f?.adesIata || f?.adesIcao || "");
   const regRaw= upper(f?.reg || "");
@@ -715,16 +715,31 @@ function buildDepLabel(f){
   const stand = (f?.pkg || "").toString().replace(/^P/i,"").trim();
   const p     = stand ? `P${stand}` : "";
 
+  // ✅ ARRIVÉ si AIBT connu sur l’arrivée liée
+  const lid = String(f?.linkedId || "").trim();
+  const arr = lid
+    ? (window._akArrAll || []).find(a => String(a?.id || "") === lid)
+    : null;
+  const arrived = Number.isFinite(Date.parse(arr?.aibt || ""));
+
+  // ✅ DÉCOLLÉ si ATOT connu
   const departed = Number.isFinite(Date.parse(f?.atot || ""));
 
-  // colonnes
-  const cTime = padCol(t || "--:--", 6);      // 5 + 1
+  // priorité au statut DÉCOLLÉ
+  let status = "";
+  if(departed){
+    status = "DÉCOLLÉ";
+  } else if(arrived){
+    status = "ARRIVÉ";
+  }
+
+  const cTime = padCol(t || "--:--", 6);
   const cFlt  = padCol(flt || "—", 8);
   const cTo   = padCol(to || "---", 4);
   const cReg  = padCol(reg, 7);
   const cPk   = padCol(p || "", 5);
 
-  return `${cTime}${cFlt}🛫 ${cTo}${cReg}${cPk}${departed ? "DÉCOLLÉ" : ""}`;
+  return `${cTime}${cFlt}🛫 ${cTo}${cReg}${cPk}${status ? " " + status : ""}`;
 }
 
 function buildArrLabel(f){
