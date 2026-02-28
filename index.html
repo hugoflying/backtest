@@ -100,6 +100,22 @@ input.input{
 input[type="date"]{
   text-align: center;
 }
+/* ✅ Centre réellement le texte des dates */
+input[type="date"].input{
+  text-align: center;
+}
+
+/* Safari / Chrome fix */
+input[type="date"].input::-webkit-datetime-edit{
+  text-align: center;
+}
+
+/* Centre aussi les parties internes (jour/mois/année) */
+input[type="date"].input::-webkit-datetime-edit-fields-wrapper{
+  display: flex;
+  justify-content: center;
+}
+
     
   </style>
 </head>
