@@ -724,7 +724,7 @@ function buildDepLabel(f){
   const cReg  = padCol(reg, 7);
   const cPk   = padCol(p || "", 5);
 
-  return `${cTime}${cFlt}→ ${cTo}${cReg}${cPk}${departed ? "DÉCOLLÉ" : ""}`;
+  return `${cTime}${cFlt}🛫 ${cTo}${cReg}${cPk}${departed ? "DÉCOLLÉ" : ""}`;
 }
 
 function buildArrLabel(f){
@@ -758,7 +758,7 @@ function buildArrLabel(f){
   const cReg  = padCol(reg, 7);
   const cPk   = padCol(p || "", 5);
 
-  return `${cTime}${cFlt}← ${cFrom}${cReg}${cPk}${status ? " " + status : ""}`;
+  return `${cTime}${cFlt}🛬 ${cFrom}${cReg}${cPk}${status ? " " + status : ""}`;
 }
 
 function setVal(id, v){
