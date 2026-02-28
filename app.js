@@ -291,19 +291,19 @@ async function getTemplateBytes(def, docKey) {
   return bytes;
 }
 
-let _arialBytes = null;
-let _arialBoldBytes = null;
+let _robotoCondBoldBytes = null;
+
 async function getFontsBytes(BASE) {
-  if (_arialBytes && _arialBoldBytes) return { arial: _arialBytes, bold: _arialBoldBytes };
+  if (_robotoCondBoldBytes) return { bold: _robotoCondBoldBytes };
 
-  const [a, b] = await Promise.all([
-    fetchArrayBufferRetry(BASE + "fonts/ARIAL.TTF", "FONT ARIAL", 3),
-    fetchArrayBufferRetry(BASE + "fonts/ARIAL-BOLD.TTF", "FONT ARIAL-BOLD", 3),
-  ]);
+  const b = await fetchArrayBufferRetry(
+    BASE + "fonts/RobotoCondensed-Bold.ttf",
+    "FONT RobotoCondensed-Bold",
+    3
+  );
 
-  _arialBytes = a;
-  _arialBoldBytes = b;
-  return { arial: _arialBytes, bold: _arialBoldBytes };
+  _robotoCondBoldBytes = b;
+  return { bold: _robotoCondBoldBytes };
 }
 
 // (optionnel) utilitaires de nom de fichier — pas utilisés pour l'impression iframe
@@ -418,7 +418,7 @@ async function fillAndPrint(docKey, volTarget = "1", extra = null) {
         if (typeof tf.setFontSize === "function")
           tf.setFontSize(12);
 
-        tf.updateAppearances(font);
+        tf.updateAppearances(fontBold);
       } else {
         const tf = form.getTextField(name);
 
@@ -427,7 +427,7 @@ async function fillAndPrint(docKey, volTarget = "1", extra = null) {
         const isName = name.includes("NOM PRENOM");
         tf.setAlignment(isName ? PDFLib.TextAlignment.Left : PDFLib.TextAlignment.Center);
 
-        tf.updateAppearances(value === "X" ? fontBold : font);
+        tf.updateAppearances(fontBold);
       }
 
     } catch (e) {
