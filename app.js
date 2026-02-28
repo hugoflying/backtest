@@ -744,13 +744,21 @@ function buildArrLabel(f){
   const dep = lid ? (window._akDepById?.get(lid) || null) : null;
   const departed = Number.isFinite(Date.parse(dep?.atot || ""));
 
+  // priorité au statut DÉCOLLÉ
+  let status = "";
+  if(departed){
+    status = "DÉCOLLÉ";
+  } else if(arrived){
+    status = "ARRIVÉ";
+  }
+
   const cTime = padCol(t || "--:--", 6);
   const cFlt  = padCol(flt || "—", 8);
   const cFrom = padCol(from || "---", 4);
   const cReg  = padCol(reg, 7);
   const cPk   = padCol(p || "", 5);
 
-  return `${cTime}${cFlt}← ${cFrom}${cReg}${cPk}${arrived ? "ARRIVÉ " : ""}${departed ? "DÉCOLLÉ" : ""}`;
+  return `${cTime}${cFlt}← ${cFrom}${cReg}${cPk}${status ? " " + status : ""}`;
 }
 
 function setVal(id, v){
