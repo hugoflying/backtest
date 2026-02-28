@@ -416,7 +416,7 @@ async function fillAndPrint(docKey, volTarget = "1", extra = null) {
         tf.setAlignment(PDFLib.TextAlignment.Left);
 
         if (typeof tf.setFontSize === "function")
-          tf.setFontSize(10);
+          tf.setFontSize(14);
 
         tf.updateAppearances(font);
       } else {
