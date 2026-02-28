@@ -6,168 +6,174 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bulma@1.0.2/css/bulma.min.css">
 
-<style>
-  #akBackdrop{
-    position: fixed;
-    inset: 0;
-    background: rgba(0,0,0,.35);
-    z-index: 4600;
-  }
-  #akPopover{
-    position: fixed;
-    inset: 10px;
-    background: #fff;
-    border-radius: 16px;
-    z-index: 4700;
-    padding: 12px;
-    overflow: auto;
-    box-shadow: 0 10px 28px rgba(0,0,0,.08);
-    border: 1px solid rgba(0,0,0,.08);
-  }
-  #akPopover .ak-header{
-    position: sticky;
-    top: 0;
-    z-index: 2;
-    background: #fff;
-    padding: 10px 0;
-    border-bottom: 1px solid rgba(0,0,0,.08);
-  }
+  <style>
+    /* =========================
+       AK overlay
+       ========================= */
+    #akBackdrop{
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,.35);
+      z-index: 4600;
+    }
+    #akPopover{
+      position: fixed;
+      inset: 10px;
+      background: #fff;
+      border-radius: 16px;
+      z-index: 4700;
+      padding: 12px;
+      overflow: auto;
+      box-shadow: 0 10px 28px rgba(0,0,0,.08);
+      border: 1px solid rgba(0,0,0,.08);
+    }
+    #akPopover .ak-header{
+      position: sticky;
+      top: 0;
+      z-index: 2;
+      background: #fff;
+      padding: 10px 0;
+      border-bottom: 1px solid rgba(0,0,0,.08);
+    }
 
-  .doc-grid{
-    display: grid;
-    grid-template-columns: repeat(3, minmax(0, 1fr));
-    gap: 12px;
-  }
-  .doc-grid .button{
-    width: 100%;
-    min-height: 44px;
-    white-space: nowrap;
-    justify-content: flex-start;
-  }
+    /* =========================
+       Docs grid + band buttons
+       ========================= */
+    .doc-grid{
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 12px;
+    }
+    .doc-grid .button{
+      width: 100%;
+      min-height: 44px;
+      white-space: nowrap;
+      justify-content: flex-start;
+    }
 
-  .btn-band{
-    position: relative;
-    padding-left: 18px;
-    overflow: hidden;
-  }
-  .btn-band::before{
-    content: "";
-    position: absolute;
-    left: 0;
-    top: 0;
-    bottom: 0;
-    width: 8px;
-    background: #6b7280;
-  }
+    .btn-band{
+      position: relative;
+      padding-left: 18px;
+      overflow: hidden;
+    }
+    .btn-band::before{
+      content: "";
+      position: absolute;
+      left: 0;
+      top: 0;
+      bottom: 0;
+      width: 8px;
+      background: #6b7280;
+    }
 
-  .band-ryanair::before{ background: #ECC532; }
-  .band-lauda::before{ background: #E71B43; }
-  .band-presta::before{ background: #C6E0B4; }
+    .band-ryanair::before{ background: #ECC532; }
+    .band-lauda::before{ background: #E71B43; }
+    .band-presta::before{ background: #C6E0B4; }
+    .band-gradient::before{
+      background: linear-gradient(180deg, #C3017E 0%, #0E058E 100%);
+    }
 
-  .band-gradient::before{
-    background: linear-gradient(180deg, #C3017E 0%, #0E058E 100%);
-  }
+    /* =========================
+       AK dropdown alignment
+       ========================= */
+    #ak_flight_1, #ak_flight_2,
+    #ak_flight_1 option, #ak_flight_2 option{
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas,
+                   "Liberation Mono", "Courier New", monospace;
+      font-variant-numeric: tabular-nums;
+      white-space: pre;
+    }
 
-  /* ✅ alignement colonnes dans les <select> AK */
-  #ak_flight_1, #ak_flight_2,
-  #ak_flight_1 option, #ak_flight_2 option{
-    font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, 
-                 "Liberation Mono", "Courier New", monospace;
-    font-variant-numeric: tabular-nums;
-    white-space: pre;
-  }
+    /* =========================
+       Center headers + badges
+       ========================= */
+    .box h2.title,
+    .box h3.title{
+      text-align: center;
+    }
 
-  /* ✅ Centre titres VOL / ARRIVÉE / DÉPART */
-  .box h2.title,
-  .box h3.title{
-    text-align: center;
-  }
+    #arr_badges_1,
+    #dep_badges_1,
+    #arr_badges_2,
+    #dep_badges_2{
+      display: flex;
+      justify-content: center;
+    }
 
-  /* ✅ Centre les badges */
-  #arr_badges_1,
-  #dep_badges_1,
-  #arr_badges_2,
-  #dep_badges_2{
-    display: flex;
-    justify-content: center;
-  }
+    /* =========================
+       iOS Glass buttons (clean & readable)
+       ========================= */
+    .button.btn-band{
+      position: relative;
+      overflow: hidden;
+      border-radius: 16px;
 
-/* =========================
-   iOS Glass (clean & readable)
-   ========================= */
+      /* lisibilité */
+      color: rgba(255,255,255,.92) !important;
+      text-shadow: 0 1px 0 rgba(0,0,0,.25);
 
-.button.btn-band{
-  position: relative;
-  overflow: hidden;
-  border-radius: 16px;
+      /* glass léger */
+      background: rgba(255,255,255,.08) !important;
+      border: 1px solid rgba(255,255,255,.14) !important;
 
-  /* lisibilité */
-  color: rgba(255,255,255,.92) !important;
-  text-shadow: 0 1px 0 rgba(0,0,0,.25);
+      backdrop-filter: blur(10px) saturate(140%);
+      -webkit-backdrop-filter: blur(10px) saturate(140%);
 
-  /* glass léger */
-  background: rgba(255,255,255,.08) !important;
-  border: 1px solid rgba(255,255,255,.14) !important;
+      /* volume discret */
+      box-shadow:
+        0 10px 20px rgba(0,0,0,.30),
+        inset 0 1px 0 rgba(255,255,255,.10);
 
-  backdrop-filter: blur(10px) saturate(140%);
-  -webkit-backdrop-filter: blur(10px) saturate(140%);
+      transition:
+        transform .14s ease,
+        box-shadow .14s ease,
+        border-color .14s ease,
+        background .14s ease;
+    }
 
-  /* volume plus discret */
-  box-shadow:
-    0 10px 20px rgba(0,0,0,.30),
-    inset 0 1px 0 rgba(255,255,255,.10);
+    .button.btn-band::after{
+      content:"";
+      position:absolute;
+      left: 10px;
+      right: 10px;
+      top: 8px;
+      height: 40%;
+      border-radius: 14px;
+      background: linear-gradient(180deg, rgba(255,255,255,.14), rgba(255,255,255,0));
+      pointer-events:none;
+      opacity: .7;
+    }
 
-  transition: transform .14s ease, box-shadow .14s ease, border-color .14s ease, background .14s ease;
-}
+    .button.btn-band:hover{
+      transform: translateY(-1px);
+      border-color: rgba(255,255,255,.18) !important;
+      background: rgba(255,255,255,.10) !important;
+      box-shadow:
+        0 14px 26px rgba(0,0,0,.34),
+        inset 0 1px 0 rgba(255,255,255,.12);
+    }
 
-/* reflet fin en haut */
-.button.btn-band::after{
-  content:"";
-  position:absolute;
-  left: 10px;
-  right: 10px;
-  top: 8px;
-  height: 40%;
-  border-radius: 14px;
-  background: linear-gradient(180deg, rgba(255,255,255,.14), rgba(255,255,255,0));
-  pointer-events:none;
-  opacity: .7;
-}
+    .button.btn-band:active{
+      transform: translateY(0);
+      background: rgba(255,255,255,.07) !important;
+      box-shadow:
+        0 8px 16px rgba(0,0,0,.34),
+        inset 0 2px 6px rgba(0,0,0,.25);
+    }
 
-/* hover: lift très léger */
-.button.btn-band:hover{
-  transform: translateY(-1px);
-  border-color: rgba(255,255,255,.18) !important;
-  background: rgba(255,255,255,.10) !important;
-  box-shadow:
-    0 14px 26px rgba(0,0,0,.34),
-    inset 0 1px 0 rgba(255,255,255,.12);
-}
+    .button.btn-band:focus-visible{
+      outline: none;
+      box-shadow:
+        0 0 0 3px rgba(59,130,246,.35),
+        0 14px 26px rgba(0,0,0,.34),
+        inset 0 1px 0 rgba(255,255,255,.12);
+    }
 
-/* active: press */
-.button.btn-band:active{
-  transform: translateY(0);
-  background: rgba(255,255,255,.07) !important;
-  box-shadow:
-    0 8px 16px rgba(0,0,0,.34),
-    inset 0 2px 6px rgba(0,0,0,.25);
-}
-
-/* focus propre */
-.button.btn-band:focus-visible{
-  outline: none;
-  box-shadow:
-    0 0 0 3px rgba(59,130,246,.35),
-    0 14px 26px rgba(0,0,0,.34),
-    inset 0 1px 0 rgba(255,255,255,.12);
-}
-
-/* Réduit les animations si demandé */
-@media (prefers-reduced-motion: reduce){
-  .button.btn-band{ transition:none; }
-  .button.btn-band:hover{ transform:none; }
-}
-</style>
+    @media (prefers-reduced-motion: reduce){
+      .button.btn-band{ transition:none; }
+      .button.btn-band:hover{ transform:none; }
+    }
+  </style>
 </head>
   
 <body>
