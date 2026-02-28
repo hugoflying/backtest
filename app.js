@@ -696,34 +696,58 @@ function hhmmFromMs(ms){
   return `${hh}:${mm}`;
 }
 
-function buildDepLabel(f){
-  const t   = hhmmFromMs(depListMs(f));
-  const ff  = upper(f?.fullFlightNumber || f?.callsign || "");
-  const to  = upper(f?.adesIata || f?.adesIcao || "");
-  const regRaw = upper(f?.reg || "");
-  const reg = regRaw || "--";
-  const stand = (f?.pkg || "").toString().replace(/^P/i,"").trim();
+const NBSP = "\u00A0";
 
-  // ✅ Décollé si ATOT existe
+function padCol(s, w){
+  s = String(s ?? "");
+  // coupe si trop long
+  if(s.length > w) return s.slice(0, w);
+  // complète avec espaces insécables
+  return s + NBSP.repeat(w - s.length);
+}
+
+function buildDepLabel(f){
+  const t     = hhmmFromMs(depListMs(f)); // "09:55"
+  const flt   = upper(f?.fullFlightNumber || f?.callsign || "");
+  const to    = upper(f?.adesIata || f?.adesIcao || "");
+  const regRaw= upper(f?.reg || "");
+  const reg   = regRaw || "--";
+  const stand = (f?.pkg || "").toString().replace(/^P/i,"").trim();
+  const p     = stand ? `P${stand}` : "";
+
   const departed = Number.isFinite(Date.parse(f?.atot || ""));
 
-  return `${t || "—"} ${ff || "(sans numéro)"} → ${to || "---"} (${reg}${stand ? ` · P${stand}` : ""})${departed ? " · DÉCOLLÉ" : ""}`;
+  // colonnes
+  const cTime = padCol(t || "--:--", 6);      // 5 + 1
+  const cFlt  = padCol(flt || "—", 8);
+  const cTo   = padCol(to || "---", 4);
+  const cReg  = padCol(reg, 7);
+  const cPk   = padCol(p || "", 5);
+
+  return `${cTime}${cFlt}→ ${cTo}${cReg}${cPk}${departed ? "DÉCOLLÉ" : ""}`.trimEnd();
 }
 
 function buildArrLabel(f){
-  const t   = hhmmFromMs(arrListMs(f));
-  const ff  = upper(f?.fullFlightNumber || f?.callsign || "");
-  const from= upper(f?.adepIata || f?.adepIcao || "");
-  const regRaw = upper(f?.reg || "");
-  const reg = regRaw || "--";
+  const t     = hhmmFromMs(arrListMs(f));
+  const flt   = upper(f?.fullFlightNumber || f?.callsign || "");
+  const from  = upper(f?.adepIata || f?.adepIcao || "");
+  const regRaw= upper(f?.reg || "");
+  const reg   = regRaw || "--";
   const stand = (f?.pkg || "").toString().replace(/^P/i,"").trim();
+  const p     = stand ? `P${stand}` : "";
 
-  // ✅ Décollé si le DEP lié a un ATOT
+  // ✅ “DÉCOLLÉ” basé sur le DEP lié (si dispo)
   const lid = String(f?.linkedId || "").trim();
   const dep = lid ? (window._akDepById?.get(lid) || null) : null;
   const departed = Number.isFinite(Date.parse(dep?.atot || ""));
 
-  return `${t || "—"} ${ff || "(sans numéro)"} ← ${from || "---"} (${reg}${stand ? ` · P${stand}` : ""})${departed ? " · DÉCOLLÉ" : ""}`;
+  const cTime = padCol(t || "--:--", 6);
+  const cFlt  = padCol(flt || "—", 8);
+  const cFrom = padCol(from || "---", 4);
+  const cReg  = padCol(reg, 7);
+  const cPk   = padCol(p || "", 5);
+
+  return `${cTime}${cFlt}← ${cFrom}${cReg}${cPk}${departed ? "DÉCOLLÉ" : ""}`.trimEnd();
 }
 
 function setVal(id, v){
