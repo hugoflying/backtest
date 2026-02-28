@@ -1002,6 +1002,26 @@ async function loadAKAll(){
   }
 }
 
+function refreshAKDropdown(n){
+  const flowSel = $(`ak_flow_${n}`);
+  const sel = $(`ak_flight_${n}`);
+  const st  = $(`ak_status_${n}`);
+  if(!flowSel || !sel) return;
+
+  const flow = flowSel.value; // "DEP" ou "ARR"
+  const list = (flow === "DEP") ? (window._akDepToday || []) : (window._akArrToday || []);
+
+  sel.innerHTML = `<option value="">-- Choisir un vol --</option>`;
+  for(const f of list){
+    const opt = document.createElement("option");
+    opt.value = String(f?.id ?? "");
+    opt.textContent = (flow === "DEP") ? buildDepLabel(f) : buildArrLabel(f);
+    sel.appendChild(opt);
+  }
+
+  if(st) st.textContent = `${list.length} vol(s)`;
+}
+
 function bindAK(n){
   const flowSel = $(`ak_flow_${n}`);
   const sel = $(`ak_flight_${n}`);
