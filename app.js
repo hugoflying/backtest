@@ -113,11 +113,16 @@ LIR_LAUDA:{
 
 BBCG_GATE:{
  file: `${TEMPLATE_BASE}/templates/BBCG_Apr2020_Rev1 - BAGGAGE BINGO CARD_GATE.pdf`,
- fill:({vol1})=>({
+ fill:({vol1}, extra = null)=>({
    "DATE": isoToDDMMYYYY(vol1.dep.date),
    "DEPARTURE FLIGHT NUMBER": vol1.dep.flt,
    "TO": vol1.dep.to,
-   "GATE NUMBER": ""
+
+   // ✅ Popup fields
+   "GATE NUMBER": (extra?.gate || "").toString().toUpperCase().trim(),
+   "LOAD COMPARTMENT": (extra?.comp || "").toString().toUpperCase().trim(),
+   "Bingo Card": (extra?.bingoCard || "").toString().trim(),
+   "Of": (extra?.bingoOf || "").toString().trim(),
  }),
  flatten:true
 },
@@ -489,6 +494,12 @@ document.addEventListener("click", async (e) => {
     return;
   }
 
+  // ✅ popup BBCG Gate
+if(docKey === "BBCG_GATE"){
+  openBBCGModal({ docKey, volTarget });
+  return;
+}
+
   try {
     await fillAndPrint(docKey, volTarget);
   } catch (err) {
@@ -576,6 +587,71 @@ async function submitMenageModal(){
 window.openMenageModal = openMenageModal;
 window.closeMenageModal = closeMenageModal;
 window.submitMenageModal = submitMenageModal;
+
+// ===== BBCG MODAL (Bingo Gate) =====
+let _pendingBBCGPrint = null;
+window._bbcgByVol ||= {
+  "1": { gate:"", comp:"CP1", bingoCard:"1", bingoOf:"1" },
+  "2": { gate:"", comp:"CP1", bingoCard:"1", bingoOf:"1" },
+};
+
+function openBBCGModal(pending){
+  _pendingBBCGPrint = pending;
+
+  const vol = String(pending?.volTarget || "1");
+  const data = window._bbcgByVol[vol] || { gate:"", comp:"CP1", bingoCard:"1", bingoOf:"1" };
+
+  const b = document.getElementById("bbcgBackdrop");
+  const m = document.getElementById("bbcgModal");
+
+  const gate = document.getElementById("bbcgGate");
+  const comp = document.getElementById("bbcgComp");
+  const bc   = document.getElementById("bbcgBingoCard");
+  const of   = document.getElementById("bbcgBingoOf");
+
+  if(gate) gate.value = data.gate || "";
+  if(comp) comp.value = data.comp || "CP1";
+  if(bc)   bc.value   = data.bingoCard || "";
+  if(of)   of.value   = data.bingoOf || "";
+
+  if(b) b.style.display = "block";
+  if(m) m.style.display = "flex";
+
+  setTimeout(()=> gate?.focus?.(), 0);
+}
+
+function closeBBCGModal(keepPending){
+  const b = document.getElementById("bbcgBackdrop");
+  const m = document.getElementById("bbcgModal");
+  if(b) b.style.display = "none";
+  if(m) m.style.display = "none";
+  if(!keepPending) _pendingBBCGPrint = null;
+}
+
+async function submitBBCGModal(){
+  const p = _pendingBBCGPrint;
+  if(!p) return;
+
+  const vol = String(p.volTarget || "1");
+
+  const gate = (document.getElementById("bbcgGate")?.value || "").trim();
+  const comp = (document.getElementById("bbcgComp")?.value || "CP1").trim();
+
+  const bingoCard = (document.getElementById("bbcgBingoCard")?.value || "").trim();
+  const bingoOf   = (document.getElementById("bbcgBingoOf")?.value || "").trim();
+
+  window._bbcgByVol[vol] = { gate, comp, bingoCard, bingoOf };
+
+  closeBBCGModal(true);
+  _pendingBBCGPrint = null;
+
+  await fillAndPrint(p.docKey, p.volTarget, { gate, comp, bingoCard, bingoOf });
+}
+
+// IMPORTANT (car app.js est en module)
+window.openBBCGModal = openBBCGModal;
+window.closeBBCGModal = closeBBCGModal;
+window.submitBBCGModal = submitBBCGModal;
 
 // ===== SI MODAL (LIR Ryanair) =====
 let _pendingSIPrint = null;
