@@ -590,16 +590,31 @@ window.submitMenageModal = submitMenageModal;
 
 // ===== BBCG MODAL (Bingo Gate) =====
 let _pendingBBCGPrint = null;
+
+// ✅ par défaut: comp vide (le JS mettra CP1/CP3 selon A/C Type si rien choisi)
 window._bbcgByVol ||= {
-  "1": { gate:"", comp:"CP1", bingoCard:"1", bingoOf:"1" },
-  "2": { gate:"", comp:"CP1", bingoCard:"1", bingoOf:"1" },
+  "1": { gate:"", comp:"", bingoCard:"1", bingoOf:"1" },
+  "2": { gate:"", comp:"", bingoCard:"1", bingoOf:"1" },
 };
+
+function defaultCompFromAcType(acType){
+  const t = (acType || "").toUpperCase().trim();
+  if(t === "A320" || t === "A20N") return "CP1";
+  if(t === "A321" || t === "A21NY" || t === "A21N") return "CP3";
+  return "";
+}
 
 function openBBCGModal(pending){
   _pendingBBCGPrint = pending;
 
   const vol = String(pending?.volTarget || "1");
-  const data = window._bbcgByVol[vol] || { gate:"", comp:"CP1", bingoCard:"1", bingoOf:"1" };
+
+  // sécurité si jamais la clé n’existe pas
+  if(!window._bbcgByVol[vol]){
+    window._bbcgByVol[vol] = { gate:"", comp:"", bingoCard:"1", bingoOf:"1" };
+  }
+
+  const data = window._bbcgByVol[vol];
 
   const b = document.getElementById("bbcgBackdrop");
   const m = document.getElementById("bbcgModal");
@@ -609,15 +624,21 @@ function openBBCGModal(pending){
   const bc   = document.getElementById("bbcgBingoCard");
   const of   = document.getElementById("bbcgBingoOf");
 
+  // ✅ défaut CP selon A/C type si aucun choix déjà enregistré
+  const acType = document.getElementById(`dep_type_${vol}`)?.value || "";
+  const compDefault = data.comp && data.comp !== ""
+    ? data.comp
+    : defaultCompFromAcType(acType);
+
   if(gate) gate.value = data.gate || "";
-  if(comp) comp.value = data.comp || "CP1";
-  if(bc)   bc.value   = data.bingoCard || "";
-  if(of)   of.value   = data.bingoOf || "";
+  if(comp) comp.value = compDefault || ""; // "" | CP1 | CP3
+  if(bc)   bc.value   = data.bingoCard || "1";
+  if(of)   of.value   = data.bingoOf || "1";
 
   if(b) b.style.display = "block";
   if(m) m.style.display = "flex";
 
-  setTimeout(()=> gate?.focus?.(), 0);
+  setTimeout(() => gate?.focus?.(), 0);
 }
 
 function closeBBCGModal(keepPending){
@@ -635,10 +656,10 @@ async function submitBBCGModal(){
   const vol = String(p.volTarget || "1");
 
   const gate = (document.getElementById("bbcgGate")?.value || "").trim();
-  const comp = (document.getElementById("bbcgComp")?.value || "CP1").trim();
+  const comp = (document.getElementById("bbcgComp")?.value || "").trim(); // ✅ vide autorisé
 
-  const bingoCard = (document.getElementById("bbcgBingoCard")?.value || "").trim();
-  const bingoOf   = (document.getElementById("bbcgBingoOf")?.value || "").trim();
+  const bingoCard = (document.getElementById("bbcgBingoCard")?.value || "1").trim();
+  const bingoOf   = (document.getElementById("bbcgBingoOf")?.value || "1").trim();
 
   window._bbcgByVol[vol] = { gate, comp, bingoCard, bingoOf };
 
