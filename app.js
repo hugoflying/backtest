@@ -1119,6 +1119,14 @@ function resetVolUI(volNum) {
    BADGES RETARD (UI)
    ========================= */
 
+const EIBT_CORRECTION_MIN = -4; // ✅ corrige EIBT (souvent ELDT+10) -> on réduit le taxi-in
+
+function addMinutesToIso(iso, minutes){
+  const t = Date.parse(iso || "");
+  if(!Number.isFinite(t)) return "";
+  return new Date(t + minutes * 60000).toISOString();
+}
+
 function delayMinFrom(plannedIso, actualIso){
   const p = Date.parse(plannedIso || "");
   const a = Date.parse(actualIso || "");
@@ -1133,9 +1141,15 @@ function actualDepIso(f){
 
 function actualArrIso(f){
   // arrivée : on veut DU BLOC
-  // AIBT (réel) > EIBT (estimé en vol)
-  // (on évite ELDT ici, sinon on oublie le taxi-in)
-  return f?.aibt || f?.eibt || "";
+  // AIBT (réel) > EIBT (estimé en vol, corrigé)
+  if(f?.aibt) return f.aibt;
+
+  if(f?.eibt){
+    // ✅ on réduit l'estimation (taxi-in trop long côté API)
+    return addMinutesToIso(f.eibt, EIBT_CORRECTION_MIN);
+  }
+
+  return "";
 }
 
 function renderDelayBadge(containerEl, mins){
@@ -1182,7 +1196,7 @@ function updateBadgesFromFlights(n, depFlight, arrFlight){
 
   if(arrFlight && arrWrap){
     const planned = arrFlight?.sibt || "";
-    const actual  = actualArrIso(arrFlight); // ✅ AIBT/EIBT
+    const actual  = actualArrIso(arrFlight); // ✅ AIBT ou EIBT corrigé
     renderDelayBadge(arrWrap, delayMinFrom(planned, actual));
   }
 }
@@ -1193,7 +1207,6 @@ function clearBadges(n){
   if(a) a.innerHTML = "";
   if(d) d.innerHTML = "";
 }
-
 /* =========================
    LOAD + DROPDOWNS
    ========================= */
