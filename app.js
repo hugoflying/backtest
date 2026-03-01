@@ -674,20 +674,27 @@ async function fetchAK(flow, from, to){
     res = await fetch(url, {
       cache: "no-store",
       credentials: "include",
+      redirect: "manual", // ✅ ne suit pas les redirects (login)
     });
   }catch(e){
-    throw new Error(`AK fetch network error: ${e?.message || e}`);
+    throw new Error(`AK fetch network error: ${e?.message || e} (url=${url})`);
   }
 
-  // Si ton backend renvoie une redirection (souvent vers login),
-  // fetch peut “casser” ou te ramener autre chose que /ak.
-  if(res.redirected){
-    // la session a sauté → on force un vrai reload navigateur
+  // ✅ Si la session saute, beaucoup de navigateurs donnent:
+  // - res.type === "opaqueredirect"
+  // - status 0
+  // - ou un 3xx (si même-origin)
+  if(
+    res.type === "opaqueredirect" ||
+    res.status === 0 ||
+    (res.status >= 300 && res.status < 400) ||
+    res.redirected
+  ){
     window.location.reload();
     return [];
   }
 
-  if(!res.ok) throw new Error(`AK error ${res.status}`);
+  if(!res.ok) throw new Error(`AK error ${res.status} (url=${url})`);
 
   const data = await res.json();
 
