@@ -272,6 +272,17 @@
     font-weight: 800;
   }
 
+  /* Version compacte du header dans les modals */
+#menageModal .vol-header{
+  margin-bottom: 18px;
+  padding: 6px 0;
+}
+
+#menageModal .vol-header span{
+  padding: 4px 16px;
+  font-size: 0.95rem;
+}
+
 </style>
 </head>
 
@@ -526,8 +537,11 @@
 <div id="menageModal"
      style="display:none; position:fixed; inset:0; z-index:6500; align-items:center; justify-content:center; padding:14px;">
   <div class="box" style="width:min(560px, 100%); border-radius:16px;">
-    
-    <h2 class="title is-5 has-text-centered">Ménage</h2>
+
+    <!-- Header stylé comme VOL 1 / VOL 2 -->
+    <div class="vol-header">
+      <span>Ménage</span>
+    </div>
 
     <div class="columns mt-4">
       
