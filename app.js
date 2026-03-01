@@ -1122,7 +1122,7 @@ function resetVolUI(volNum) {
 function delayMinFrom(plannedIso, actualIso){
   const p = Date.parse(plannedIso || "");
   const a = Date.parse(actualIso || "");
-  if(!p || !a) return null;
+  if(!Number.isFinite(p) || !Number.isFinite(a)) return null;
   return Math.round((a - p) / 60000);
 }
 
@@ -1130,9 +1130,12 @@ function actualDepIso(f){
   // départ : AOBT > EOBT
   return f?.aobt || f?.eobt || "";
 }
+
 function actualArrIso(f){
-  // arrivée : AIBT > ELDT > EIBT
-  return f?.aibt || f?.eldt || f?.eibt || "";
+  // arrivée : on veut DU BLOC
+  // AIBT (réel) > EIBT (estimé en vol)
+  // (on évite ELDT ici, sinon on oublie le taxi-in)
+  return f?.aibt || f?.eibt || "";
 }
 
 function renderDelayBadge(containerEl, mins){
@@ -1149,7 +1152,7 @@ function renderDelayBadge(containerEl, mins){
     label = `RETARDÉ +${mins}`;
     color = "is-warning";
   }
-  else if(mins <= -5){
+  else if(mins <= -10){ // ✅ durci : en avance seulement si -10 ou plus
     label = `EN AVANCE ${mins}`;
     color = "is-info";
   }
@@ -1179,7 +1182,7 @@ function updateBadgesFromFlights(n, depFlight, arrFlight){
 
   if(arrFlight && arrWrap){
     const planned = arrFlight?.sibt || "";
-    const actual  = actualArrIso(arrFlight);
+    const actual  = actualArrIso(arrFlight); // ✅ AIBT/EIBT
     renderDelayBadge(arrWrap, delayMinFrom(planned, actual));
   }
 }
