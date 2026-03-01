@@ -214,7 +214,7 @@ PRESTA_DEP:{
 
 PRESTA_RET:{
  file: `${TEMPLATE_BASE}/templates/Suivi prestations basés arrivée.pdf`,
- fill:({vol1,vol2})=>{
+ fill:({vol1,vol2}, extra = null)=>{
    const o={};
 
    if(!isVolEmpty(vol1)){
@@ -232,6 +232,18 @@ PRESTA_RET:{
      o["FLIGHT B - ARRIVAL FLIGHT NUMBER"] = vol2.arr.flt;
      o["FLIGHT B - FROM"] = vol2.arr.from;
    }
+
+   // ✅ MENAGE (checkbox fields) — on force X / vide
+   const m1 = (extra?.menage?.["1"] || "");
+   const m2 = (extra?.menage?.["2"] || "");
+
+   // Vol 1 -> FLIGHT A
+   o["FLIGHT A - MENAGE TIDY"] = (m1 === "TIDY") ? "X" : "";
+   o["FLIGHT A - MENAGE FULL"] = (m1 === "FULL") ? "X" : "";
+
+   // Vol 2 -> FLIGHT B
+   o["FLIGHT B - MENAGE TIDY"] = (m2 === "TIDY") ? "X" : "";
+   o["FLIGHT B - MENAGE FULL"] = (m2 === "FULL") ? "X" : "";
 
    return o;
  },
@@ -471,6 +483,12 @@ document.addEventListener("click", async (e) => {
     return;
   }
 
+  // ✅ popup Ménage uniquement pour PRESTA_RET (Prestations arrivée)
+  if(docKey === "PRESTA_RET"){
+    openMenageModal({ docKey, volTarget });
+    return;
+  }
+
   try {
     await fillAndPrint(docKey, volTarget);
   } catch (err) {
@@ -478,6 +496,94 @@ document.addEventListener("click", async (e) => {
     alert(err?.message || String(err));
   }
 });
+
+// ===== MENAGE MODAL (Prestations arrivée) =====
+let _pendingMenagePrint = null;
+
+// mémorise le choix par vol
+window._menageByVol ||= { "1": "", "2": "" }; // "" | "TIDY" | "FULL"
+
+function openMenageModal(pending){
+  _pendingMenagePrint = pending;
+
+  const b = document.getElementById("menageBackdrop");
+  const m = document.getElementById("menageModal");
+
+  const v1 = window._menageByVol["1"] || "";
+  const v2 = window._menageByVol["2"] || "";
+
+  // VOL 1
+  const v1Tidy = document.getElementById("menage1Tidy");
+  const v1Full = document.getElementById("menage1Full");
+  if(v1Tidy) v1Tidy.checked = (v1 === "TIDY");
+  if(v1Full) v1Full.checked = (v1 === "FULL");
+
+  // VOL 2
+  const v2Tidy = document.getElementById("menage2Tidy");
+  const v2Full = document.getElementById("menage2Full");
+  if(v2Tidy) v2Tidy.checked = (v2 === "TIDY");
+  if(v2Full) v2Full.checked = (v2 === "FULL");
+
+  // force exclusif (checkbox style radio)
+  bindMenageExclusive();
+
+  if(b) b.style.display = "block";
+  if(m) m.style.display = "flex";
+}
+
+function closeMenageModal(keepPending){
+  const b = document.getElementById("menageBackdrop");
+  const m = document.getElementById("menageModal");
+  if(b) b.style.display = "none";
+  if(m) m.style.display = "none";
+  if(!keepPending) _pendingMenagePrint = null;
+}
+
+function bindMenageExclusive(){
+  // VOL 1
+  const v1Tidy = document.getElementById("menage1Tidy");
+  const v1Full = document.getElementById("menage1Full");
+  if(v1Tidy && v1Full){
+    v1Tidy.onchange = () => { if(v1Tidy.checked) v1Full.checked = false; };
+    v1Full.onchange = () => { if(v1Full.checked) v1Tidy.checked = false; };
+  }
+
+  // VOL 2
+  const v2Tidy = document.getElementById("menage2Tidy");
+  const v2Full = document.getElementById("menage2Full");
+  if(v2Tidy && v2Full){
+    v2Tidy.onchange = () => { if(v2Tidy.checked) v2Full.checked = false; };
+    v2Full.onchange = () => { if(v2Full.checked) v2Tidy.checked = false; };
+  }
+}
+
+async function submitMenageModal(){
+  const p = _pendingMenagePrint;
+  if(!p) return;
+
+  const v1Tidy = !!document.getElementById("menage1Tidy")?.checked;
+  const v1Full = !!document.getElementById("menage1Full")?.checked;
+  const v2Tidy = !!document.getElementById("menage2Tidy")?.checked;
+  const v2Full = !!document.getElementById("menage2Full")?.checked;
+
+  window._menageByVol["1"] = v1Full ? "FULL" : (v1Tidy ? "TIDY" : "");
+  window._menageByVol["2"] = v2Full ? "FULL" : (v2Tidy ? "TIDY" : "");
+
+  closeMenageModal(true);
+  _pendingMenagePrint = null;
+
+  await fillAndPrint(p.docKey, p.volTarget, {
+    menage: {
+      "1": window._menageByVol["1"],
+      "2": window._menageByVol["2"],
+    }
+  });
+}
+
+// IMPORTANT (car app.js est en module)
+window.openMenageModal = openMenageModal;
+window.closeMenageModal = closeMenageModal;
+window.submitMenageModal = submitMenageModal;
 
 // ===== SI MODAL (LIR Ryanair) =====
 let _pendingSIPrint = null;
