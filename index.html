@@ -563,6 +563,77 @@
   </div>
 </div>
 
+<!-- ===== BBCG MODAL (Bingo Gate) ===== -->
+<div id="bbcgBackdrop"
+     style="display:none; position:fixed; inset:0; background:rgba(0,0,0,.35); z-index:6600;"
+     onclick="closeBBCGModal(false)"></div>
+
+<div id="bbcgModal"
+     style="display:none; position:fixed; inset:0; z-index:6700; align-items:center; justify-content:center; padding:14px;">
+  <div class="box" style="width:min(560px, 100%); border-radius:16px;">
+
+    <!-- Header glass -->
+    <div class="vol-header">
+      <span>Bingo Gate</span>
+    </div>
+
+    <div class="field">
+      <label class="label">Porte embarquement</label>
+      <div class="control">
+        <input id="bbcgGate"
+               class="input"
+               type="text"
+               autocomplete="off"
+               spellcheck="false"
+               placeholder="Ex: 12, A3…">
+      </div>
+    </div>
+
+    <div class="field">
+      <label class="label">Compartiment de chargement</label>
+      <div class="control">
+        <div class="select is-fullwidth">
+          <select id="bbcgComp">
+            <option value="CP1">CP1</option>
+            <option value="CP2">CP2</option>
+            <option value="CP3">CP3</option>
+            <option value="CP4">CP4</option>
+            <option value="CP5">CP5</option>
+          </select>
+        </div>
+      </div>
+    </div>
+
+    <div class="field">
+      <label class="label">Numéro de bingo</label>
+
+      <div class="control" style="display:flex; align-items:center; gap:10px;">
+        <input id="bbcgBingoCard"
+               class="input"
+               style="max-width:110px; text-align:center;"
+               inputmode="numeric"
+               placeholder="1">
+
+        <div style="opacity:.75; font-weight:900;">/</div>
+
+        <input id="bbcgBingoOf"
+               class="input"
+               style="max-width:110px; text-align:center;"
+               inputmode="numeric"
+               placeholder="1">
+      </div>
+
+      <p class="help">Ex: 1 / 1</p>
+    </div>
+
+    <div class="buttons is-right mt-5">
+      <button class="button is-light" type="button" onclick="closeBBCGModal(false)">Annuler</button>
+      <button class="button is-link" type="button" onclick="submitBBCGModal()">Imprimer</button>
+    </div>
+
+  </div>
+</div>
+
 <!-- ===== MENAGE MODAL (Prestations arrivée) ===== -->
 <div id="menageBackdrop"
      style="display:none; position:fixed; inset:0; background:rgba(0,0,0,.35); z-index:6400;"
