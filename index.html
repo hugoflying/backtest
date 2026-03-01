@@ -512,6 +512,61 @@
   </div>
 </div>
 
+<!-- ===== MENAGE MODAL (Prestations arrivée) ===== -->
+<div id="menageBackdrop"
+     style="display:none; position:fixed; inset:0; background:rgba(0,0,0,.35); z-index:6400;"
+     onclick="closeMenageModal(false)"></div>
+
+<div id="menageModal"
+     style="display:none; position:fixed; inset:0; z-index:6500; align-items:center; justify-content:center; padding:14px;">
+  <div class="box" style="width:min(520px, 100%); border-radius:16px;">
+    <h2 class="title is-5">Ménage</h2>
+
+    <div class="columns">
+      <div class="column">
+        <h3 class="title is-6">VOL 1</h3>
+
+        <div class="field">
+          <label class="checkbox">
+            <input id="menage1Tidy" type="checkbox">
+            Tidy
+          </label>
+        </div>
+
+        <div class="field">
+          <label class="checkbox">
+            <input id="menage1Full" type="checkbox">
+            Full
+          </label>
+        </div>
+      </div>
+
+      <div class="column">
+        <h3 class="title is-6">VOL 2</h3>
+
+        <div class="field">
+          <label class="checkbox">
+            <input id="menage2Tidy" type="checkbox">
+            Tidy
+          </label>
+        </div>
+
+        <div class="field">
+          <label class="checkbox">
+            <input id="menage2Full" type="checkbox">
+            Full
+          </label>
+        </div>
+      </div>
+    </div>
+
+    <div class="buttons is-right">
+      <button class="button is-light" type="button" onclick="closeMenageModal(false)">Annuler</button>
+      <button class="button is-link" type="button" onclick="submitMenageModal()">Imprimer</button>
+    </div>
+  </div>
+</div>
+
 <script src="https://unpkg.com/pdf-lib@1.17.1/dist/pdf-lib.min.js"></script>
 <script type="module" src="app.js"></script>
   
