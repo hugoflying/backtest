@@ -465,7 +465,11 @@
 <div id="rzaModal"
      style="display:none; position:fixed; inset:0; z-index:6100; align-items:center; justify-content:center; padding:14px;">
   <div class="box" style="width:min(420px, 100%); border-radius:16px;">
-    <h2 class="title is-5">Nom du RZA requis</h2>
+
+    <!-- Header glass -->
+    <div class="vol-header">
+      <span>Autocontrôle</span>
+    </div>
 
     <div class="field">
       <label class="label">Nom et prénom du RZA :</label>
@@ -477,16 +481,27 @@
                spellcheck="false"
                placeholder="Nom Prénom">
       </div>
-      <p class="help" id="rzaHelp"
+      <p class="help"
+         id="rzaHelp"
          style="display:none; color:#ef4444; font-weight:800;">
         Merci de saisir le nom complet.
       </p>
     </div>
 
     <div class="buttons is-right">
-      <button class="button is-light" type="button" onclick="closeRZAModal(false)">Annuler</button>
-      <button class="button is-link" type="button" onclick="submitRZAModal()">Valider</button>
+      <button class="button is-light"
+              type="button"
+              onclick="closeRZAModal(false)">
+        Annuler
+      </button>
+
+      <button class="button is-link"
+              type="button"
+              onclick="submitRZAModal()">
+        Valider
+      </button>
     </div>
+
   </div>
 </div>
 
@@ -498,7 +513,11 @@
 <div id="siModal"
      style="display:none; position:fixed; inset:0; z-index:6300; align-items:center; justify-content:center; padding:14px;">
   <div class="box" style="width:min(520px, 100%); border-radius:16px;">
-    <h2 class="title is-5">SI / Deviations (optionnel)</h2>
+
+    <!-- Header glass -->
+    <div class="vol-header">
+      <span>LIR Ryanair</span>
+    </div>
 
     <div class="field">
       <label class="label">Texte SI :</label>
@@ -511,7 +530,6 @@
       <p class="help">Tu peux laisser vide.</p>
     </div>
 
-    <!-- ✅ HOLD ici -->
     <div class="field">
       <label class="checkbox">
         <input id="siModalHold" type="checkbox">
@@ -519,7 +537,6 @@
       </label>
     </div>
 
-    <!-- ✅ MAX 5 ici -->
     <div class="field">
       <label class="checkbox">
         <input id="siModalMax5" type="checkbox">
@@ -528,9 +545,19 @@
     </div>
 
     <div class="buttons is-right">
-      <button class="button is-light" type="button" onclick="closeSIModal(false)">Annuler</button>
-      <button class="button is-link" type="button" onclick="submitSIModal()">Imprimer</button>
+      <button class="button is-light"
+              type="button"
+              onclick="closeSIModal(false)">
+        Annuler
+      </button>
+
+      <button class="button is-link"
+              type="button"
+              onclick="submitSIModal()">
+        Imprimer
+      </button>
     </div>
+
   </div>
 </div>
 
