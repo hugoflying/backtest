@@ -1109,7 +1109,7 @@ function startAKAutoRefresh(){
       }
       console.warn("Auto-refresh AK:", e);
     }
-  }, 2 * 60 * 1000);
+  }, 15 * 60 * 1000);
 }
 
 function refreshAKDropdown(n){
