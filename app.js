@@ -1379,7 +1379,14 @@ function bindAK(n){
       applyArrToVol(n, arr);
 
       const linkedDep = findLinkedDepForArr(arr, window._akDepAll || []);
-      if(linkedDep) applyDepOnlyToVol(n, linkedDep);
+
+      // ✅ si pas de départ lié, on remplit quand même immat + type côté UI
+      if(linkedDep){
+        applyDepOnlyToVol(n, linkedDep);
+      } else {
+        setVal(`dep_reg_${n}`, upper(arr?.reg || ""));
+        setVal(`dep_type_${n}`, akAcType(arr));
+      }
 
       updateBadgesFromFlights(n, linkedDep || null, arr);
     }
