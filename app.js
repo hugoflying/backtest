@@ -1,4 +1,4 @@
-import fontkit from "https://cdn.skypack.dev/@pdf-lib/fontkit";
+ import fontkit from "https://cdn.skypack.dev/@pdf-lib/fontkit";
 
 const TEMPLATE_BASE = ""; 
 const { PDFDocument, StandardFonts } = PDFLib;
@@ -80,20 +80,17 @@ LIR_RYANAIR:{
       "B738": x.B738,
       "B38M": x.B38M,
 
-      // ✅ SI multiligne
       "SI": extra?.si || "",
 
-      // ✅ MAX 5 (texte)
       "MAX 5": max5 ? "MAX 5" : "",
 
-      // ✅ HOLD conditionnel
       "ARRIVAL FLIGHT NUMBER": hold ? (vol1.arr.flt || "") : "",
-      "HOLD SECURITY SEARCH": hold,
-     
+
+      "HOLD SECURITY SEARCH": false,
     };
   },
   flatten:true
-},
+}
   
 /* ========= LIR LAUDA ========= */
 
