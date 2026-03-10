@@ -88,7 +88,7 @@ LIR_RYANAIR:{
 
       // ✅ HOLD conditionnel
       "ARRIVAL FLIGHT NUMBER": hold ? (vol1.arr.flt || "") : "",
-      "HOLD SECURITY SEARCH": false,
+      "HOLD SECURITY SEARCH": hold,
 
     };
   },
