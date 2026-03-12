@@ -1232,7 +1232,7 @@ function clearBadges(n){
    LOAD + DROPDOWNS
    ========================= */
 
-async function loadAKAll(){
+window.loadAKAll = async function loadAKAll(){
   const st1 = $("ak_status_1");
   const st2 = $("ak_status_2");
   if(st1) st1.textContent = "Chargement…";
@@ -1305,7 +1305,7 @@ async function loadAKAll(){
     if(st1) st1.textContent = msg;
     if(st2) st2.textContent = msg;
   }
-}
+};
 
 function startAKAutoRefresh(){
   setInterval(async ()=>{
