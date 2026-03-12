@@ -1232,7 +1232,7 @@ function clearBadges(n){
    LOAD + DROPDOWNS
    ========================= */
 
-window.loadAKAll = async function loadAKAll(){
+async function loadAKAll(){
   const st1 = $("ak_status_1");
   const st2 = $("ak_status_2");
   if(st1) st1.textContent = "Chargement…";
@@ -1297,17 +1297,15 @@ window.loadAKAll = async function loadAKAll(){
     window._akDepToday = depToday;
     window._akArrToday = arrToday;
 
-    renderAKPairs(_akCurrentVol || 1);
-    // Update inline status badges
-    const s1 = document.getElementById("ak_status_1"); if(s1) s1.textContent = depToday.length + " vol(s)";
-    const s2 = document.getElementById("ak_status_2"); if(s2) s2.textContent = depToday.length + " vol(s)";
+    refreshAKDropdown(1);
+    refreshAKDropdown(2);
 
   }catch(e){
     const msg = `Erreur AK (${String(e.message || e)})`;
     if(st1) st1.textContent = msg;
     if(st2) st2.textContent = msg;
   }
-};
+}
 
 function startAKAutoRefresh(){
   setInterval(async ()=>{
@@ -1325,187 +1323,73 @@ function startAKAutoRefresh(){
   }, 15 * 60 * 1000);
 }
 
+function refreshAKDropdown(n){
+  const flowSel = $(`ak_flow_${n}`);
+  const sel = $(`ak_flight_${n}`);
+  const st  = $(`ak_status_${n}`);
+  if(!flowSel || !sel) return;
 
-function delayBadgeHtml(mins){
-  if(mins == null) return "";
-  let label, cls;
-  if(mins >= 15)      { label = `RETARDÉ +${mins}`; cls = "tag is-danger"; }
-  else if(mins >= 5)  { label = `RETARDÉ +${mins}`; cls = "tag is-warning"; }
-  else if(mins <= -10){ label = `EN AVANCE ${mins}`; cls = "tag is-info"; }
-  else                { label = "À L\'HEURE";          cls = "tag is-success"; }
-  return `<span class="${cls}" style="font-weight:900;font-size:.62rem;">${label}</span>`;
+  const flow = flowSel.value; // "DEP" ou "ARR"
+  const list = (flow === "DEP") ? (window._akDepToday || []) : (window._akArrToday || []);
+
+  sel.innerHTML = `<option value="">-- Choisir un vol --</option>`;
+  for(const f of list){
+    const opt = document.createElement("option");
+    opt.value = String(f?.id ?? "");
+    opt.textContent = (flow === "DEP") ? buildDepLabel(f) : buildArrLabel(f);
+    sel.appendChild(opt);
+  }
+
+  if(st) st.textContent = `${list.length} vol(s)`;
 }
 
-function pickBestTime(f, flow){
-  const hhmm = iso => {
-    const d = new Date(iso || "");
-    if(isNaN(d.getTime())) return null;
-    return String(d.getHours()).padStart(2,"0")+":"+String(d.getMinutes()).padStart(2,"0");
-  };
-  if(flow === "DEP"){
-    if(f.aobt) return { t: hhmm(f.aobt), s: "A" };
-    if(f.sobt) return { t: hhmm(f.sobt), s: "S" };
-    if(f.eobt) return { t: hhmm(f.eobt), s: "E" };
-    return { t: "--:--", s: "" };
-  }
-  if(f.aibt) return { t: hhmm(f.aibt), s: "A" };
-  if(f.sibt) return { t: hhmm(f.sibt), s: "S" };
-  if(f.eibt) return { t: hhmm(f.eibt), s: "E" };
-  return { t: "--:--", s: "" };
-}
+function bindAK(n){
+  const flowSel = $(`ak_flow_${n}`);
+  const sel = $(`ak_flight_${n}`);
+  if(!flowSel || !sel) return;
 
-function renderAKPairs(n){
-  const container = document.getElementById("akPopoverList");
-  const st        = document.getElementById("akPopoverStatus");
-  if(!container) return;
-
-  const arrList = window._akArrToday || [];
-  const depList = window._akDepToday || [];
-
-  // Construire paires ARR + DEP lié
-  const usedDep = new Set();
-  const pairs   = [];
-
-  for(const arr of arrList){
-    const dep = findLinkedDepForArr(arr, depList);
-    if(dep && !usedDep.has(String(dep.id))){
-      pairs.push({ arr, dep });
-      usedDep.add(String(dep.id));
-    } else {
-      pairs.push({ arr, dep: null });
-    }
-  }
-  for(const dep of depList){
-    if(!usedDep.has(String(dep.id))) pairs.push({ arr: null, dep });
-  }
-
-  // Tri chrono (ARR sibt, ou DEP sobt)
-  pairs.sort((a, b) => {
-    const ta = a.arr ? (Date.parse(a.arr.sibt||"")||Infinity) : (a.dep ? (Date.parse(a.dep.sobt||"")||Infinity) : Infinity);
-    const tb = b.arr ? (Date.parse(b.arr.sibt||"")||Infinity) : (b.dep ? (Date.parse(b.dep.sobt||"")||Infinity) : Infinity);
-    return ta - tb;
+  flowSel.addEventListener("change", ()=>{
+    refreshAKDropdown(n);
+    clearBadges(n);
+    resetVolUI(n); // ✅ reset quand tu changes DEP/ARR
   });
 
-  if(st) st.textContent = `${pairs.length} vol(s)`;
+  sel.addEventListener("change", ()=>{
+    const id = sel.value;
+    if(!id){
+      clearBadges(n);
+      resetVolUI(n); // ✅ reset si tu remets "-- Choisir un vol --"
+      return;
+    }
 
-  if(!pairs.length){ container.innerHTML = '<p style="color:#888;padding:8px">Aucun vol.</p>'; return; }
+    resetVolUI(n); // ✅ reset avant de remplir
 
-  function half(f, flow){
-    if(!f) return '<div class="ak-half ak-half-empty"></div>';
-    const flt   = upper(f.fullFlightNumber || f.callsign || "");
-    const reg   = upper(f.reg || "");
-    const stand = (f.pkg||"").toString().replace(/^P/i,"").trim();
-    const iata  = flow==="ARR" ? upper(f.adepIata||f.adepIcao||"") : upper(f.adesIata||f.adesIcao||"");
-    const {t, s} = pickBestTime(f, flow);
-    const timeStr = t + (s ? ` <span style="font-size:.7em;opacity:.65;font-weight:600;">(${s})</span>` : "");
+    const flow = flowSel.value;
 
-    const dly   = delayMinFrom(flow==="ARR"?(f.sibt||""):(f.sobt||""), flow==="ARR"?actualArrIso(f):actualDepIso(f));
-    const badge = delayBadgeHtml(dly);
+    if(flow === "DEP"){
+      const dep = (window._akDepToday || []).find(f => String(f?.id ?? "") === String(id));
+      if(!dep) return;
 
-    const lid = String(f.linkedId||"").trim();
-    const linkedDep  = flow==="ARR" ? findLinkedDepForArr(f, window._akDepAll||[]) : null;
-    const departed   = flow==="DEP" && Number.isFinite(Date.parse(f?.atot||""));
-    const arrived    = flow==="ARR" && Number.isFinite(Date.parse(f?.aibt||""));
-    const done = departed || (arrived && linkedDep && Number.isFinite(Date.parse(linkedDep?.atot||"")));
+      applyDepToVol(n, dep, window._akArrAll || []);
 
-    const bgBadge  = flow==="ARR" ? "#dbeafe" : "#dcfce7";
-    const clrBadge = flow==="ARR" ? "#1d4ed8" : "#15803d";
+      const linkedArr = findLinkedArrForDepSameDay(dep, window._akArrAll || []);
+      updateBadgesFromFlights(n, dep, linkedArr);
 
-    return `<div class="ak-half${done?' ak-half-done':''}"
-      style="cursor:pointer;${done?'opacity:.55;':''}"
-      onclick="akHalfClick(${n},'${flow}','${String(f.id||"")}')">
-      <div style="display:flex;align-items:center;gap:5px;flex-wrap:wrap;margin-bottom:3px;">
-        <span style="font-size:.62rem;font-weight:900;background:${bgBadge};color:${clrBadge};padding:1px 6px;border-radius:6px;">${flow}</span>
-        <span style="font-weight:900;font-size:.95rem;">${iata||"---"}</span>
-        ${badge}
-      </div>
-      <div style="color:#888;font-size:.78rem;font-weight:700;">${flt||"—"} · Std ${stand||"—"} · ${reg||"—"}</div>
-      <div style="color:#888;font-size:.75rem;font-weight:700;">${timeStr}</div>
-    </div>`;
-  }
+    } else {
+      const arr = (window._akArrToday || []).find(f => String(f?.id ?? "") === String(id));
+      if(!arr) return;
 
-  container.innerHTML = pairs.map(({arr,dep}) =>
-    `<div class="ak-pair-row">
-      ${half(arr,"ARR")}
-      <div class="ak-pair-divider"></div>
-      ${half(dep,"DEP")}
-    </div>`
-  ).join("");
+      applyArrToVol(n, arr);
+
+      const linkedDep = findLinkedDepForArr(arr, window._akDepAll || []);
+      if(linkedDep) applyDepOnlyToVol(n, linkedDep);
+
+      updateBadgesFromFlights(n, linkedDep || null, arr);
+    }
+  });
 }
-
-window.akHalfClick = function akHalfClick(n, flow, id){
-  resetVolUI(n);
-  clearBadges(n);
-
-  if(flow === "DEP"){
-    const dep = (window._akDepToday||[]).find(f => String(f?.id||"") === id);
-    if(!dep) return;
-    applyDepToVol(n, dep, window._akArrAll||[]);
-    const linkedArr = findLinkedArrForDepSameDay(dep, window._akArrAll||[]);
-    updateBadgesFromFlights(n, dep, linkedArr);
-  } else {
-    const arr = (window._akArrToday||[]).find(f => String(f?.id||"") === id);
-    if(!arr) return;
-    applyArrToVol(n, arr);
-    const linkedDep = findLinkedDepForArr(arr, window._akDepAll||[]);
-    if(linkedDep) applyDepOnlyToVol(n, linkedDep);
-    updateBadgesFromFlights(n, linkedDep||null, arr);
-  }
-}
-
-/* Injection auto - AK pairs layout */
-(function(){
-  if(document.getElementById('_ak_pairs_css')) return;
-  const s = document.createElement('style');
-  s.id = '_ak_pairs_css';
-  s.textContent = `
-    .ak-pair-row{ display:flex; border:1px solid rgba(0,0,0,.08); border-radius:10px; background:#fff; margin-bottom:8px; overflow:hidden; }
-    .ak-half{ flex:1; padding:10px; min-width:0; }
-    .ak-half-empty{ flex:1; background:rgba(0,0,0,.02); min-height:60px; }
-    .ak-half-done{ opacity:.55; }
-    .ak-pair-divider{ width:1px; background:rgba(0,0,0,.08); flex-shrink:0; }
-    .ak-half:hover{ background:rgba(0,0,0,.03); }
-  `;
-  document.head.appendChild(s);
-})();
-
-// bindAK : plus de select, juste init CSS
-function bindAK(n){
-  // les clics sont gérés par akHalfClick via onclick inline
-}
-
 
 // boot
-
-// ===== AK Menu (floating popover) =====
-let _akCurrentVol = 1;
-
-window.openAKMenu = function openAKMenu(n){
-  _akCurrentVol = n || 1;
-  const b = document.getElementById("akBackdrop");
-  const p = document.getElementById("akPopover");
-  const title = document.getElementById("akPopoverTitle");
-  if(title) title.textContent = "VOL " + _akCurrentVol;
-  if(b) b.style.display = "block";
-  if(p) p.style.display = "block";
-  // Load if not already loaded
-  if(!window._akArrToday && !window._akDepToday){
-    window.loadAKAll();
-  } else {
-    renderAKPairs(_akCurrentVol);
-  }
-};
-
-window.reloadAKMenu = function reloadAKMenu(){
-  window.loadAKAll();
-};
-
-window.closeAKMenu = function closeAKMenu(){
-  const b = document.getElementById("akBackdrop");
-  const p = document.getElementById("akPopover");
-  if(b) b.style.display = "none";
-  if(p) p.style.display = "none";
-};
 document.addEventListener("DOMContentLoaded", ()=>{
   bindAK(1);
   bindAK(2);
