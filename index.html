@@ -25,7 +25,9 @@
   /* Inputs + selects = JetBrains Mono */
   input,
   select,
-  textarea{
+  textarea,
+  #ak_flight_1, #ak_flight_2,
+  #ak_flight_1 option, #ak_flight_2 option{
     font-family: "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas,
                  "Liberation Mono", "Courier New", monospace;
     font-variant-numeric: tabular-nums;
@@ -105,8 +107,10 @@
   /* =========================
      AK dropdown alignment
      ========================= */
-  /* AK list pairs */
-  .ak-list-wrap{ max-height: 50vh; overflow-y: auto; }
+  #ak_flight_1, #ak_flight_2,
+  #ak_flight_1 option, #ak_flight_2 option{
+    white-space: pre;
+  }
 
   /* =========================
      Center headers + badges
@@ -286,14 +290,6 @@
     padding: 4px 16px;
     font-size: 0.95rem;
   }
-
-  /* AK pairs floating popover */
-  .ak-pair-row{ display:flex; border:1px solid rgba(0,0,0,.08); border-radius:10px; background:#fff; margin-bottom:8px; overflow:hidden; }
-  .ak-half{ flex:1; padding:10px; min-width:0; cursor:pointer; }
-  .ak-half:hover{ background:rgba(0,0,0,.03); }
-  .ak-half-empty{ flex:1; background:rgba(0,0,0,.02); min-height:60px; }
-  .ak-half-done{ opacity:.55; }
-  .ak-pair-divider{ width:1px; background:rgba(0,0,0,.08); flex-shrink:0; }
 </style>
 </head>
 
@@ -314,9 +310,22 @@
           </div>
 
           <!-- Liste AK (dans VOL 1) -->
-          <div class="field mb-2" style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
-            <button class="button is-small is-link" type="button" onclick="openAKMenu(1)">+ Liste vols</button>
-            <span class="tag is-light" id="ak_status_1">—</span>
+          <div class="field mb-2">
+            <div class="select is-fullwidth">
+              <select id="ak_flow_1">
+                <option value="DEP" selected>Départs</option>
+                <option value="ARR">Arrivées</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="field">
+            <div class="select is-fullwidth">
+              <select id="ak_flight_1">
+                <option value="">-- Choisir un vol --</option>
+              </select>
+            </div>
+            <p class="help" id="ak_status_1">—</p>
           </div>
 
           <div class="columns mb-0">
@@ -367,9 +376,22 @@
           </div>
 
           <!-- Liste AK (dans VOL 2) -->
-          <div class="field mb-2" style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
-            <button class="button is-small is-link" type="button" onclick="openAKMenu(2)">+ Liste vols</button>
-            <span class="tag is-light" id="ak_status_2">—</span>
+          <div class="field mb-2">
+            <div class="select is-fullwidth">
+              <select id="ak_flow_2">
+                <option value="DEP" selected>Départs</option>
+                <option value="ARR">Arrivées</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="field">
+            <div class="select is-fullwidth">
+              <select id="ak_flight_2">
+                <option value="">-- Choisir un vol --</option>
+              </select>
+            </div>
+            <p class="help" id="ak_status_2">—</p>
           </div>
 
           <div class="columns mb-0">
@@ -424,16 +446,17 @@
 </section>
 
 <!-- POPUP AK -->
-<div id="akBackdrop" onclick="closeAKMenu()" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.35);z-index:4600;"></div>
-
-<div id="akPopover" style="display:none;position:fixed;inset:60px 12px 12px 12px;background:#fff;border-radius:16px;z-index:4700;padding:12px;border:1px solid rgba(0,0,0,.08);overflow:auto;box-shadow:0 10px 28px rgba(0,0,0,.12);">
-  <div style="position:sticky;top:0;z-index:2;background:#fff;padding:8px 0 10px;border-bottom:1px solid rgba(0,0,0,.08);display:flex;gap:10px;align-items:center;flex-wrap:wrap;">
-    <span class="tag is-light" id="akPopoverTitle">VOL</span>
-    <button class="button is-small is-link" type="button" onclick="reloadAKMenu()">Rafraîchir</button>
-    <span class="tag is-light" id="akPopoverStatus">—</span>
-    <button class="button is-small is-light" type="button" style="margin-left:auto" onclick="closeAKMenu()">Fermer</button>
+<div id="akBackdrop" style="display:none;" onclick="closeAKMenu()"></div>
+<div id="akPopover" style="display:none;">
+  <div class="ak-header">
+    <div style="display:flex; gap:10px; flex-wrap:wrap; align-items:center;">
+      <span class="tag is-light" id="akMenuTitle">AK</span>
+      <button class="button is-small is-link" type="button" id="akMenuRefresh">Rafraîchir</button>
+      <span class="tag is-light" id="akMenuStatus">—</span>
+      <button class="button is-small is-light" style="margin-left:auto" onclick="closeAKMenu()">Fermer</button>
+    </div>
   </div>
-  <div id="akPopoverList" style="margin-top:10px;"></div>
+  <div id="akMenuList" style="margin-top:10px;"></div>
 </div>
 
 <!-- ===== RZA MODAL ===== -->
@@ -686,7 +709,7 @@
 </div>
 
 <script src="https://unpkg.com/pdf-lib@1.17.1/dist/pdf-lib.min.js"></script>
-<script type="module" src="app_v2.js"></script>
+<script type="module" src="app.js"></script>
   
 </body>
 </html>
