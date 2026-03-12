@@ -1297,8 +1297,10 @@ window.loadAKAll = async function loadAKAll(){
     window._akDepToday = depToday;
     window._akArrToday = arrToday;
 
-    renderAKPairs(1);
-    renderAKPairs(2);
+    renderAKPairs(_akCurrentVol || 1);
+    // Update inline status badges
+    const s1 = document.getElementById("ak_status_1"); if(s1) s1.textContent = depToday.length + " vol(s)";
+    const s2 = document.getElementById("ak_status_2"); if(s2) s2.textContent = depToday.length + " vol(s)";
 
   }catch(e){
     const msg = `Erreur AK (${String(e.message || e)})`;
@@ -1353,8 +1355,8 @@ function pickBestTime(f, flow){
 }
 
 function renderAKPairs(n){
-  const container = $(`ak_list_${n}`);
-  const st        = $(`ak_status_${n}`);
+  const container = document.getElementById("akPopoverList");
+  const st        = document.getElementById("akPopoverStatus");
   if(!container) return;
 
   const arrList = window._akArrToday || [];
@@ -1476,12 +1478,28 @@ function bindAK(n){
 // boot
 
 // ===== AK Menu (floating popover) =====
-window.openAKMenu = function openAKMenu(){
+let _akCurrentVol = 1;
+
+window.openAKMenu = function openAKMenu(n){
+  _akCurrentVol = n || 1;
   const b = document.getElementById("akBackdrop");
   const p = document.getElementById("akPopover");
+  const title = document.getElementById("akPopoverTitle");
+  if(title) title.textContent = "VOL " + _akCurrentVol;
   if(b) b.style.display = "block";
   if(p) p.style.display = "block";
+  // Load if not already loaded
+  if(!window._akArrToday && !window._akDepToday){
+    window.loadAKAll();
+  } else {
+    renderAKPairs(_akCurrentVol);
+  }
 };
+
+window.reloadAKMenu = function reloadAKMenu(){
+  window.loadAKAll();
+};
+
 window.closeAKMenu = function closeAKMenu(){
   const b = document.getElementById("akBackdrop");
   const p = document.getElementById("akPopover");
