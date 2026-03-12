@@ -1474,6 +1474,20 @@ function bindAK(n){
 
 
 // boot
+
+// ===== AK Menu (floating popover) =====
+window.openAKMenu = function openAKMenu(){
+  const b = document.getElementById("akBackdrop");
+  const p = document.getElementById("akPopover");
+  if(b) b.style.display = "block";
+  if(p) p.style.display = "block";
+};
+window.closeAKMenu = function closeAKMenu(){
+  const b = document.getElementById("akBackdrop");
+  const p = document.getElementById("akPopover");
+  if(b) b.style.display = "none";
+  if(p) p.style.display = "none";
+};
 document.addEventListener("DOMContentLoaded", ()=>{
   bindAK(1);
   bindAK(2);
