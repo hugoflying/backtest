@@ -1431,7 +1431,7 @@ function renderAKPairs(n){
   ).join("");
 }
 
-function akHalfClick(n, flow, id){
+window.akHalfClick = function akHalfClick(n, flow, id){
   resetVolUI(n);
   clearBadges(n);
 
