@@ -1410,7 +1410,7 @@ function renderAKPairs(n){
     const clrBadge = flow==="ARR" ? "#1d4ed8" : "#15803d";
 
     return `<div class="ak-half${done?' ak-half-done':''}"
-      style="cursor:pointer;${done?'opacity:.55;':'''}"
+      style="cursor:pointer;${done?'opacity:.55;':''}"
       onclick="akHalfClick(${n},'${flow}','${String(f.id||"")}')">
       <div style="display:flex;align-items:center;gap:5px;flex-wrap:wrap;margin-bottom:3px;">
         <span style="font-size:.62rem;font-weight:900;background:${bgBadge};color:${clrBadge};padding:1px 6px;border-radius:6px;">${flow}</span>
