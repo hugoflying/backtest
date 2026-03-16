@@ -214,7 +214,8 @@ PRESTA_DEP: {
     }
     return o;
   },
-  flatten: true
+  flatten: true,
+  duplex:  "DuplexFlipLongEdge"
 },
 
 /* ========= PRESTATIONS ARRIVÉE ========= */
@@ -244,7 +245,8 @@ PRESTA_RET: {
     o["FLIGHT B - MENAGE FULL"] = (m2 === "FULL") ? "X" : "";
     return o;
   },
-  flatten: true
+  flatten: true,
+  duplex:  "DuplexFlipLongEdge"
 }
 
 };
@@ -404,6 +406,19 @@ async function mergeAndPrint(jobs){
     const pages = await merged.copyPages(src, src.getPageIndices());
     pages.forEach(p => merged.addPage(p));
   }
+
+  // Duplex : recto/verso seulement si TOUS les docs le demandent, sinon Simplex
+  const allDuplex = jobs.every(j => DOCS[j.docKey]?.duplex === "DuplexFlipLongEdge");
+  const duplexVal = allDuplex ? "DuplexFlipLongEdge" : "Simplex";
+
+  const { PDFName } = PDFLib;
+  merged.catalog.set(
+    PDFName.of("ViewerPreferences"),
+    merged.context.obj({
+      Duplex:       PDFName.of(duplexVal),
+      PrintScaling: PDFName.of("None"),
+    })
+  );
 
   const bytes = await merged.save();
   const blob  = new Blob([bytes], { type: "application/pdf" });
