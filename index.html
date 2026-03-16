@@ -304,12 +304,12 @@
   }
 
   .box h3.title{
-    margin-bottom: 10px !important;
+    margin-bottom: 4px !important;
   }
 
   .tags{
-    margin-top: 4px !important;
-    margin-bottom: 16px !important;
+    margin-top: 2px !important;
+    margin-bottom: 6px !important;
   }
 
   /* Réserve la hauteur des badges */
@@ -723,12 +723,34 @@
     </div>
 
     <div class="field">
+      <label class="label">Poussettes</label>
+      <div style="display:flex; flex-direction:column; gap:8px;">
+        <div style="display:flex; align-items:center; gap:10px;">
+          <input id="siModalPoussettesPorte"
+                 class="input"
+                 style="max-width:70px; text-align:center;"
+                 inputmode="numeric"
+                 placeholder="—">
+          <span style="font-size:.9rem;">Poussette(s) porte</span>
+        </div>
+        <div style="display:flex; align-items:center; gap:10px;">
+          <input id="siModalPoussettesCBS"
+                 class="input"
+                 style="max-width:70px; text-align:center;"
+                 inputmode="numeric"
+                 placeholder="—">
+          <span style="font-size:.9rem;">Poussette(s) CBS</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="field">
       <label class="label">Texte SI :</label>
       <div class="control">
         <textarea id="siModalInput"
                   class="textarea"
-                  rows="5"
-                  placeholder="Ex: Poussettes porte, poussettes CBS, wheelchair, bagages spéciaux, cargo etc."></textarea>
+                  rows="4"
+                  placeholder="Wheelchair, bagages spéciaux, cargo..."></textarea>
       </div>
       <p class="help">Tu peux laisser vide.</p>
     </div>
