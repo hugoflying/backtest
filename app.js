@@ -573,10 +573,14 @@ function openSIModal(pending){
   const t      = document.getElementById("siModalInput");
   const cbMax5 = document.getElementById("siModalMax5");
   const cbHold = document.getElementById("siModalHold");
+  const pPorte = document.getElementById("siModalPoussettesPorte");
+  const pCBS   = document.getElementById("siModalPoussettesCBS");
 
   if(t){ t.value = _lirSiByVol[vol] || ""; setTimeout(() => t.focus(), 0); }
   if(cbMax5) cbMax5.checked = upper(v?.dep?.type) === "B38M";
   if(cbHold) cbHold.checked = false;
+  if(pPorte) pPorte.value = "";
+  if(pCBS)   pCBS.value   = "";
 
   document.getElementById("siBackdrop").style.display = "block";
   document.getElementById("siModal").style.display    = "flex";
@@ -592,11 +596,25 @@ async function submitSIModal(){
   const p = _pendingSIPrint;
   if(!p) return;
   const vol         = String(p.volTarget || "1");
-  const si          = document.getElementById("siModalInput")?.value || "";
+  const siRaw       = document.getElementById("siModalInput")?.value || "";
   const max5        = !!document.getElementById("siModalMax5")?.checked;
   const hold_search = !!document.getElementById("siModalHold")?.checked;
 
-  _lirSiByVol[vol] = si;
+  // Construction du préfixe poussettes
+  const nPorte = parseInt(document.getElementById("siModalPoussettesPorte")?.value || "", 10);
+  const nCBS   = parseInt(document.getElementById("siModalPoussettesCBS")?.value   || "", 10);
+  const parts  = [];
+  if(!isNaN(nPorte) && nPorte > 0)
+    parts.push(nPorte === 1 ? "1 poussette porte" : `${nPorte} poussettes porte`);
+  if(!isNaN(nCBS) && nCBS > 0)
+    parts.push(nCBS === 1 ? "1 poussette CBS" : `${nCBS} poussettes CBS`);
+
+  const prefix = parts.join("\n");
+  const si = prefix && siRaw.trim()
+    ? prefix + "\n" + siRaw.trim()
+    : prefix || siRaw.trim();
+
+  _lirSiByVol[vol] = siRaw;
   closeSIModal(true);
   _pendingSIPrint = null;
   await fillAndPrint(p.docKey, p.volTarget, { si, max5, hold_search });
