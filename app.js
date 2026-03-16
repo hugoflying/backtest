@@ -1121,7 +1121,6 @@ document.addEventListener("DOMContentLoaded", () => {
   bindAK(2);
   loadAKAll();
   startAKAutoRefresh();
-  $("akMenuRefresh")?.addEventListener("click", loadAKAll);
 
   const utcBtn = $("utcToggle");
   if(utcBtn){
