@@ -969,29 +969,42 @@ function actualArrIso(f){
   return "";
 }
 
+function getDelayStatus(mins){
+  if(mins == null) return null;
+  if(mins <= -11) return {
+    label:     "EN AVANCE",
+    bgColor:   "#dbeafe",
+    textColor: "#1d4ed8"
+  };
+  if(mins <= 5) return {
+    label:     "À L'HEURE",
+    bgColor:   "#dcfce7",
+    textColor: "#15803d"
+  };
+  if(mins < 15) return {
+    label:     `RETARDÉ +${mins}`,
+    bgColor:   "#ffedd5",
+    textColor: "#c2410c"
+  };
+  return {
+    label:     `RETARDÉ +${mins}`,
+    bgColor:   "#fee2e2",
+    textColor: "#b91c1c"
+  };
+}
+
 function renderDelayBadge(containerEl, mins){
   if(!containerEl || mins == null) return;
-
-  let label, color;
-
-  if(mins >= 15){
-    label = "RETARDÉ";
-    color = "is-danger";
-  }else if(mins >= 6){
-    label = "RETARDÉ";
-    color = "is-warning";
-  }else if(mins >= -10){
-    label = "À L'HEURE";
-    color = "is-success";
-  }else{
-    label = "EN AVANCE";
-    color = "is-info";
-  }
+  const status = getDelayStatus(mins);
+  if(!status) return;
 
   const span = document.createElement("span");
-  span.className     = `tag ${color}`;
-  span.style.fontWeight = "900";
-  span.textContent   = label;
+  span.className           = "tag";
+  span.style.background    = status.bgColor;
+  span.style.color         = status.textColor;
+  span.style.fontWeight    = "900";
+  span.style.border        = `1px solid ${status.textColor}22`;
+  span.textContent         = status.label;
   containerEl.appendChild(span);
 }
 
