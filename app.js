@@ -15,26 +15,27 @@ function isoToDDMMYYYY(iso){
 
 function upper(s){ return (s || "").toUpperCase().trim(); }
 
-function getVol(n){
-  const g = id => (document.getElementById(`${id}_${n}`)?.value || "").trim();
-  const c = id => !!document.getElementById(`${id}_${n}`)?.checked;
+function $(id){ return document.getElementById(id); }
 
+function getVol(n){
+  const g = id => ($(`${id}_${n}`)?.value || "").trim();
+  const c = id => !!$(`${id}_${n}`)?.checked;
   return {
     arr: {
-      date: g("arr_date"),
-      flt:  upper(g("arr_flt")),
-      from: upper(g("arr_from")),
-      reg:  upper(g("arr_reg")),
-      type: upper(g("arr_type")),
+      date:        g("arr_date"),
+      flt:         upper(g("arr_flt")),
+      from:        upper(g("arr_from")),
+      reg:         upper(g("arr_reg")),
+      type:        upper(g("arr_type")),
       hold_search: c("hold_search"),
-      max5: c("max5")
+      max5:        c("max5"),
     },
     dep: {
       date: g("dep_date"),
       flt:  upper(g("dep_flt")),
       to:   upper(g("dep_to")),
       reg:  upper(g("dep_reg")),
-      type: upper(g("dep_type"))
+      type: upper(g("dep_type")),
     }
   };
 }
@@ -43,10 +44,9 @@ function isVolEmpty(v){
   return !v.arr.date && !v.arr.flt && !v.dep.date && !v.dep.flt;
 }
 
-function parking(n){ return document.getElementById(`parking_${n}`)?.value || ""; }
-function rzaName(){ return upper(_rzaName); }
+function parking(n){ return $(`parking_${n}`)?.value || ""; }
+function rzaName(){  return upper(_rzaName); }
 
-/* ─── helpers ISO : chaîne de fallbacks pour DEP et ARR ─── */
 function bestDepIso(f){
   return f?.sobt || f?.eobt || f?.aobt || f?.pobt || f?.ctot || f?.etot || f?.atot || "";
 }
@@ -55,25 +55,39 @@ function bestArrIso(f){
 }
 
 /* =========================
-   ÉTAT MODULE (plus de window.* pour l'état interne)
+   ÉTAT MODULE
    ========================= */
 
-let _rzaName      = "";
-let _lirSiByVol   = { "1": "", "2": "" };
-let _menageByVol  = { "1": "", "2": "" };
-let _bbcgByVol    = {
+let _rzaName          = "";
+let _lirSiByVol       = { "1": "", "2": "" };
+let _menageByVol      = { "1": "", "2": "" };
+let _bbcgByVol        = {
   "1": { gate: "", comp: "", bingoCard: "1", bingoOf: "1" },
   "2": { gate: "", comp: "", bingoCard: "1", bingoOf: "1" },
 };
-
-let _akArrAll   = [];
-let _akDepAll   = [];
-let _akDepToday = [];
-let _akArrToday = [];
-let _akDepById  = new Map();
-
+let _akArrAll         = [];
+let _akDepAll         = [];
+let _akDepToday       = [];
+let _akArrToday       = [];
+let _akDepById        = new Map();
 let _autoRefreshTimer = null;
 let _useUTC           = false;
+
+/* =========================
+   CHAMPS CRITIQUES (bloquants)
+   ========================= */
+
+const CRITICAL_FIELDS = {
+  BINGO_FR:    ["DATE", "DEPARTURE FLIGHT NUMBER"],
+  LIR_RYANAIR: ["DATE", "DEPARTURE FLIGHT NUMBER", "REGISTRATION"],
+  LIR_LAUDA:   ["DATE", "DEPARTURE FLIGHT NUMBER"],
+  BBCG_GATE:   ["DATE", "DEPARTURE FLIGHT NUMBER"],
+  WAIF:        ["DATE", "DEPARTURE FLIGHT NUMBER"],
+  RTB:         ["DATE", "DEPARTURE FLIGHT NUMBER"],
+  AUTOCONTROLE:[],
+  PRESTA_DEP:  [],
+  PRESTA_RET:  [],
+};
 
 /* =========================
    DOCS PDF
@@ -81,7 +95,6 @@ let _useUTC           = false;
 
 const DOCS = {
 
-/* ========= BINGO ========= */
 BINGO_FR: {
   file: `${TEMPLATE_BASE}/templates/BINGO.pdf`,
   fill: ({ vol1 }) => ({
@@ -93,7 +106,6 @@ BINGO_FR: {
   flatten: true
 },
 
-/* ========= LIR RYANAIR ========= */
 LIR_RYANAIR: {
   file: `${TEMPLATE_BASE}/templates/LIR RYANAIR BELLOVA.pdf`,
   fill: ({ vol1 }, extra = null) => {
@@ -117,39 +129,36 @@ LIR_RYANAIR: {
   flatten: true
 },
 
-/* ========= LIR LAUDA ========= */
 LIR_LAUDA: {
   file: `${TEMPLATE_BASE}/templates/lauda-lir.pdf`,
   fill: ({ vol1 }) => ({
     "DEPARTURE FLIGHT NUMBER": vol1.dep.flt,
     "REGISTRATION":            vol1.dep.reg,
     "DATE":                    isoToDDMMYYYY(vol1.dep.date),
-    "FROM":                    "BVA", // forcé
+    "FROM":                    "BVA",
     "TO":                      vol1.dep.to,
   }),
   flatten: true
 },
 
-/* ========= BBCG (Wizz) ========= */
 BBCG_GATE: {
   file: `${TEMPLATE_BASE}/templates/BBCG_Apr2020_Rev1 - BAGGAGE BINGO CARD_GATE.pdf`,
   fill: ({ vol1 }, extra = null) => ({
     "DATE":                    isoToDDMMYYYY(vol1.dep.date),
     "DEPARTURE FLIGHT NUMBER": vol1.dep.flt,
     "TO":                      vol1.dep.to,
-    "GATE NUMBER":             upper(String(extra?.gate || "")),
-    "LOAD COMPARTMENT":        upper(String(extra?.comp || "")),
+    "GATE NUMBER":             upper(String(extra?.gate     || "")),
+    "LOAD COMPARTMENT":        upper(String(extra?.comp     || "")),
     "Bingo Card":              String(extra?.bingoCard || "").trim(),
     "Of":                      String(extra?.bingoOf   || "").trim(),
   }),
   flatten: true
 },
 
-/* ========= WAIF (Wizz) ========= */
 WAIF: {
   file: `${TEMPLATE_BASE}/templates/WAIF_Jun2021_Rev1.1_ WALKAROUND INSPECTION FORM.pdf`,
   fill: ({ vol1 }) => ({
-    "STATION":                 "BVA", // forcé
+    "STATION":                 "BVA",
     "ARRIVAL FLIGHT NUMBER":   vol1.arr.flt,
     "DATE":                    isoToDDMMYYYY(vol1.arr.date),
     "REGISTRATION":            vol1.arr.reg,
@@ -159,7 +168,6 @@ WAIF: {
   flatten: true
 },
 
-/* ========= RTB (Wizz) ========= */
 RTB: {
   file: `${TEMPLATE_BASE}/templates/RTB_Mar2025_Rev3_Ready To Board.pdf`,
   fill: ({ vol1 }) => ({
@@ -171,7 +179,6 @@ RTB: {
   flatten: true
 },
 
-/* ========= AUTOCONTROLE ========= */
 AUTOCONTROLE: {
   file: `${TEMPLATE_BASE}/templates/Autocontrôle.pdf`,
   fill: ({ vol1, vol2 }) => {
@@ -194,7 +201,6 @@ AUTOCONTROLE: {
   flatten: true
 },
 
-/* ========= PRESTATIONS DÉPART ========= */
 PRESTA_DEP: {
   file: `${TEMPLATE_BASE}/templates/Suivi prestations basés départ.pdf`,
   fill: ({ vol1, vol2 }) => {
@@ -219,36 +225,35 @@ PRESTA_DEP: {
   duplex:  "DuplexFlipLongEdge"
 },
 
-/* ========= PRESTATIONS ARRIVÉE ========= */
 PRESTA_RET: {
   file: `${TEMPLATE_BASE}/templates/Suivi prestations basés arrivée.pdf`,
   fill: ({ vol1, vol2 }, extra = null) => {
     const o = {};
     if(!isVolEmpty(vol1)){
-      o["FLIGHT A - IMMATRICULATION"]        = vol1.arr.reg;
-      o["FLIGHT A - DATE"]                   = isoToDDMMYYYY(vol1.arr.date);
-      o["FLIGHT A - STAND"]                  = parking(1);
-      o["FLIGHT A - ARRIVAL FLIGHT NUMBER"]  = vol1.arr.flt;
-      o["FLIGHT A - FROM"]                   = vol1.arr.from;
+      o["FLIGHT A - IMMATRICULATION"]       = vol1.arr.reg;
+      o["FLIGHT A - DATE"]                  = isoToDDMMYYYY(vol1.arr.date);
+      o["FLIGHT A - STAND"]                 = parking(1);
+      o["FLIGHT A - ARRIVAL FLIGHT NUMBER"] = vol1.arr.flt;
+      o["FLIGHT A - FROM"]                  = vol1.arr.from;
     }
     if(!isVolEmpty(vol2)){
-      o["FLIGHT B - IMMATRICULATION"]        = vol2.arr.reg;
-      o["FLIGHT B - DATE"]                   = isoToDDMMYYYY(vol2.arr.date);
-      o["FLIGHT B - STAND"]                  = parking(2);
-      o["FLIGHT B - ARRIVAL FLIGHT NUMBER"]  = vol2.arr.flt;
-      o["FLIGHT B - FROM"]                   = vol2.arr.from;
+      o["FLIGHT B - IMMATRICULATION"]       = vol2.arr.reg;
+      o["FLIGHT B - DATE"]                  = isoToDDMMYYYY(vol2.arr.date);
+      o["FLIGHT B - STAND"]                 = parking(2);
+      o["FLIGHT B - ARRIVAL FLIGHT NUMBER"] = vol2.arr.flt;
+      o["FLIGHT B - FROM"]                  = vol2.arr.from;
     }
     const m1 = extra?.menage?.["1"] || "";
     const m2 = extra?.menage?.["2"] || "";
-    o["FLIGHT A - MENAGE TIDY"] = (m1 === "TIDY") ? "X" : "";
-    o["FLIGHT A - MENAGE FULL"] = (m1 === "FULL") ? "X" : "";
-    o["FLIGHT B - MENAGE TIDY"] = (m2 === "TIDY") ? "X" : "";
-    o["FLIGHT B - MENAGE FULL"] = (m2 === "FULL") ? "X" : "";
+    o["FLIGHT A - MENAGE TIDY"] = m1 === "TIDY" ? "X" : "";
+    o["FLIGHT A - MENAGE FULL"] = m1 === "FULL" ? "X" : "";
+    o["FLIGHT B - MENAGE TIDY"] = m2 === "TIDY" ? "X" : "";
+    o["FLIGHT B - MENAGE FULL"] = m2 === "FULL" ? "X" : "";
     return o;
   },
   flatten: true,
   duplex:  "DuplexFlipLongEdge"
-}
+},
 
 };
 
@@ -291,39 +296,12 @@ async function getFontsBytes(BASE){
   return { bold: _robotoCondBoldBytes };
 }
 
-function safeFilePart(s){
-  return String(s || "").trim()
-    .replace(/[\/\\?%*:|"<>]/g, "-")
-    .replace(/\s+/g, "_");
-}
-
-function ymd(isoDate){
-  if(!isoDate) return "";
-  const [y,m,d] = String(isoDate).split("-");
-  if(!y || !m || !d) return "";
-  return `${y}${m}${d}`;
-}
-
-function buildPdfFilename(docKey, volTarget, v1, v2){
-  if(volTarget === "both"){
-    const d1 = ymd(v1?.dep?.date || v1?.arr?.date);
-    const d2 = ymd(v2?.dep?.date || v2?.arr?.date);
-    return `${safeFilePart(docKey)}_${d1 || "VOL1"}_${d2 || "VOL2"}.pdf`;
-  }
-  const v    = (volTarget === "2") ? v2 : v1;
-  const date = ymd(v?.dep?.date || v?.arr?.date);
-  const flt  = safeFilePart(v?.dep?.flt || v?.arr?.flt || "");
-  return `${safeFilePart(docKey)}_${date || "DATE"}${flt ? "_" + flt : ""}.pdf`;
-}
-
-// Génère les bytes d'un PDF rempli sans l'imprimer
 async function buildPdfBytes(docKey, volTarget = "1", extra = null){
   const def = DOCS[docKey];
-  if(!def) return null;
+  if(!def) throw new Error(`Document inconnu : ${docKey}`);
 
-  const v1 = getVol(1);
-  const v2 = getVol(2);
-
+  const v1   = getVol(1);
+  const v2   = getVol(2);
   const vol1 = (volTarget === "2") ? v2 : v1;
   const vol2 = (volTarget === "2") ? v1 : v2;
 
@@ -331,8 +309,9 @@ async function buildPdfBytes(docKey, volTarget = "1", extra = null){
   const templateBytes = await getTemplateBytes(def, docKey);
   const pdfDoc        = await PDFDocument.load(templateBytes);
   pdfDoc.registerFontkit(fontkit);
-  const form      = pdfDoc.getForm();
-  const allFields = form.getFields();
+  const form       = pdfDoc.getForm();
+  const allFields  = form.getFields();
+  const fieldNames = new Set(allFields.map(f => f.getName()));
 
   const { bold } = await getFontsBytes(BASE);
   const fontBold = await pdfDoc.embedFont(bold);
@@ -347,6 +326,15 @@ async function buildPdfBytes(docKey, volTarget = "1", extra = null){
       ? def.fill({ vol1: v1, vol2: v2 }, extra)
       : def.fill({ vol1, vol2 }, extra);
 
+  // Vérification des champs critiques — bloquant
+  const criticals = CRITICAL_FIELDS[docKey] || [];
+  const missing   = criticals.filter(name => !String(fields[name] ?? "").trim());
+  if(missing.length > 0){
+    throw new Error(
+      `${docKey} — champ(s) obligatoire(s) manquant(s) :\n${missing.join(", ")}\n\nVérifiez que le vol est bien sélectionné.`
+    );
+  }
+
   for(const [name, raw] of Object.entries(fields)){
     try{
       if(typeof raw === "boolean"){
@@ -356,7 +344,7 @@ async function buildPdfBytes(docKey, volTarget = "1", extra = null){
       }
 
       const rawStr = String(raw ?? "");
-      const value  = (name === "SI") ? rawStr : rawStr.toUpperCase();
+      const value  = name === "SI" ? rawStr : rawStr.toUpperCase();
 
       if(name !== "SI" && name !== "MAX 5"){
         try{
@@ -374,6 +362,7 @@ async function buildPdfBytes(docKey, volTarget = "1", extra = null){
         if(typeof tf.setFontSize === "function") tf.setFontSize(14);
         tf.updateAppearances(fontBold);
       }else{
+        if(!fieldNames.has(name)){ console.warn(`Champ ignoré : ${name}`); continue; }
         const tf = form.getTextField(name);
         tf.setText(value);
         tf.setAlignment(
@@ -384,7 +373,7 @@ async function buildPdfBytes(docKey, volTarget = "1", extra = null){
         tf.updateAppearances(fontBold);
       }
     }catch(e){
-      console.warn("Champ PDF introuvable ou incompatible:", name, e?.message || e);
+      console.warn("Champ PDF incompatible :", name, e?.message || e);
     }
   }
 
@@ -393,9 +382,7 @@ async function buildPdfBytes(docKey, volTarget = "1", extra = null){
   return await pdfDoc.save();
 }
 
-// Fusionne plusieurs PDFs en un seul et ouvre une seule boîte d'impression
 async function mergeAndPrint(jobs){
-  // jobs = [{ docKey, volTarget, extra }, ...]
   const allBytes = await Promise.all(
     jobs.map(j => buildPdfBytes(j.docKey, j.volTarget ?? "1", j.extra ?? null))
   );
@@ -408,39 +395,43 @@ async function mergeAndPrint(jobs){
     pages.forEach(p => merged.addPage(p));
   }
 
-  // Duplex : recto/verso seulement si TOUS les docs le demandent, sinon Simplex
   const allDuplex = jobs.every(j => DOCS[j.docKey]?.duplex === "DuplexFlipLongEdge");
   const duplexVal = allDuplex ? "DuplexFlipLongEdge" : "Simplex";
 
-  const { PDFName } = PDFLib;
-  merged.catalog.set(
-    PDFName.of("ViewerPreferences"),
-    merged.context.obj({
-      Duplex:       PDFName.of(duplexVal),
-      PrintScaling: PDFName.of("None"),
-    })
-  );
+  // ViewerPreferences — uniquement si PDFName est disponible dans cette version de pdf-lib
+  try{
+    const PDFName = PDFLib.PDFName;
+    if(PDFName){
+      merged.catalog.set(
+        PDFName.of("ViewerPreferences"),
+        merged.context.obj({
+          Duplex:       PDFName.of(duplexVal),
+          PrintScaling: PDFName.of("None"),
+        })
+      );
+    }
+  }catch(e){
+    console.warn("ViewerPreferences non supporté:", e?.message);
+  }
 
   const bytes = await merged.save();
   const blob  = new Blob([bytes], { type: "application/pdf" });
   const url   = URL.createObjectURL(blob);
 
   const iframe = document.createElement("iframe");
-  Object.assign(iframe.style, { position:"fixed", right:"0", bottom:"0", width:"0", height:"0", border:"0" });
+  Object.assign(iframe.style, {
+    position: "fixed", right: "0", bottom: "0", width: "0", height: "0", border: "0"
+  });
   iframe.src = url;
   document.body.appendChild(iframe);
 
   iframe.onload = () => {
     iframe.contentWindow.focus();
     iframe.contentWindow.print();
-    setTimeout(() => {
-      URL.revokeObjectURL(url);
-      iframe.remove();
-    }, 1000);
+    setTimeout(() => { URL.revokeObjectURL(url); iframe.remove(); }, 1000);
   };
 }
 
-// Raccourci pour un seul doc (conserve la compatibilité)
 async function fillAndPrint(docKey, volTarget = "1", extra = null){
   await mergeAndPrint([{ docKey, volTarget, extra }]);
 }
@@ -456,10 +447,10 @@ document.addEventListener("click", async (e) => {
   const docKey    = b.dataset.doc;
   const volTarget = b.dataset.vol || "1";
 
-  if(docKey === "AUTOCONTROLE"){ openRZAModal({ docKey, volTarget }); return; }
-  if(docKey === "LIR_RYANAIR" && volTarget !== "both"){ openSIModal({ docKey, volTarget }); return; }
-  if(docKey === "PRESTA_RET"){ openMenageModal({ docKey, volTarget }); return; }
-  if(docKey === "BBCG_GATE"){ openBBCGModal({ docKey, volTarget }); return; }
+  if(docKey === "AUTOCONTROLE")                        { openRZAModal({ docKey, volTarget });    return; }
+  if(docKey === "LIR_RYANAIR" && volTarget !== "both") { openSIModal({ docKey, volTarget });     return; }
+  if(docKey === "PRESTA_RET")                          { openMenageModal({ docKey, volTarget }); return; }
+  if(docKey === "BBCG_GATE")                           { openBBCGModal({ docKey, volTarget });   return; }
 
   try{
     await fillAndPrint(docKey, volTarget);
@@ -476,30 +467,25 @@ document.addEventListener("click", async (e) => {
 let _pendingMenagePrint = null;
 
 function setMenageUI(vol, value){
-  const tidyBtn = document.getElementById(`menage${vol}TidyBtn`);
-  const fullBtn = document.getElementById(`menage${vol}FullBtn`);
-  if(!tidyBtn || !fullBtn) return;
-  tidyBtn.classList.toggle("menage-on", value === "TIDY");
-  fullBtn.classList.toggle("menage-on", value === "FULL");
+  $(`menage${vol}TidyBtn`)?.classList.toggle("menage-on", value === "TIDY");
+  $(`menage${vol}FullBtn`)?.classList.toggle("menage-on", value === "FULL");
 }
 
 function bindMenageButtons(){
-  const bind = (vol) => {
-    const tidyBtn = document.getElementById(`menage${vol}TidyBtn`);
-    const fullBtn = document.getElementById(`menage${vol}FullBtn`);
+  [1, 2].forEach(vol => {
+    const key     = String(vol);
+    const tidyBtn = $(`menage${vol}TidyBtn`);
+    const fullBtn = $(`menage${vol}FullBtn`);
     if(!tidyBtn || !fullBtn) return;
-    const key = String(vol);
     tidyBtn.onclick = () => {
-      _menageByVol[key] = (_menageByVol[key] === "TIDY") ? "" : "TIDY";
+      _menageByVol[key] = _menageByVol[key] === "TIDY" ? "" : "TIDY";
       setMenageUI(vol, _menageByVol[key]);
     };
     fullBtn.onclick = () => {
-      _menageByVol[key] = (_menageByVol[key] === "FULL") ? "" : "FULL";
+      _menageByVol[key] = _menageByVol[key] === "FULL" ? "" : "FULL";
       setMenageUI(vol, _menageByVol[key]);
     };
-  };
-  bind(1);
-  bind(2);
+  });
 }
 
 function openMenageModal(pending){
@@ -507,13 +493,13 @@ function openMenageModal(pending){
   setMenageUI(1, _menageByVol["1"]);
   setMenageUI(2, _menageByVol["2"]);
   bindMenageButtons();
-  document.getElementById("menageBackdrop").style.display = "block";
-  document.getElementById("menageModal").style.display    = "flex";
+  $("menageBackdrop").style.display = "block";
+  $("menageModal").style.display    = "flex";
 }
 
 function closeMenageModal(keepPending){
-  document.getElementById("menageBackdrop").style.display = "none";
-  document.getElementById("menageModal").style.display    = "none";
+  $("menageBackdrop").style.display = "none";
+  $("menageModal").style.display    = "none";
   if(!keepPending) _pendingMenagePrint = null;
 }
 
@@ -522,9 +508,11 @@ async function submitMenageModal(){
   if(!p) return;
   closeMenageModal(true);
   _pendingMenagePrint = null;
-  await fillAndPrint(p.docKey, p.volTarget, {
-    menage: { "1": _menageByVol["1"], "2": _menageByVol["2"] }
-  });
+  try{
+    await fillAndPrint(p.docKey, p.volTarget, {
+      menage: { "1": _menageByVol["1"], "2": _menageByVol["2"] }
+    });
+  }catch(err){ alert(err?.message || String(err)); }
 }
 
 window.openMenageModal   = openMenageModal;
@@ -547,33 +535,26 @@ function defaultCompFromAcType(acType){
 function openBBCGModal(pending){
   _pendingBBCGPrint = pending;
   const vol = String(pending?.volTarget || "1");
-
-  if(!_bbcgByVol[vol]){
-    _bbcgByVol[vol] = { gate: "", comp: "", bingoCard: "1", bingoOf: "1" };
-  }
+  _bbcgByVol[vol] ??= { gate: "", comp: "", bingoCard: "1", bingoOf: "1" };
 
   const data        = _bbcgByVol[vol];
-  const acType      = document.getElementById(`dep_type_${vol}`)?.value || "";
+  const acType      = $(`dep_type_${vol}`)?.value || "";
   const compDefault = data.comp || defaultCompFromAcType(acType);
 
-  const gate = document.getElementById("bbcgGate");
-  const comp = document.getElementById("bbcgComp");
-  const bc   = document.getElementById("bbcgBingoCard");
-  const of   = document.getElementById("bbcgBingoOf");
+  const gateEl = $("bbcgGate");
+  if($("bbcgGate"))      $("bbcgGate").value      = data.gate      || "";
+  if($("bbcgComp"))      $("bbcgComp").value      = compDefault    || "";
+  if($("bbcgBingoCard")) $("bbcgBingoCard").value  = data.bingoCard || "1";
+  if($("bbcgBingoOf"))   $("bbcgBingoOf").value    = data.bingoOf   || "1";
 
-  if(gate) gate.value = data.gate      || "";
-  if(comp) comp.value = compDefault    || "";
-  if(bc)   bc.value   = data.bingoCard || "1";
-  if(of)   of.value   = data.bingoOf   || "1";
-
-  document.getElementById("bbcgBackdrop").style.display = "block";
-  document.getElementById("bbcgModal").style.display    = "flex";
-  setTimeout(() => gate?.focus?.(), 0);
+  $("bbcgBackdrop").style.display = "block";
+  $("bbcgModal").style.display    = "flex";
+  setTimeout(() => gateEl?.focus?.(), 0);
 }
 
 function closeBBCGModal(keepPending){
-  document.getElementById("bbcgBackdrop").style.display = "none";
-  document.getElementById("bbcgModal").style.display    = "none";
+  $("bbcgBackdrop").style.display = "none";
+  $("bbcgModal").style.display    = "none";
   if(!keepPending) _pendingBBCGPrint = null;
 }
 
@@ -581,15 +562,17 @@ async function submitBBCGModal(){
   const p = _pendingBBCGPrint;
   if(!p) return;
   const vol       = String(p.volTarget || "1");
-  const gate      = (document.getElementById("bbcgGate")?.value      || "").trim();
-  const comp      = (document.getElementById("bbcgComp")?.value      || "").trim();
-  const bingoCard = (document.getElementById("bbcgBingoCard")?.value || "1").trim();
-  const bingoOf   = (document.getElementById("bbcgBingoOf")?.value   || "1").trim();
+  const gate      = ($("bbcgGate")?.value      || "").trim();
+  const comp      = ($("bbcgComp")?.value      || "").trim();
+  const bingoCard = ($("bbcgBingoCard")?.value || "1").trim();
+  const bingoOf   = ($("bbcgBingoOf")?.value   || "1").trim();
 
   _bbcgByVol[vol] = { gate, comp, bingoCard, bingoOf };
   closeBBCGModal(true);
   _pendingBBCGPrint = null;
-  await fillAndPrint(p.docKey, p.volTarget, { gate, comp, bingoCard, bingoOf });
+  try{
+    await fillAndPrint(p.docKey, p.volTarget, { gate, comp, bingoCard, bingoOf });
+  }catch(err){ alert(err?.message || String(err)); }
 }
 
 window.openBBCGModal   = openBBCGModal;
@@ -606,25 +589,23 @@ function openSIModal(pending){
   _pendingSIPrint = pending;
   const vol    = String(pending?.volTarget || "1");
   const v      = getVol(Number(vol));
-  const t      = document.getElementById("siModalInput");
-  const cbMax5 = document.getElementById("siModalMax5");
-  const cbHold = document.getElementById("siModalHold");
-  const pPorte = document.getElementById("siModalPoussettesPorte");
-  const pCBS   = document.getElementById("siModalPoussettesCBS");
+  const tEl    = $("siModalInput");
+  const cbMax5 = $("siModalMax5");
+  const cbHold = $("siModalHold");
 
-  if(t){ t.value = _lirSiByVol[vol] || ""; setTimeout(() => t.focus(), 0); }
+  if(tEl){ tEl.value = _lirSiByVol[vol] || ""; setTimeout(() => tEl.focus(), 0); }
   if(cbMax5) cbMax5.checked = upper(v?.dep?.type) === "B38M";
   if(cbHold) cbHold.checked = false;
-  if(pPorte) pPorte.value = "";
-  if(pCBS)   pCBS.value   = "";
+  if($("siModalPoussettesPorte")) $("siModalPoussettesPorte").value = "";
+  if($("siModalPoussettesCBS"))   $("siModalPoussettesCBS").value   = "";
 
-  document.getElementById("siBackdrop").style.display = "block";
-  document.getElementById("siModal").style.display    = "flex";
+  $("siBackdrop").style.display = "block";
+  $("siModal").style.display    = "flex";
 }
 
 function closeSIModal(keepPending){
-  document.getElementById("siBackdrop").style.display = "none";
-  document.getElementById("siModal").style.display    = "none";
+  $("siBackdrop").style.display = "none";
+  $("siModal").style.display    = "none";
   if(!keepPending) _pendingSIPrint = null;
 }
 
@@ -632,13 +613,12 @@ async function submitSIModal(){
   const p = _pendingSIPrint;
   if(!p) return;
   const vol         = String(p.volTarget || "1");
-  const siRaw       = document.getElementById("siModalInput")?.value || "";
-  const max5        = !!document.getElementById("siModalMax5")?.checked;
-  const hold_search = !!document.getElementById("siModalHold")?.checked;
+  const siRaw       = $("siModalInput")?.value || "";
+  const max5        = !!$("siModalMax5")?.checked;
+  const hold_search = !!$("siModalHold")?.checked;
 
-  // Construction du préfixe poussettes
-  const nPorte = parseInt(document.getElementById("siModalPoussettesPorte")?.value || "", 10);
-  const nCBS   = parseInt(document.getElementById("siModalPoussettesCBS")?.value   || "", 10);
+  const nPorte = parseInt($("siModalPoussettesPorte")?.value || "", 10);
+  const nCBS   = parseInt($("siModalPoussettesCBS")?.value   || "", 10);
   const parts  = [];
   if(!isNaN(nPorte) && nPorte > 0)
     parts.push(nPorte === 1 ? "1 poussette porte" : `${nPorte} poussettes porte`);
@@ -654,12 +634,13 @@ async function submitSIModal(){
   closeSIModal(true);
   _pendingSIPrint = null;
 
-  const printBingo = !!document.getElementById("siModalBingo")?.checked;
-
+  const printBingo = !!$("siModalBingo")?.checked;
   const jobs = [{ docKey: p.docKey, volTarget: p.volTarget, extra: { si, max5, hold_search } }];
   if(printBingo) jobs.push({ docKey: "BINGO_FR", volTarget: p.volTarget });
 
-  await mergeAndPrint(jobs);
+  try{
+    await mergeAndPrint(jobs);
+  }catch(err){ alert(err?.message || String(err)); }
 }
 
 window.openSIModal   = openSIModal;
@@ -674,36 +655,38 @@ let _pendingPrint = null;
 
 function openRZAModal(pending){
   _pendingPrint = pending;
-  const i = document.getElementById("rzaModalInput");
-  const h = document.getElementById("rzaHelp");
-  if(h) h.style.display = "none";
-  if(i){ i.value = _rzaName; setTimeout(() => i.focus(), 0); }
-  document.getElementById("rzaBackdrop").style.display = "block";
-  document.getElementById("rzaModal").style.display    = "flex";
+  const iEl = $("rzaModalInput");
+  const hEl = $("rzaHelp");
+  if(hEl) hEl.style.display = "none";
+  if(iEl){ iEl.value = _rzaName; setTimeout(() => iEl.focus(), 0); }
+  $("rzaBackdrop").style.display = "block";
+  $("rzaModal").style.display    = "flex";
 }
 
 function closeRZAModal(keepPending){
-  const h = document.getElementById("rzaHelp");
-  if(h) h.style.display = "none";
-  document.getElementById("rzaBackdrop").style.display = "none";
-  document.getElementById("rzaModal").style.display    = "none";
+  if($("rzaHelp")) $("rzaHelp").style.display = "none";
+  $("rzaBackdrop").style.display = "none";
+  $("rzaModal").style.display    = "none";
   if(!keepPending) _pendingPrint = null;
 }
 
 async function submitRZAModal(){
-  const i = document.getElementById("rzaModalInput");
-  const h = document.getElementById("rzaHelp");
-  const v = (i?.value || "").trim();
+  const iEl = $("rzaModalInput");
+  const hEl = $("rzaHelp");
+  const v   = (iEl?.value || "").trim();
   if(!v){
-    if(h) h.style.display = "block";
-    if(i) i.focus();
+    if(hEl) hEl.style.display = "block";
+    if(iEl) iEl.focus();
     return;
   }
   _rzaName = v;
-  const p = _pendingPrint;
+  const p  = _pendingPrint;
   closeRZAModal(true);
   _pendingPrint = null;
-  if(p) await fillAndPrint(p.docKey, p.volTarget);
+  if(p){
+    try{ await fillAndPrint(p.docKey, p.volTarget); }
+    catch(err){ alert(err?.message || String(err)); }
+  }
 }
 
 window.openRZAModal   = openRZAModal;
@@ -717,9 +700,9 @@ window.submitRZAModal = submitRZAModal;
 function lirTypeX(acType){
   const t = upper(acType);
   return {
-    B737: (t === "B737") ? "" : "X",
-    B738: (t === "B738") ? "" : "X",
-    B38M: (t === "B38M") ? "" : "X",
+    B737: t === "B737" ? "" : "X",
+    B738: t === "B738" ? "" : "X",
+    B38M: t === "B38M" ? "" : "X",
   };
 }
 
@@ -729,16 +712,15 @@ function lirTypeX(acType){
 
 const AK_PROXY = "/ak";
 
-function $(id){ return document.getElementById(id); }
-
 function isoToYYYYMMDD(iso){
   if(!iso) return "";
   const d = new Date(iso);
   if(isNaN(d.getTime())) return "";
-  const y  = d.getFullYear();
-  const mo = String(d.getMonth() + 1).padStart(2, "0");
-  const da = String(d.getDate()).padStart(2, "0");
-  return `${y}-${mo}-${da}`;
+  return [
+    d.getFullYear(),
+    String(d.getMonth() + 1).padStart(2, "0"),
+    String(d.getDate()).padStart(2, "0")
+  ].join("-");
 }
 
 function depListMs(f){ return Date.parse(f?.sobt || "") || null; }
@@ -773,12 +755,12 @@ async function fetchAK(flow, from, to){
   if(Array.isArray(data))          return data;
   if(Array.isArray(data?.flights)) return data.flights;
   if(Array.isArray(data?.data))    return data.data;
-  console.log("AK payload inconnu:", data);
+  console.warn("AK payload inconnu:", data);
   return [];
 }
 
 /* =========================
-   LABELS DROPDOWN (buildDepLabel + buildArrLabel fusionnés)
+   LABELS DROPDOWN
    ========================= */
 
 const NBSP = "\u00A0";
@@ -807,18 +789,16 @@ function buildFlightLabel(f, flow){
   const reg   = upper(f?.reg || "") || "-----";
   const stand = (f?.pkg || "").toString().replace(/^P/i, "").trim();
   const p     = stand ? `P${stand}` : "";
-  const icon  = isArr ? "🛬" : "🛫";
+  const lid   = String(f?.linkedId || "").trim();
 
   let status = "";
   if(isArr){
     const arrived  = Number.isFinite(Date.parse(f?.aibt || ""));
-    const lid      = String(f?.linkedId || "").trim();
     const dep      = lid ? (_akDepById.get(lid) || null) : null;
     const departed = Number.isFinite(Date.parse(dep?.atot || ""));
     if(departed)     status = "DÉCOLLÉ";
     else if(arrived) status = "ARRIVÉ";
   }else{
-    const lid      = String(f?.linkedId || "").trim();
     const arr      = lid ? _akArrAll.find(a => String(a?.id || "") === lid) : null;
     const arrived  = Number.isFinite(Date.parse(arr?.aibt || ""));
     const departed = Number.isFinite(Date.parse(f?.atot || ""));
@@ -829,17 +809,13 @@ function buildFlightLabel(f, flow){
   return [
     padCol(t    || "--:--", 6),
     padCol(flt  || "—",     8),
-    `${icon} `,
+    isArr ? "🛬 " : "🛫 ",
     padCol(iata || "---",   4),
     padCol(reg,             7),
     padCol(p   || "",       5),
     status ? " " + status : ""
   ].join("");
 }
-
-/* =========================
-   SETVAL
-   ========================= */
 
 function setVal(id, v){
   const el = $(id);
@@ -909,7 +885,6 @@ function applyDepOnlyToVol(n, dep){
 function applyDepToVol(n, dep, arrAll){
   if(!dep) return;
   applyDepOnlyToVol(n, dep);
-
   const prevArr = findLinkedArrForDepSameDay(dep, arrAll);
   if(prevArr){
     setVal(`arr_date_${n}`, isoToYYYYMMDD(bestArrIso(prevArr)));
@@ -918,11 +893,8 @@ function applyDepToVol(n, dep, arrAll){
     setVal(`arr_reg_${n}`,  upper(prevArr?.reg || dep?.reg || ""));
     setVal(`arr_type_${n}`, akAcType(prevArr) || akAcType(dep));
   }else{
-    setVal(`arr_reg_${n}`,  "");
-    setVal(`arr_type_${n}`, "");
-    setVal(`arr_date_${n}`, "");
-    setVal(`arr_flt_${n}`,  "");
-    setVal(`arr_from_${n}`, "");
+    ["arr_reg", "arr_type", "arr_date", "arr_flt", "arr_from"]
+      .forEach(k => setVal(`${k}_${n}`, ""));
   }
 }
 
@@ -940,22 +912,15 @@ function akAcType(f){
    ========================= */
 
 function resetVolUI(volNum){
-  const ids = [
-    `arr_date_${volNum}`, `arr_flt_${volNum}`, `arr_from_${volNum}`,
-    `dep_date_${volNum}`, `dep_flt_${volNum}`, `dep_to_${volNum}`,
-    `parking_${volNum}`,  `dep_reg_${volNum}`, `dep_type_${volNum}`,
-    `arr_reg_${volNum}`,  `arr_type_${volNum}`
-  ];
-  ids.forEach(id => {
-    const el = document.getElementById(id);
+  ["arr_date","arr_flt","arr_from","dep_date","dep_flt","dep_to",
+   "parking","dep_reg","dep_type","arr_reg","arr_type"].forEach(k => {
+    const el = $(`${k}_${volNum}`);
     if(!el) return;
     if(el.type === "checkbox") el.checked = false;
     else el.value = "";
   });
-  const arrBadges = $(`arr_badges_${volNum}`);
-  const depBadges = $(`dep_badges_${volNum}`);
-  if(arrBadges) arrBadges.innerHTML = "";
-  if(depBadges) depBadges.innerHTML = "";
+  $(`arr_badges_${volNum}`)?.replaceChildren();
+  $(`dep_badges_${volNum}`)?.replaceChildren();
 }
 
 /* =========================
@@ -997,7 +962,6 @@ function renderDelayBadge(containerEl, mins){
   if(!containerEl || mins == null) return;
   const status = getDelayStatus(mins);
   if(!status) return;
-
   const span = document.createElement("span");
   span.className        = `tag ${status.bulma}`;
   span.style.fontWeight = "900";
@@ -1006,23 +970,15 @@ function renderDelayBadge(containerEl, mins){
 }
 
 function updateBadgesFromFlights(n, depFlight, arrFlight){
-  const depWrap = $(`dep_badges_${n}`);
-  const arrWrap = $(`arr_badges_${n}`);
-  if(depWrap) depWrap.innerHTML = "";
-  if(arrWrap) arrWrap.innerHTML = "";
-
-  if(depFlight && depWrap)
-    renderDelayBadge(depWrap, delayMinFrom(depFlight?.sobt || "", actualDepIso(depFlight)));
-
-  if(arrFlight && arrWrap)
-    renderDelayBadge(arrWrap, delayMinFrom(arrFlight?.sibt || "", actualArrIso(arrFlight)));
+  $(`dep_badges_${n}`)?.replaceChildren();
+  $(`arr_badges_${n}`)?.replaceChildren();
+  if(depFlight) renderDelayBadge($(`dep_badges_${n}`), delayMinFrom(depFlight?.sobt || "", actualDepIso(depFlight)));
+  if(arrFlight) renderDelayBadge($(`arr_badges_${n}`), delayMinFrom(arrFlight?.sibt || "", actualArrIso(arrFlight)));
 }
 
 function clearBadges(n){
-  const a = $(`arr_badges_${n}`);
-  const d = $(`dep_badges_${n}`);
-  if(a) a.innerHTML = "";
-  if(d) d.innerHTML = "";
+  $(`arr_badges_${n}`)?.replaceChildren();
+  $(`dep_badges_${n}`)?.replaceChildren();
 }
 
 /* =========================
@@ -1039,7 +995,6 @@ async function loadAKAll(){
   const nowMs    = now.getTime();
   const startDay = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 0, 0, 0, 0);
   const endDay   = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 23, 59, 59, 999);
-
   const linkFrom = new Date(startDay.getTime() - 12 * 3600 * 1000).toISOString().replace(/\.\d{3}Z$/, "Z");
   const linkTo   = new Date(endDay.getTime()   + 12 * 3600 * 1000).toISOString().replace(/\.\d{3}Z$/, "Z");
 
@@ -1051,14 +1006,14 @@ async function loadAKAll(){
 
     _akDepById = new Map((depAll || []).map(d => [String(d?.id ?? ""), d]));
 
-    const inTodayDep = (f) => {
+    const inTodayDep = f => {
       const sobt = Date.parse(f?.sobt || "");
       if(!sobt || sobt < startDay.getTime() || sobt > endDay.getTime()) return false;
       const atot = Date.parse(f?.atot || "");
       return !(atot && (atot + 30 * 60000) < nowMs);
     };
 
-    const inTodayArr = (f) => {
+    const inTodayArr = f => {
       const t = Date.parse(f?.sibt || "");
       if(!(t && t >= startDay.getTime() && t <= endDay.getTime())) return false;
       const lid = String(f?.linkedId || "").trim();
@@ -1070,10 +1025,10 @@ async function loadAKAll(){
       return true;
     };
 
-    _akDepToday = depAll.filter(inTodayDep).sort((a, b) =>
-      (Date.parse(a?.sobt || "") || 1e18) - (Date.parse(b?.sobt || "") || 1e18));
-    _akArrToday = arrAll.filter(inTodayArr).sort((a, b) =>
-      (Date.parse(a?.sibt || "") || 1e18) - (Date.parse(b?.sibt || "") || 1e18));
+    _akDepToday = depAll.filter(inTodayDep)
+      .sort((a, b) => (Date.parse(a?.sobt || "") || 1e18) - (Date.parse(b?.sobt || "") || 1e18));
+    _akArrToday = arrAll.filter(inTodayArr)
+      .sort((a, b) => (Date.parse(a?.sibt || "") || 1e18) - (Date.parse(b?.sibt || "") || 1e18));
 
     _akArrAll = arrAll;
     _akDepAll = depAll;
@@ -1094,8 +1049,7 @@ function startAKAutoRefresh(){
     try{
       await loadAKAll();
     }catch(e){
-      const msg = String(e?.message || e);
-      if(/failed to fetch|network error|fetch/i.test(msg)){
+      if(/failed to fetch|network error|fetch/i.test(String(e?.message || e))){
         window.location.reload();
         return;
       }
@@ -1111,11 +1065,11 @@ function refreshAKDropdown(n){
   if(!flowSel || !sel) return;
 
   const flow = flowSel.value;
-  const list = (flow === "DEP") ? _akDepToday : _akArrToday;
+  const list = flow === "DEP" ? _akDepToday : _akArrToday;
 
   sel.innerHTML = `<option value="">-- Choisir un vol --</option>`;
   for(const f of list){
-    const opt = document.createElement("option");
+    const opt       = document.createElement("option");
     opt.value       = String(f?.id ?? "");
     opt.textContent = buildFlightLabel(f, flow);
     sel.appendChild(opt);
@@ -1169,12 +1123,11 @@ document.addEventListener("DOMContentLoaded", () => {
   startAKAutoRefresh();
   $("akMenuRefresh")?.addEventListener("click", loadAKAll);
 
-  // Toggle UTC / Local
-  const btn = $("utcToggle");
-  if(btn){
-    btn.addEventListener("click", () => {
+  const utcBtn = $("utcToggle");
+  if(utcBtn){
+    utcBtn.addEventListener("click", () => {
       _useUTC = !_useUTC;
-      btn.title = _useUTC ? "Mode UTC — cliquer pour Local" : "Mode Local — cliquer pour UTC";
+      utcBtn.title = _useUTC ? "Mode UTC — cliquer pour Local" : "Mode Local — cliquer pour UTC";
       const badge = $("utcBadge");
       if(badge) badge.textContent = _useUTC ? "UTC" : "LT";
       refreshAKDropdown(1);
