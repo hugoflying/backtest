@@ -710,7 +710,9 @@ function openSIModal(pending){
 
   if(b) b.style.display = "block";
   if(m) m.style.display = "flex";
-}(keepPending){
+}
+
+function closeSIModal(keepPending){
   const b = document.getElementById("siBackdrop");
   const m = document.getElementById("siModal");
   if(b) b.style.display = "none";
