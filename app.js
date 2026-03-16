@@ -111,7 +111,6 @@ LIR_RYANAIR: {
       "SI":                      extra?.si || "",
       "MAX 5":                   max5 ? "MAX 5" : "",
       "ARRIVAL FLIGHT NUMBER":   hold ? (vol1.arr.flt || "") : "",
-      "HOLD SECURITY SEARCH":    hold,
     };
   },
   flatten: true
