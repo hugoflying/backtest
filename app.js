@@ -617,7 +617,11 @@ async function submitSIModal(){
   _lirSiByVol[vol] = siRaw;
   closeSIModal(true);
   _pendingSIPrint = null;
+
+  const printBingo = !!document.getElementById("siModalBingo")?.checked;
+
   await fillAndPrint(p.docKey, p.volTarget, { si, max5, hold_search });
+  if(printBingo) await fillAndPrint("BINGO_FR", p.volTarget);
 }
 
 window.openSIModal   = openSIModal;
