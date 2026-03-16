@@ -1203,11 +1203,11 @@ function renderDelayBadge(containerEl, mins){
     label = `RETARDÉ +${mins}`;
     color = "is-danger";
   }
-  else if(mins >= 5){
+  else if(mins >= 6){
     label = `RETARDÉ +${mins}`;
     color = "is-warning";
   }
-  else if(mins <= -10){ // ✅ durci : en avance seulement si -10 ou plus
+  else if(mins <= -11){
     label = `EN AVANCE ${mins}`;
     color = "is-info";
   }
