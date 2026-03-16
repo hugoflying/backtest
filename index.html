@@ -2,12 +2,7 @@
 <html lang="fr" data-theme="dark">
 <head>
   <script>
-    (function(){
-      try{
-        const t = localStorage.getItem("theme");
-        if(t) document.documentElement.setAttribute("data-theme", t);
-      }catch(e){}
-    })();
+    /* thème appliqué depuis l'attribut html data-theme="dark" — pas de localStorage */
   </script>
   <meta charset="utf-8">
   <title>Préparation des vols</title>
@@ -607,14 +602,13 @@
 <script type="module" src="app.js"></script>
 
 <script>
-  /* ── Thème jour/nuit ── */
+  /* ── Thème jour/nuit (pas de localStorage) ── */
   (function(){
     const btn  = document.getElementById("themeToggle");
     const html = document.documentElement;
     function applyTheme(t){
       html.setAttribute("data-theme", t);
       btn.textContent = t === "dark" ? "🌙" : "☀️";
-      try{ localStorage.setItem("theme", t); }catch(e){}
     }
     applyTheme(html.getAttribute("data-theme") || "dark");
     btn.addEventListener("click", () =>
