@@ -678,7 +678,7 @@
 </div>
 
 <!-- ===== RZA MODAL ===== -->
-<div id="rzaBackdrop" class="modal-backdrop" style="display:none; z-index:6000;"></div>
+<div id="rzaBackdrop" class="modal-backdrop" style="display:none; z-index:6000;" onclick="window.closeRZAModal(false)"></div>
 
 <div id="rzaModal" class="modal-overlay" style="display:none; z-index:6100;">
   <div class="box" style="width:min(420px, 100%); border-radius:16px;">
@@ -705,15 +705,15 @@
     </div>
 
     <div class="buttons is-right">
-      <button class="button is-light" type="button" id="rzaCancelBtn">Annuler</button>
-      <button class="button is-link"  type="button" id="rzaSubmitBtn">Valider</button>
+      <button class="button is-light" type="button" id="rzaCancelBtn" onclick="window.closeRZAModal(false)">Annuler</button>
+      <button class="button is-link"  type="button" id="rzaSubmitBtn" onclick="window.submitRZAModal()">Valider</button>
     </div>
 
   </div>
 </div>
 
 <!-- ===== SI MODAL (LIR Ryanair) ===== -->
-<div id="siBackdrop" class="modal-backdrop" style="display:none; z-index:6200;"></div>
+<div id="siBackdrop" class="modal-backdrop" style="display:none; z-index:6200;" onclick="window.closeSIModal(false)"></div>
 
 <div id="siModal" class="modal-overlay" style="display:none; z-index:6300;">
   <div class="box" style="width:min(520px, 100%); border-radius:16px;">
@@ -748,10 +748,10 @@
     </div>
 
     <div class="buttons is-right">
-      <button class="button is-light" type="button" id="siCancelBtn">Annuler</button>
-      <button class="button is-link"  type="button" id="siSubmitBtn">Imprimer</button>
+      <button class="button is-light" type="button" id="siCancelBtn" onclick="window.closeSIModal(false)">Annuler</button>
+      <button class="button is-link"  type="button" id="siSubmitBtn" onclick="window.submitSIModal()">Imprimer</button>
     </div> (Bingo Gate) ===== -->
-<div id="bbcgBackdrop" class="modal-backdrop" style="display:none; z-index:6600;"></div>
+<div id="bbcgBackdrop" class="modal-backdrop" style="display:none; z-index:6600;" onclick="window.closeBBCGModal(false)"></div>
 
 <div id="bbcgModal" class="modal-overlay" style="display:none; z-index:6700;">
   <div class="box" style="width:min(560px, 100%); border-radius:16px;">
@@ -807,15 +807,10 @@
     </div>
 
     <div class="buttons is-right mt-5">
-      <button class="button is-light" type="button" id="bbcgCancelBtn">Annuler</button>
-      <button class="button is-link"  type="button" id="bbcgSubmitBtn">Imprimer</button>
-    </div>
-
-  </div>
-</div>
-
-<!-- ===== MENAGE MODAL (Prestations arrivée) ===== -->
-<div id="menageBackdrop" class="modal-backdrop" style="display:none; z-index:6400;"></div>
+      <button class="button is-light" type="button" id="bbcgCancelBtn" onclick="window.closeBBCGModal(false)">Annuler</button>
+      <button class="button is-link"  type="button" id="bbcgSubmitBtn" onclick="window.submitBBCGModal()">Imprimer</button>
+    </div> (Prestations arrivée) ===== -->
+<div id="menageBackdrop" class="modal-backdrop" style="display:none; z-index:6400;" onclick="window.closeMenageModal(false)"></div>
 
 <div id="menageModal" class="modal-overlay" style="display:none; z-index:6500;">
   <div class="box" style="width:min(560px, 100%); border-radius:16px;">
@@ -847,8 +842,8 @@
     </div>
 
     <div class="buttons is-right mt-5">
-      <button class="button is-light" type="button" id="menageCancelBtn">Annuler</button>
-      <button class="button is-link"  type="button" id="menageSubmitBtn">Imprimer</button>
+      <button class="button is-light" type="button" id="menageCancelBtn" onclick="window.closeMenageModal(false)">Annuler</button>
+      <button class="button is-link"  type="button" id="menageSubmitBtn" onclick="window.submitMenageModal()">Imprimer</button>
     </div>
 
   </div>
