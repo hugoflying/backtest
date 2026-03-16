@@ -1113,27 +1113,5 @@ document.addEventListener("DOMContentLoaded", () => {
   bindAK(2);
   loadAKAll();
   _refreshTimer = startAKAutoRefresh();
-
-  // ── RZA ──
-  $("rzaBackdrop") ?.addEventListener("click", () => closeRZAModal(false));
-  $("rzaCancelBtn")?.addEventListener("click", () => closeRZAModal(false));
-  $("rzaSubmitBtn")?.addEventListener("click", submitRZAModal);
-
-  // ── SI ──
-  $("siBackdrop")  ?.addEventListener("click", () => closeSIModal(false));
-  $("siCancelBtn") ?.addEventListener("click", () => closeSIModal(false));
-  $("siSubmitBtn") ?.addEventListener("click", submitSIModal);
-
-  // ── BBCG ──
-  $("bbcgBackdrop") ?.addEventListener("click", () => closeBBCGModal(false));
-  $("bbcgCancelBtn")?.addEventListener("click", () => closeBBCGModal(false));
-  $("bbcgSubmitBtn")?.addEventListener("click", submitBBCGModal);
-
-  // ── Ménage ──
-  $("menageBackdrop") ?.addEventListener("click", () => closeMenageModal(false));
-  $("menageCancelBtn")?.addEventListener("click", () => closeMenageModal(false));
-  $("menageSubmitBtn")?.addEventListener("click", submitMenageModal);
-
-  // ── AK refresh ──
   $("akMenuRefresh")?.addEventListener("click", loadAKAll);
 });
