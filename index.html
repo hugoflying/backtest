@@ -1,6 +1,13 @@
 <!doctype html>
-<html lang="fr">
+<html lang="fr" data-theme="light">
 <head>
+  <!-- anti-flash : applique le thème sauvegardé AVANT le rendu -->
+  <script>
+    (function(){
+      const t = localStorage.getItem("theme");
+      if(t) document.documentElement.setAttribute("data-theme", t);
+    })();
+  </script>
   <meta charset="utf-8">
   <title>Préparation des vols</title>
   <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -97,8 +104,8 @@
   }
 
   .band-ryanair::before{ background: #ECC532; }
-  .band-lauda::before{ background: #E71B43; }
-  .band-presta::before{ background: #C6E0B4; }
+  .band-lauda::before  { background: #E71B43; }
+  .band-presta::before { background: #C6E0B4; }
 
   .band-gradient::before{
     background: linear-gradient(180deg, #C3017E 0%, #0E058E 100%);
@@ -129,7 +136,7 @@
   }
 
   /* =========================
-     iOS Glass buttons
+     iOS Glass buttons — MODE NUIT (défaut)
      ========================= */
   .button.btn-band{
     position: relative;
@@ -148,7 +155,8 @@
       transform .14s ease,
       box-shadow .14s ease,
       border-color .14s ease,
-      background .14s ease;
+      background .14s ease,
+      color .14s ease;
   }
 
   .button.btn-band::after{
@@ -189,6 +197,46 @@
       inset 0 1px 0 rgba(255,255,255,.12);
   }
 
+  /* MODE JOUR — fond blanc avec relief */
+  [data-theme="light"] .button.btn-band{
+    color: #1e293b !important;
+    text-shadow: none;
+    background: #ffffff !important;
+    border: 1px solid rgba(0,0,0,.13) !important;
+    box-shadow:
+      0 1px 0 rgba(0,0,0,.06),
+      0 4px 10px rgba(0,0,0,.09),
+      inset 0 1px 0 rgba(255,255,255,1),
+      inset 0 -1px 0 rgba(0,0,0,.05);
+  }
+
+  [data-theme="light"] .button.btn-band::before{
+    opacity: 1;
+  }
+
+  [data-theme="light"] .button.btn-band::after{
+    background: linear-gradient(180deg, rgba(255,255,255,.85), rgba(255,255,255,0));
+  }
+
+  [data-theme="light"] .button.btn-band:hover{
+    transform: translateY(-1px);
+    background: #ffffff !important;
+    border-color: rgba(0,0,0,.18) !important;
+    box-shadow:
+      0 2px 0 rgba(0,0,0,.06),
+      0 8px 18px rgba(0,0,0,.11),
+      inset 0 1px 0 rgba(255,255,255,1),
+      inset 0 -1px 0 rgba(0,0,0,.05);
+  }
+
+  [data-theme="light"] .button.btn-band:active{
+    transform: translateY(0);
+    background: #f8fafc !important;
+    box-shadow:
+      0 1px 2px rgba(0,0,0,.08),
+      inset 0 1px 3px rgba(0,0,0,.07);
+  }
+
   @media (prefers-reduced-motion: reduce){
     .button.btn-band{ transition:none; }
     .button.btn-band:hover{ transform:none; }
@@ -207,6 +255,10 @@
     color: rgba(255,255,255,.85);
   }
 
+  [data-theme="light"] .vol-header{
+    color: #374151;
+  }
+
   .vol-header::before{
     content: "";
     position: absolute;
@@ -223,6 +275,15 @@
     transform: translateY(-50%);
   }
 
+  [data-theme="light"] .vol-header::before{
+    background: linear-gradient(
+      90deg,
+      transparent,
+      rgba(0,0,0,.10),
+      transparent
+    );
+  }
+
   .vol-header span{
     position: relative;
     background: rgba(255,255,255,.06);
@@ -234,6 +295,12 @@
     box-shadow:
       0 4px 12px rgba(0,0,0,.35),
       inset 0 1px 0 rgba(255,255,255,.08);
+  }
+
+  [data-theme="light"] .vol-header span{
+    background: #f1f5f9;
+    border-color: rgba(0,0,0,.10);
+    box-shadow: 0 2px 6px rgba(0,0,0,.08);
   }
 
   .box h3.title{
@@ -290,10 +357,155 @@
     padding: 4px 16px;
     font-size: 0.95rem;
   }
+
+  /* =========================
+     THEME VARIABLES
+     ========================= */
+  :root, [data-theme="light"]{
+    --bg-page:        #f5f5f5;
+    --bg-box:         #ffffff;
+    --bg-input:       #ffffff;
+    --text-main:      #363636;
+    --text-label:     #363636;
+    --text-help:      #7a7a7a;
+    --border-input:   #dbdbdb;
+    --border-box:     rgba(0,0,0,.06);
+    --box-shadow:     0 2px 8px rgba(0,0,0,.08);
+    --toggle-bg:      #e2e8f0;
+    --toggle-icon:    "☀️";
+  }
+
+  [data-theme="dark"]{
+    --bg-page:        #0f1117;
+    --bg-box:         #1a1d27;
+    --bg-input:       #232636;
+    --text-main:      #e2e8f0;
+    --text-label:     #cbd5e1;
+    --text-help:      #94a3b8;
+    --border-input:   #374151;
+    --border-box:     rgba(255,255,255,.06);
+    --box-shadow:     0 2px 12px rgba(0,0,0,.4);
+    --toggle-bg:      #2d3748;
+    --toggle-icon:    "🌙";
+  }
+
+  /* Application des variables */
+  body{
+    background: var(--bg-page) !important;
+    color: var(--text-main) !important;
+    transition: background .25s, color .25s;
+  }
+
+  .box{
+    background: var(--bg-box) !important;
+    border: 1px solid var(--border-box) !important;
+    box-shadow: var(--box-shadow) !important;
+    transition: background .25s, border-color .25s;
+  }
+
+  .input, .textarea, .select select{
+    background: var(--bg-input) !important;
+    color: var(--text-main) !important;
+    border-color: var(--border-input) !important;
+    transition: background .25s, color .25s, border-color .25s;
+  }
+
+  .input::placeholder, .textarea::placeholder{
+    color: var(--text-help) !important;
+    opacity: 1;
+  }
+
+  .label{
+    color: var(--text-label) !important;
+  }
+
+  .help{
+    color: var(--text-help) !important;
+  }
+
+  .title{
+    color: var(--text-main) !important;
+  }
+
+  /* Checkboxes */
+  [data-theme="dark"] .checkbox{
+    color: var(--text-label);
+  }
+
+  /* Bulma overrides dark */
+  [data-theme="dark"] .select::after{
+    border-color: var(--text-help) !important;
+  }
+
+  [data-theme="dark"] .select select option{
+    background: var(--bg-input);
+    color: var(--text-main);
+  }
+
+  /* Modal box */
+  [data-theme="dark"] .modal-overlay .box{
+    background: #1e2130 !important;
+    color: var(--text-main);
+  }
+
+  [data-theme="dark"] #akPopover{
+    background: #1e2130;
+    color: var(--text-main);
+    border-color: var(--border-box);
+  }
+
+  [data-theme="dark"] #akPopover .ak-header{
+    background: #1e2130;
+    border-color: var(--border-box);
+  }
+
+  /* Toggle button */
+  #themeToggle{
+    position: fixed;
+    top: 14px;
+    right: 14px;
+    z-index: 9999;
+    background: var(--toggle-bg);
+    border: none;
+    border-radius: 999px;
+    width: 42px;
+    height: 42px;
+    font-size: 20px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 2px 8px rgba(0,0,0,.18);
+    transition: background .25s, transform .15s;
+  }
+
+  #themeToggle:hover{ transform: scale(1.1); }
+  #themeToggle:active{ transform: scale(.95); }
+
+  /* =========================
+     Classes mutualisées modals
+     ========================= */
+  .modal-backdrop{
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,.35);
+  }
+
+  .modal-overlay{
+    position: fixed;
+    inset: 0;
+    align-items: center;
+    justify-content: center;
+    padding: 14px;
+  }
 </style>
 </head>
 
 <body>
+
+<!-- Toggle jour / nuit -->
+<button id="themeToggle" title="Basculer jour / nuit" aria-label="Basculer le thème">☀️</button>
+
 <section class="section">
   <div class="container">
 
@@ -460,15 +672,11 @@
 </div>
 
 <!-- ===== RZA MODAL ===== -->
-<div id="rzaBackdrop"
-     style="display:none; position:fixed; inset:0; background:rgba(0,0,0,.35); z-index:6000;"
-     onclick="closeRZAModal(false)"></div>
+<div id="rzaBackdrop" class="modal-backdrop" style="display:none; z-index:6000;"></div>
 
-<div id="rzaModal"
-     style="display:none; position:fixed; inset:0; z-index:6100; align-items:center; justify-content:center; padding:14px;">
+<div id="rzaModal" class="modal-overlay" style="display:none; z-index:6100;">
   <div class="box" style="width:min(420px, 100%); border-radius:16px;">
 
-    <!-- Header glass -->
     <div class="vol-header">
       <span>Autocontrôle</span>
     </div>
@@ -491,32 +699,19 @@
     </div>
 
     <div class="buttons is-right">
-      <button class="button is-light"
-              type="button"
-              onclick="closeRZAModal(false)">
-        Annuler
-      </button>
-
-      <button class="button is-link"
-              type="button"
-              onclick="submitRZAModal()">
-        Valider
-      </button>
+      <button class="button is-light" type="button">Annuler</button>
+      <button class="button is-link"  type="button">Valider</button>
     </div>
 
   </div>
 </div>
 
 <!-- ===== SI MODAL (LIR Ryanair) ===== -->
-<div id="siBackdrop"
-     style="display:none; position:fixed; inset:0; background:rgba(0,0,0,.35); z-index:6200;"
-     onclick="closeSIModal(false)"></div>
+<div id="siBackdrop" class="modal-backdrop" style="display:none; z-index:6200;"></div>
 
-<div id="siModal"
-     style="display:none; position:fixed; inset:0; z-index:6300; align-items:center; justify-content:center; padding:14px;">
+<div id="siModal" class="modal-overlay" style="display:none; z-index:6300;">
   <div class="box" style="width:min(520px, 100%); border-radius:16px;">
 
-    <!-- Header glass -->
     <div class="vol-header">
       <span>LIR Ryanair</span>
     </div>
@@ -547,32 +742,19 @@
     </div>
 
     <div class="buttons is-right">
-      <button class="button is-light"
-              type="button"
-              onclick="closeSIModal(false)">
-        Annuler
-      </button>
-
-      <button class="button is-link"
-              type="button"
-              onclick="submitSIModal()">
-        Imprimer
-      </button>
+      <button class="button is-light" type="button">Annuler</button>
+      <button class="button is-link"  type="button">Imprimer</button>
     </div>
 
   </div>
 </div>
 
 <!-- ===== BBCG MODAL (Bingo Gate) ===== -->
-<div id="bbcgBackdrop"
-     style="display:none; position:fixed; inset:0; background:rgba(0,0,0,.35); z-index:6600;"
-     onclick="closeBBCGModal(false)"></div>
+<div id="bbcgBackdrop" class="modal-backdrop" style="display:none; z-index:6600;"></div>
 
-<div id="bbcgModal"
-     style="display:none; position:fixed; inset:0; z-index:6700; align-items:center; justify-content:center; padding:14px;">
+<div id="bbcgModal" class="modal-overlay" style="display:none; z-index:6700;">
   <div class="box" style="width:min(560px, 100%); border-radius:16px;">
 
-    <!-- Header glass -->
     <div class="vol-header">
       <span>Bingo Gate</span>
     </div>
@@ -594,7 +776,7 @@
       <div class="control">
         <div class="select is-fullwidth">
           <select id="bbcgComp">
-            <option value="">—</option> <!-- option vide propre -->
+            <option value="">—</option>
             <option value="CP1">CP1</option>
             <option value="CP2">CP2</option>
             <option value="CP3">CP3</option>
@@ -607,102 +789,65 @@
 
     <div class="field">
       <label class="label">Numéro de bingo</label>
-
       <div class="control" style="display:flex; align-items:center; gap:10px;">
         <input id="bbcgBingoCard"
                class="input"
                style="max-width:110px; text-align:center;"
                inputmode="numeric"
                placeholder="1">
-
         <div style="opacity:.75; font-weight:900;">/</div>
-
         <input id="bbcgBingoOf"
                class="input"
                style="max-width:110px; text-align:center;"
                inputmode="numeric"
                placeholder="1">
       </div>
-
       <p class="help">Ex: 1 / 1</p>
     </div>
 
     <div class="buttons is-right mt-5">
-      <button class="button is-light" type="button" onclick="closeBBCGModal(false)">Annuler</button>
-      <button class="button is-link" type="button" onclick="submitBBCGModal()">Imprimer</button>
+      <button class="button is-light" type="button">Annuler</button>
+      <button class="button is-link"  type="button">Imprimer</button>
     </div>
 
   </div>
 </div>
 
 <!-- ===== MENAGE MODAL (Prestations arrivée) ===== -->
-<div id="menageBackdrop"
-     style="display:none; position:fixed; inset:0; background:rgba(0,0,0,.35); z-index:6400;"
-     onclick="closeMenageModal(false)"></div>
+<div id="menageBackdrop" class="modal-backdrop" style="display:none; z-index:6400;"></div>
 
-<div id="menageModal"
-     style="display:none; position:fixed; inset:0; z-index:6500; align-items:center; justify-content:center; padding:14px;">
+<div id="menageModal" class="modal-overlay" style="display:none; z-index:6500;">
   <div class="box" style="width:min(560px, 100%); border-radius:16px;">
 
-    <!-- Header stylé comme VOL 1 / VOL 2 -->
     <div class="vol-header">
       <span>Ménage</span>
     </div>
 
     <div class="columns mt-4">
-      
+
       <!-- VOL 1 -->
       <div class="column has-text-centered">
         <h3 class="title is-6">VOL 1</h3>
-
         <div class="buttons is-centered mt-3">
-          <button id="menage1TidyBtn"
-                  type="button"
-                  class="button is-light is-rounded">
-            Tidy
-          </button>
-
-          <button id="menage1FullBtn"
-                  type="button"
-                  class="button is-light is-rounded">
-            Full
-          </button>
+          <button id="menage1TidyBtn" type="button" class="button is-light is-rounded">Tidy</button>
+          <button id="menage1FullBtn" type="button" class="button is-light is-rounded">Full</button>
         </div>
       </div>
 
       <!-- VOL 2 -->
       <div class="column has-text-centered">
         <h3 class="title is-6">VOL 2</h3>
-
         <div class="buttons is-centered mt-3">
-          <button id="menage2TidyBtn"
-                  type="button"
-                  class="button is-light is-rounded">
-            Tidy
-          </button>
-
-          <button id="menage2FullBtn"
-                  type="button"
-                  class="button is-light is-rounded">
-            Full
-          </button>
+          <button id="menage2TidyBtn" type="button" class="button is-light is-rounded">Tidy</button>
+          <button id="menage2FullBtn" type="button" class="button is-light is-rounded">Full</button>
         </div>
       </div>
 
     </div>
 
     <div class="buttons is-right mt-5">
-      <button class="button is-light"
-              type="button"
-              onclick="closeMenageModal(false)">
-        Annuler
-      </button>
-
-      <button class="button is-link"
-              type="button"
-              onclick="submitMenageModal()">
-        Imprimer
-      </button>
+      <button class="button is-light" type="button">Annuler</button>
+      <button class="button is-link"  type="button">Imprimer</button>
     </div>
 
   </div>
@@ -710,6 +855,26 @@
 
 <script src="https://unpkg.com/pdf-lib@1.17.1/dist/pdf-lib.min.js"></script>
 <script type="module" src="app.js"></script>
-  
+
+<script>
+  (function(){
+    const btn  = document.getElementById("themeToggle");
+    const html = document.documentElement;
+
+    function applyTheme(theme){
+      html.setAttribute("data-theme", theme);
+      btn.textContent = theme === "dark" ? "🌙" : "☀️";
+      localStorage.setItem("theme", theme);
+    }
+
+    // Initialise l'icône selon le thème déjà appliqué (anti-flash)
+    applyTheme(html.getAttribute("data-theme") || "light");
+
+    btn.addEventListener("click", () => {
+      applyTheme(html.getAttribute("data-theme") === "dark" ? "light" : "dark");
+    });
+  })();
+</script>
+
 </body>
 </html>
