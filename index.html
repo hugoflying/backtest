@@ -390,16 +390,20 @@
   }
 
   /* Application des variables */
+  html{
+    background: var(--bg-page) !important;
+  }
+
   body{
+    min-height: 100vh;
     background: var(--bg-page) !important;
     color: var(--text-main) !important;
     transition: background .25s, color .25s;
     margin: 0;
-    padding-bottom: 0;
   }
 
   .section{
-    padding-bottom: 0;
+    padding-bottom: 24px;
   }
 
   .box{
@@ -942,4 +946,3 @@
 
 </body>
 </html>
- 
