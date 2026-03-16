@@ -313,9 +313,10 @@ function buildPdfFilename(docKey, volTarget, v1, v2){
   return `${safeFilePart(docKey)}_${date || "DATE"}${flt ? "_" + flt : ""}.pdf`;
 }
 
-async function fillAndPrint(docKey, volTarget = "1", extra = null){
+// Génère les bytes d'un PDF rempli sans l'imprimer
+async function buildPdfBytes(docKey, volTarget = "1", extra = null){
   const def = DOCS[docKey];
-  if(!def) return;
+  if(!def) return null;
 
   const v1 = getVol(1);
   const v2 = getVol(2);
@@ -323,10 +324,9 @@ async function fillAndPrint(docKey, volTarget = "1", extra = null){
   const vol1 = (volTarget === "2") ? v2 : v1;
   const vol2 = (volTarget === "2") ? v1 : v2;
 
-  const BASE = new URL("./", location.href).toString();
-
+  const BASE          = new URL("./", location.href).toString();
   const templateBytes = await getTemplateBytes(def, docKey);
-  const pdfDoc = await PDFDocument.load(templateBytes);
+  const pdfDoc        = await PDFDocument.load(templateBytes);
   pdfDoc.registerFontkit(fontkit);
   const form      = pdfDoc.getForm();
   const allFields = form.getFields();
@@ -334,7 +334,6 @@ async function fillAndPrint(docKey, volTarget = "1", extra = null){
   const { bold } = await getFontsBytes(BASE);
   const fontBold = await pdfDoc.embedFont(bold);
 
-  // Détection du champ SI (exact ou suffixe .SI uniquement)
   const siFieldName = allFields
     .map(f => f.getName())
     .find(n => { const u = n.trim().toUpperCase(); return u === "SI" || u.endsWith(".SI"); })
@@ -388,8 +387,25 @@ async function fillAndPrint(docKey, volTarget = "1", extra = null){
 
   form.updateFieldAppearances(fontBold);
   form.flatten();
+  return await pdfDoc.save();
+}
 
-  const bytes = await pdfDoc.save();
+// Fusionne plusieurs PDFs en un seul et ouvre une seule boîte d'impression
+async function mergeAndPrint(jobs){
+  // jobs = [{ docKey, volTarget, extra }, ...]
+  const allBytes = await Promise.all(
+    jobs.map(j => buildPdfBytes(j.docKey, j.volTarget ?? "1", j.extra ?? null))
+  );
+
+  const merged = await PDFDocument.create();
+  for(const bytes of allBytes){
+    if(!bytes) continue;
+    const src   = await PDFDocument.load(bytes);
+    const pages = await merged.copyPages(src, src.getPageIndices());
+    pages.forEach(p => merged.addPage(p));
+  }
+
+  const bytes = await merged.save();
   const blob  = new Blob([bytes], { type: "application/pdf" });
   const url   = URL.createObjectURL(blob);
 
@@ -398,7 +414,6 @@ async function fillAndPrint(docKey, volTarget = "1", extra = null){
   iframe.src = url;
   document.body.appendChild(iframe);
 
-  // Nettoyage mémoire après impression
   iframe.onload = () => {
     iframe.contentWindow.focus();
     iframe.contentWindow.print();
@@ -407,6 +422,11 @@ async function fillAndPrint(docKey, volTarget = "1", extra = null){
       iframe.remove();
     }, 1000);
   };
+}
+
+// Raccourci pour un seul doc (conserve la compatibilité)
+async function fillAndPrint(docKey, volTarget = "1", extra = null){
+  await mergeAndPrint([{ docKey, volTarget, extra }]);
 }
 
 /* =========================
@@ -620,8 +640,10 @@ async function submitSIModal(){
 
   const printBingo = !!document.getElementById("siModalBingo")?.checked;
 
-  await fillAndPrint(p.docKey, p.volTarget, { si, max5, hold_search });
-  if(printBingo) await fillAndPrint("BINGO_FR", p.volTarget);
+  const jobs = [{ docKey: p.docKey, volTarget: p.volTarget, extra: { si, max5, hold_search } }];
+  if(printBingo) jobs.push({ docKey: "BINGO_FR", volTarget: p.volTarget });
+
+  await mergeAndPrint(jobs);
 }
 
 window.openSIModal   = openSIModal;
