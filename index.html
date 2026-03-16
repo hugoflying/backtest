@@ -1,11 +1,12 @@
 <!doctype html>
 <html lang="fr" data-theme="dark">
 <head>
-  <!-- anti-flash : applique le thème sauvegardé AVANT le rendu -->
   <script>
     (function(){
-      const t = localStorage.getItem("theme");
-      if(t) document.documentElement.setAttribute("data-theme", t);
+      try{
+        const t = localStorage.getItem("theme");
+        if(t) document.documentElement.setAttribute("data-theme", t);
+      }catch(e){}
     })();
   </script>
   <meta charset="utf-8">
@@ -613,7 +614,7 @@
     function applyTheme(t){
       html.setAttribute("data-theme", t);
       btn.textContent = t === "dark" ? "🌙" : "☀️";
-      localStorage.setItem("theme", t);
+      try{ localStorage.setItem("theme", t); }catch(e){}
     }
     applyTheme(html.getAttribute("data-theme") || "dark");
     btn.addEventListener("click", () =>
