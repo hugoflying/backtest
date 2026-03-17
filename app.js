@@ -88,7 +88,6 @@ LIR_RYANAIR:{
 
       // ✅ HOLD conditionnel
       "ARRIVAL FLIGHT NUMBER": hold ? (vol1.arr.flt || "") : "",
-      "HOLD SECURITY SEARCH": hold,
      
     };
   },
@@ -921,11 +920,13 @@ async function fetchAK(flow, from, to){
   return [];
 }
 
+let _useUTC = false;
+
 function hhmmFromMs(ms){
   if(ms == null) return "--:--";
-  const d = new Date(ms);
-  const hh = String(d.getHours()).padStart(2,"0");
-  const mm = String(d.getMinutes()).padStart(2,"0");
+  const d  = new Date(ms);
+  const hh = String(_useUTC ? d.getUTCHours()   : d.getHours())  .padStart(2,"0");
+  const mm = String(_useUTC ? d.getUTCMinutes()  : d.getMinutes()).padStart(2,"0");
   return `${hh}:${mm}`;
 }
 
@@ -1415,4 +1416,17 @@ document.addEventListener("DOMContentLoaded", ()=>{
   bindAK(2);
   loadAKAll();
   startAKAutoRefresh();
+
+  // Toggle UTC / Local
+  const utcBtn = document.getElementById("utcToggle");
+  if(utcBtn){
+    utcBtn.addEventListener("click", ()=>{
+      _useUTC = !_useUTC;
+      utcBtn.title = _useUTC ? "Mode UTC — cliquer pour Local" : "Mode Local — cliquer pour UTC";
+      const badge = document.getElementById("utcBadge");
+      if(badge) badge.textContent = _useUTC ? "UTC" : "LT";
+      refreshAKDropdown(1);
+      refreshAKDropdown(2);
+    });
+  }
 });
