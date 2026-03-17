@@ -740,7 +740,7 @@ async function submitSIModal(){
   if(!isNaN(nPorte) && nPorte > 0)
     parts.push(nPorte === 1 ? "1 poussette porte" : `${nPorte} poussettes porte`);
   if(!isNaN(nCBS) && nCBS > 0)
-    parts.push(nCBS === 1 ? "1 poussette CBS" : `${nCBS} poussettes CBS`);
+    parts.push(nCBS === 1 ? "1 poussette soute" : `${nCBS} poussettes soute`);
 
   const prefix = parts.join("\n");
   const si = prefix && siRaw.trim()
