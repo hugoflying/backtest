@@ -283,7 +283,7 @@ async function fetchArrayBufferRetry(url, label, retries = 3, delayMs = 400){
   for(let i = 0; i <= retries; i++){
     try{
       const res = await fetch(url, {
-        cache: "force-cache",
+        cache: "no-cache",
         credentials: "include"
       });
 
