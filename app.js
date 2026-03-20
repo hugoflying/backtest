@@ -1099,6 +1099,11 @@ function applyArrToVol(n, arr){
 
   const stand = (arr?.pkg || "").toString().replace(/^P/i,"").trim();
   if(stand) setVal(`parking_${n}`, stand);
+
+  // SIBT
+  const sibtMs = Date.parse(arr?.sibt || "");
+  const sibtEl = document.getElementById(`sibt_display_${n}`);
+  if(sibtEl) sibtEl.textContent = Number.isFinite(sibtMs) ? `SIBT ${hhmmFromMs(sibtMs)}` : "";
 }
 
 function applyDepOnlyToVol(n, dep){
@@ -1113,6 +1118,11 @@ function applyDepOnlyToVol(n, dep){
 
   const stand = (dep?.pkg || "").toString().replace(/^P/i,"").trim();
   if(stand) setVal(`parking_${n}`, stand);
+
+  // SOBT
+  const sobtMs = Date.parse(dep?.sobt || "");
+  const sobtEl = document.getElementById(`sobt_display_${n}`);
+  if(sobtEl) sobtEl.textContent = Number.isFinite(sobtMs) ? `SOBT ${hhmmFromMs(sobtMs)}` : "";
 }
 
 function applyDepToVol(n, dep, arrAll){
@@ -1130,6 +1140,11 @@ function applyDepToVol(n, dep, arrAll){
   const stand = (dep?.pkg || "").toString().replace(/^P/i,"").trim();
   if(stand) setVal(`parking_${n}`, stand);
 
+  // SOBT
+  const sobtMs = Date.parse(dep?.sobt || "");
+  const sobtEl = document.getElementById(`sobt_display_${n}`);
+  if(sobtEl) sobtEl.textContent = Number.isFinite(sobtMs) ? `SOBT ${hhmmFromMs(sobtMs)}` : "";
+
   // ===== ARRIVEE liée (linkedId + même jour obligatoire) =====
   const prevArr = findLinkedArrForDepSameDay(dep, arrAll);
 
@@ -1141,14 +1156,20 @@ function applyDepToVol(n, dep, arrAll){
     setVal(`arr_from_${n}`, upper(prevArr?.adepIata || prevArr?.adepIcao || ""));
     setVal(`arr_reg_${n}`, upper(prevArr?.reg || dep?.reg || ""));
     setVal(`arr_type_${n}`, akAcType(prevArr) || akAcType(dep));
+
+    // SIBT de l'arrivée liée
+    const sibtMs = Date.parse(prevArr?.sibt || "");
+    const sibtEl = document.getElementById(`sibt_display_${n}`);
+    if(sibtEl) sibtEl.textContent = Number.isFinite(sibtMs) ? `SIBT ${hhmmFromMs(sibtMs)}` : "";
   } else {
     // si pas de liée (ou pas le même jour), on ne remplit pas l'arrivée
-    // mais on garde au minimum reg/type côté ARR si tu veux
     setVal(`arr_reg_${n}`, "");
     setVal(`arr_type_${n}`, "");
     setVal(`arr_date_${n}`, "");
     setVal(`arr_flt_${n}`, "");
     setVal(`arr_from_${n}`, "");
+    const sibtEl = document.getElementById(`sibt_display_${n}`);
+    if(sibtEl) sibtEl.textContent = "";
   }
 }
 
@@ -1188,6 +1209,11 @@ function resetVolUI(volNum) {
   const depBadges = document.getElementById(`dep_badges_${volNum}`);
   if (arrBadges) arrBadges.innerHTML = "";
   if (depBadges) depBadges.innerHTML = "";
+
+  const sibtEl = document.getElementById(`sibt_display_${volNum}`);
+  const sobtEl = document.getElementById(`sobt_display_${volNum}`);
+  if(sibtEl) sibtEl.textContent = "";
+  if(sobtEl) sobtEl.textContent = "";
 }
 
 /* =========================
