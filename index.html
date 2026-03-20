@@ -551,7 +551,13 @@
     </div>
 
     <div class="field">
-      <label class="label">Poussettes</label>
+      <div style="display:flex; align-items:center; gap:10px; margin-bottom:6px;">
+        <label class="label" style="margin-bottom:0;">Poussettes</label>
+        <button type="button" onclick="printPoussettesLabel()" title="Imprimer étiquette poussettes"
+                style="background:none; border:1px solid rgba(255,255,255,.25); border-radius:6px; color:inherit; cursor:pointer; padding:2px 8px; font-size:.8rem; opacity:.7; line-height:1.5;">
+          🖨️
+        </button>
+      </div>
       <div style="display:flex; flex-direction:column; gap:8px; margin-bottom:8px;">
         <div style="display:flex; align-items:center; gap:10px;">
           <input id="siModalPoussettesPorte" class="input" style="max-width:70px; text-align:center;" inputmode="numeric" placeholder="—">
@@ -596,16 +602,10 @@
         Annuler
       </button>
 
-      <button class="button is-warning"
-              type="button"
-              onclick="printPoussettesLabel()">
-        🖨️ Étiquette poussettes
-      </button>
-
       <button class="button is-link"
               type="button"
               onclick="submitSIModal()">
-        Imprimer LIR
+        Imprimer
       </button>
     </div>
 
@@ -762,4 +762,3 @@
   
 </body>
 </html>
-
