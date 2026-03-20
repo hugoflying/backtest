@@ -764,6 +764,7 @@ window.closeSIModal = closeSIModal;
 window.submitSIModal = submitSIModal;
 
 // ===== ÉTIQUETTE POUSSETTES (impression manuelle) =====
+window.printPoussettesLabel = printPoussettesLabel;
 function printPoussettesLabel(){
   const html = `<!DOCTYPE html>
 <html lang="fr">
