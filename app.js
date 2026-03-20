@@ -707,6 +707,13 @@ function openSIModal(pending){
   if(pPorte) pPorte.value = "";
   if(pCBS)   pCBS.value   = "";
 
+  // Reset toggle manuel
+  window._siPoussettesManuel = false;
+  const btn = document.getElementById("siPoussettesManuelBtn");
+  if(btn){ btn.style.opacity="0.7"; btn.style.background="none"; btn.style.borderColor="rgba(255,255,255,.25)"; btn.style.color="inherit"; }
+  if(pPorte){ pPorte.disabled=false; pPorte.style.opacity="1"; }
+  if(pCBS)  { pCBS.disabled=false;   pCBS.style.opacity="1"; }
+
   if(b) b.style.display = "block";
   if(m) m.style.display = "flex";
 }
@@ -734,15 +741,19 @@ async function submitSIModal(){
   window._lirSiByVol[vol] = siRaw;
 
   // Poussettes
-  const nPorte = parseInt(document.getElementById("siModalPoussettesPorte")?.value || "", 10);
-  const nCBS   = parseInt(document.getElementById("siModalPoussettesCBS")?.value   || "", 10);
-  const parts  = [];
-  if(!isNaN(nPorte) && nPorte > 0)
-    parts.push(nPorte === 1 ? "1 poussette porte" : `${nPorte} poussettes porte`);
-  if(!isNaN(nCBS) && nCBS > 0)
-    parts.push(nCBS === 1 ? "1 poussette soute" : `${nCBS} poussettes soute`);
-
-  const prefix = parts.join("\n");
+  let prefix = "";
+  if(window._siPoussettesManuel){
+    prefix = "        poussette(s) porte\n        poussette(s) soute";
+  } else {
+    const nPorte = parseInt(document.getElementById("siModalPoussettesPorte")?.value || "", 10);
+    const nCBS   = parseInt(document.getElementById("siModalPoussettesCBS")?.value   || "", 10);
+    const parts  = [];
+    if(!isNaN(nPorte) && nPorte > 0)
+      parts.push(nPorte === 1 ? "1 poussette porte" : `${nPorte} poussettes porte`);
+    if(!isNaN(nCBS) && nCBS > 0)
+      parts.push(nCBS === 1 ? "1 poussette soute" : `${nCBS} poussettes soute`);
+    prefix = parts.join("\n");
+  }
   const si = prefix && siRaw.trim()
     ? prefix + "\n" + siRaw.trim()
     : prefix || siRaw.trim();
@@ -763,47 +774,27 @@ window.openSIModal = openSIModal;
 window.closeSIModal = closeSIModal;
 window.submitSIModal = submitSIModal;
 
-// ===== ÉTIQUETTE POUSSETTES (impression manuelle) =====
-window.printPoussettesLabel = printPoussettesLabel;
-function printPoussettesLabel(){
-  const html = `<!DOCTYPE html>
-<html lang="fr">
-<head>
-  <meta charset="utf-8">
-  <title>Poussettes</title>
-  <style>
-    @page { size: A6; margin: 15mm; }
-    * { box-sizing: border-box; margin: 0; padding: 0; }
-    body { font-family: Arial, sans-serif; font-size: 18px; }
-    .line {
-      display: flex;
-      align-items: baseline;
-      gap: 12px;
-      padding: 14px 0;
-      border-bottom: 1px solid #ccc;
-    }
-    .line:first-child { border-top: 1px solid #ccc; }
-    .blank {
-      display: inline-block;
-      width: 50px;
-      border-bottom: 2px solid #000;
-      flex-shrink: 0;
-    }
-  </style>
-</head>
-<body>
-  <div class="line"><span class="blank"></span> Poussette(s) porte</div>
-  <div class="line"><span class="blank"></span> Poussette(s) soute</div>
-  <script>window.onload = () => { window.print(); };<\/script>
-</body>
-</html>`;
+// ===== POUSSETTES MANUEL TOGGLE =====
+window._siPoussettesManuel = false;
 
-  const win = window.open("", "_blank", "width=400,height=300");
-  if(!win){ alert("Le popup a été bloqué. Autorise les popups pour ce site."); return; }
-  win.document.open();
-  win.document.write(html);
-  win.document.close();
-}
+window.togglePoussettesManuel = function togglePoussettesManuel(){
+  window._siPoussettesManuel = !window._siPoussettesManuel;
+  const on = window._siPoussettesManuel;
+
+  const btn   = document.getElementById("siPoussettesManuelBtn");
+  const pPorte = document.getElementById("siModalPoussettesPorte");
+  const pCBS   = document.getElementById("siModalPoussettesCBS");
+
+  if(btn){
+    btn.style.opacity       = on ? "1" : ".7";
+    btn.style.background    = on ? "rgba(234,179,8,.25)"  : "none";
+    btn.style.borderColor   = on ? "rgba(234,179,8,.7)"   : "rgba(255,255,255,.25)";
+    btn.style.color         = on ? "#fde68a" : "inherit";
+  }
+
+  if(pPorte){ pPorte.disabled = on; pPorte.style.opacity = on ? ".35" : "1"; }
+  if(pCBS)  { pCBS.disabled   = on; pCBS.style.opacity   = on ? ".35" : "1"; }
+};
 
 function lirTypeX(acType){
   const t = upper(acType);
