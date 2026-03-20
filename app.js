@@ -765,126 +765,39 @@ window.submitSIModal = submitSIModal;
 
 // ===== ÉTIQUETTE POUSSETTES (impression manuelle) =====
 function printPoussettesLabel(){
-  const p = _pendingSIPrint;
-  const vol = p ? String(p.volTarget || "1") : "1";
-  const v = getVol(Number(vol));
-
-  const flt  = v?.dep?.flt  || "";
-  const date = v?.dep?.date ? isoToDDMMYYYY(v.dep.date) : "";
-  const to   = v?.dep?.to   || "";
-
-  const infoLine = [date, flt, to ? `→ ${to}` : ""].filter(Boolean).join("  |  ");
-
   const html = `<!DOCTYPE html>
 <html lang="fr">
 <head>
   <meta charset="utf-8">
-  <title>Étiquette poussettes</title>
+  <title>Poussettes</title>
   <style>
-    @page { size: A5 landscape; margin: 12mm; }
+    @page { size: A6; margin: 15mm; }
     * { box-sizing: border-box; margin: 0; padding: 0; }
-    body {
-      font-family: Arial, sans-serif;
+    body { font-family: Arial, sans-serif; font-size: 18px; }
+    .line {
       display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      min-height: 100vh;
-      padding: 10px;
+      align-items: baseline;
+      gap: 12px;
+      padding: 14px 0;
+      border-bottom: 1px solid #ccc;
     }
-    .card {
-      width: 100%;
-      max-width: 180mm;
-      border: 2.5px solid #222;
-      border-radius: 10px;
-      overflow: hidden;
-    }
-    .card-header {
-      background: #1a1a2e;
-      color: #fff;
-      text-align: center;
-      padding: 8px 12px;
-      font-size: 1rem;
-      font-weight: 700;
-      letter-spacing: 1px;
-    }
-    .card-header .flight-info {
-      font-size: 0.75rem;
-      font-weight: 400;
-      opacity: 0.75;
-      margin-top: 2px;
-      letter-spacing: 0.5px;
-    }
-    .rows {
-      display: flex;
-      flex-direction: column;
-    }
-    .row {
-      display: flex;
-      align-items: center;
-      border-top: 2px solid #222;
-      padding: 14px 18px;
-      gap: 18px;
-    }
-    .row-label {
-      font-size: 1.05rem;
-      font-weight: 700;
-      white-space: nowrap;
-      min-width: 170px;
-      color: #111;
-    }
-    .row-badge {
+    .line:first-child { border-top: 1px solid #ccc; }
+    .blank {
       display: inline-block;
-      font-size: 0.7rem;
-      font-weight: 700;
-      padding: 2px 8px;
-      border-radius: 999px;
-      margin-right: 6px;
-      vertical-align: middle;
-    }
-    .badge-porte { background: #fde68a; color: #92400e; border: 1.5px solid #d97706; }
-    .badge-soute { background: #bfdbfe; color: #1e3a8a; border: 1.5px solid #3b82f6; }
-    .write-box {
-      flex: 1;
-      border-bottom: 2.5px solid #111;
-      min-height: 32px;
-      min-width: 60px;
-      max-width: 100px;
-    }
-    @media print {
-      body { padding: 0; }
-      .card { border: 2.5px solid #000; }
+      width: 50px;
+      border-bottom: 2px solid #000;
+      flex-shrink: 0;
     }
   </style>
 </head>
 <body>
-  <div class="card">
-    <div class="card-header">
-      POUSSETTES — RYANAIR
-      ${infoLine ? `<div class="flight-info">${infoLine}</div>` : ""}
-    </div>
-    <div class="rows">
-      <div class="row">
-        <div class="row-label">
-          <span class="row-badge badge-porte">PORTE</span>
-          Poussette(s) porte
-        </div>
-        <div class="write-box"></div>
-      </div>
-      <div class="row">
-        <div class="row-label">
-          <span class="row-badge badge-soute">SOUTE</span>
-          Poussette(s) soute
-        </div>
-        <div class="write-box"></div>
-      </div>
-    </div>
-  </div>
+  <div class="line"><span class="blank"></span> Poussette(s) porte</div>
+  <div class="line"><span class="blank"></span> Poussette(s) soute</div>
   <script>window.onload = () => { window.print(); };<\/script>
 </body>
 </html>`;
 
-  const win = window.open("", "_blank", "width=700,height=400");
+  const win = window.open("", "_blank", "width=400,height=300");
   if(!win){ alert("Le popup a été bloqué. Autorise les popups pour ce site."); return; }
   win.document.open();
   win.document.write(html);
