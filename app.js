@@ -1450,6 +1450,16 @@ document.addEventListener("DOMContentLoaded", ()=>{
   loadAKAll();
   startAKAutoRefresh();
 
+  // Fermer les popups avec Échap
+  document.addEventListener("keydown", (e)=>{
+    if(e.key !== "Escape") return;
+    if(document.getElementById("siBackdrop")?.style.display     !== "none") { closeSIModal(false);     return; }
+    if(document.getElementById("rzaBackdrop")?.style.display    !== "none") { closeRZAModal(false);    return; }
+    if(document.getElementById("bbcgBackdrop")?.style.display   !== "none") { closeBBCGModal(false);   return; }
+    if(document.getElementById("menageBackdrop")?.style.display !== "none") { closeMenageModal(false); return; }
+    if(document.getElementById("akBackdrop")?.style.display     !== "none") { closeAKMenu();           return; }
+  });
+
   // Toggle UTC / Local
   const utcBtn = document.getElementById("utcToggle");
   if(utcBtn){
