@@ -955,6 +955,19 @@ async function fetchAK(flow, from, to){
 
 let _useUTC = false;
 
+// ===== stockage des timestamps SIBT/SOBT pour refresh UTC/LT =====
+const _sibtMs = { "1": null, "2": null };
+const _sobtMs = { "1": null, "2": null };
+
+function refreshSibtSobtDisplay(){
+  for(const n of ["1","2"]){
+    const sibtEl = document.getElementById(`sibt_display_${n}`);
+    const sobtEl = document.getElementById(`sobt_display_${n}`);
+    if(sibtEl) sibtEl.textContent = Number.isFinite(_sibtMs[n]) ? `SIBT ${hhmmFromMs(_sibtMs[n])}` : "";
+    if(sobtEl) sobtEl.textContent = Number.isFinite(_sobtMs[n]) ? `SOBT ${hhmmFromMs(_sobtMs[n])}` : "";
+  }
+}
+
 function hhmmFromMs(ms){
   if(ms == null) return "--:--";
   const d  = new Date(ms);
@@ -1102,6 +1115,7 @@ function applyArrToVol(n, arr){
 
   // SIBT
   const sibtMs = Date.parse(arr?.sibt || "");
+  _sibtMs[String(n)] = Number.isFinite(sibtMs) ? sibtMs : null;
   const sibtEl = document.getElementById(`sibt_display_${n}`);
   if(sibtEl) sibtEl.textContent = Number.isFinite(sibtMs) ? `SIBT ${hhmmFromMs(sibtMs)}` : "";
 }
@@ -1121,6 +1135,7 @@ function applyDepOnlyToVol(n, dep){
 
   // SOBT
   const sobtMs = Date.parse(dep?.sobt || "");
+  _sobtMs[String(n)] = Number.isFinite(sobtMs) ? sobtMs : null;
   const sobtEl = document.getElementById(`sobt_display_${n}`);
   if(sobtEl) sobtEl.textContent = Number.isFinite(sobtMs) ? `SOBT ${hhmmFromMs(sobtMs)}` : "";
 }
@@ -1142,6 +1157,7 @@ function applyDepToVol(n, dep, arrAll){
 
   // SOBT
   const sobtMs = Date.parse(dep?.sobt || "");
+  _sobtMs[String(n)] = Number.isFinite(sobtMs) ? sobtMs : null;
   const sobtEl = document.getElementById(`sobt_display_${n}`);
   if(sobtEl) sobtEl.textContent = Number.isFinite(sobtMs) ? `SOBT ${hhmmFromMs(sobtMs)}` : "";
 
@@ -1159,6 +1175,7 @@ function applyDepToVol(n, dep, arrAll){
 
     // SIBT de l'arrivée liée
     const sibtMs = Date.parse(prevArr?.sibt || "");
+    _sibtMs[String(n)] = Number.isFinite(sibtMs) ? sibtMs : null;
     const sibtEl = document.getElementById(`sibt_display_${n}`);
     if(sibtEl) sibtEl.textContent = Number.isFinite(sibtMs) ? `SIBT ${hhmmFromMs(sibtMs)}` : "";
   } else {
@@ -1170,6 +1187,7 @@ function applyDepToVol(n, dep, arrAll){
     setVal(`arr_from_${n}`, "");
     const sibtEl = document.getElementById(`sibt_display_${n}`);
     if(sibtEl) sibtEl.textContent = "";
+    _sibtMs[String(n)] = null;
   }
 }
 
@@ -1214,6 +1232,8 @@ function resetVolUI(volNum) {
   const sobtEl = document.getElementById(`sobt_display_${volNum}`);
   if(sibtEl) sibtEl.textContent = "";
   if(sobtEl) sobtEl.textContent = "";
+  _sibtMs[String(volNum)] = null;
+  _sobtMs[String(volNum)] = null;
 }
 
 /* =========================
@@ -1496,6 +1516,7 @@ document.addEventListener("DOMContentLoaded", ()=>{
       if(badge) badge.textContent = _useUTC ? "UTC" : "LT";
       refreshAKDropdown(1);
       refreshAKDropdown(2);
+      refreshSibtSobtDisplay();
     });
   }
 });
