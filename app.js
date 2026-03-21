@@ -251,132 +251,74 @@ PRESTA_RET:{
 },
 
 /* ========= PRESTATIONS BASÉ (arrivée-départ combiné) ========= */
+// Noms exacts des champs vérifiés via Acrobat :
+// - FLIGHT A -  FLIGHT NUMBER  (double espace !)
+// - FLIGHT B - FLIGHT NUMBER   (simple espace)
+// - FLIGHT A - TOILETTES REMPLISSAGE  vs  FLIGHT B - REMPLISSAGE TOILETTES
+// - SENS DEPART / SENS ARRIVEE = groupes radio (pas des checkboxes)
 
 PRESTA_BASE:{
  file: `${TEMPLATE_BASE}/templates/Suivi prestations basés arrivée-départ.pdf`,
  fill:({vol1,vol2}, extra = null)=>{
    const o={};
-   const mode = extra?.mode || "DEP"; // "DEP" ou "ARR"
+   const mode = extra?.mode || "DEP";
 
-   // Helper : set toutes les variantes possibles d'un nom de champ
-   // (le moteur essaie chaque nom, les mauvais échouent silencieusement)
-   const alias = (variants, value) => {
-     for(const k of variants) o[k] = value;
-   };
-
-   // ---- helper pour un vol (A ou B) ----
    const fillVol = (letter, vol, pkn) => {
-     const pre = `FLIGHT ${letter}`;
+     const isA = (letter === "A");
+
+     o[`FLIGHT ${letter} - IMMATRICULATION`] = (mode === "DEP") ? vol.dep.reg : vol.arr.reg;
+     o[`FLIGHT ${letter} - DATE`]            = (mode === "DEP") ? isoToDDMMYYYY(vol.dep.date) : isoToDDMMYYYY(vol.arr.date);
+     o[`FLIGHT ${letter} - STAND`]           = parking(pkn);
+     o[`FLIGHT ${letter} - FROM/TO`]         = (mode === "DEP") ? vol.dep.to : vol.arr.from;
+
+     // ⚠ FLIGHT NUMBER : double espace pour A, simple pour B
+     if(isA){
+       o["FLIGHT A -  FLIGHT NUMBER"] = (mode === "DEP") ? vol.dep.flt : vol.arr.flt;
+     } else {
+       o["FLIGHT B - FLIGHT NUMBER"]  = (mode === "DEP") ? vol.dep.flt : vol.arr.flt;
+     }
 
      if(mode === "DEP"){
-       o[`${pre} - IMMATRICULATION`]         = vol.dep.reg;
-       o[`${pre} - DATE`]                    = isoToDDMMYYYY(vol.dep.date);
+       // Sens radio : "SENS DEPART" = sélectionner, "SENS ARRIVEE" = effacer
+       o[`FLIGHT ${letter} - SENS DEPART`]  = "__SELECT__";
+       o[`FLIGHT ${letter} - SENS ARRIVEE`] = "__CLEAR__";
 
-       // PARKING — plusieurs noms possibles selon le PDF
-       alias([
-         `${pre} - PARKING`,
-         `${pre} - STAND`,
-         `${pre} - PARKING STAND`,
-       ], parking(pkn));
-
-       // FLIGHT NUMBER — plusieurs noms possibles
-       alias([
-         `${pre} - FLIGHT NUMBER`,
-         `${pre} - N° DE VOL`,
-         `${pre} - N DE VOL`,
-         `${pre} - DEPARTURE FLIGHT NUMBER`,
-         `${pre} - VOL`,
-       ], vol.dep.flt);
-
-       // FROM/TO
-       alias([
-         `${pre} - FROM/TO`,
-         `${pre} - PROV/DEST`,
-         `${pre} - TO`,
-         `${pre} - DEST`,
-       ], vol.dep.to);
-
-       // SENS — noms de checkboxes/radio possibles (boolean + "X" textfield)
-       alias([
-         `${pre} - SENS DEPART`,
-         `${pre} - DEPART`,
-         `${pre} - DÉPART`,
-       ], true);
-       alias([
-         `${pre} - SENS ARRIVEE`,
-         `${pre} - ARRIVEE`,
-         `${pre} - ARRIVÉE`,
-       ], false);
-
-       o[`${pre} - TOILETTES REMPLISSAGE`]   = "X";
-       o[`${pre} - EAU POTABLE REMPLISSAGE`] = "X";
-       o[`${pre} - GPU`]                     = "X";
+       // ⚠ Noms checkboxes différents A vs B pour TOILETTES REMPLISSAGE
+       if(isA){
+         o["FLIGHT A - TOILETTES REMPLISSAGE"]   = "X";
+         o["FLIGHT A - EAU POTABLE REMPLISSAGE"] = "X";
+       } else {
+         o["FLIGHT B - REMPLISSAGE TOILETTES"]   = "X";
+         o["FLIGHT B - EAU POTABLE REMPLISSAGE"] = "X";
+       }
+       o[`FLIGHT ${letter} - GPU`] = "X";
 
      } else {
-       const mKey = (letter === "A") ? "1" : "2";
+       const mKey = isA ? "1" : "2";
        const m    = (extra?.menage?.[mKey] || "");
 
-       o[`${pre} - IMMATRICULATION`]         = vol.arr.reg;
-       o[`${pre} - DATE`]                    = isoToDDMMYYYY(vol.arr.date);
+       // Sens radio : "SENS ARRIVEE" = sélectionner, "SENS DEPART" = effacer
+       o[`FLIGHT ${letter} - SENS ARRIVEE`] = "__SELECT__";
+       o[`FLIGHT ${letter} - SENS DEPART`]  = "__CLEAR__";
 
-       // PARKING
-       alias([
-         `${pre} - PARKING`,
-         `${pre} - STAND`,
-         `${pre} - PARKING STAND`,
-       ], parking(pkn));
+       o[`FLIGHT ${letter} - TOILETTES VIDANGE`]   = "X";
+       o[`FLIGHT ${letter} - EAU POTABLE VIDANGE`] = "X";
+       o[`FLIGHT ${letter} - GPU`]                  = "X";
+       o[`FLIGHT ${letter} - COLLECTE DECHETS`]     = "X";
+       o[`FLIGHT ${letter} - MENAGE TIDY`]          = (m === "TIDY") ? "X" : "";
+       o[`FLIGHT ${letter} - MENAGE FULL`]          = (m === "FULL") ? "X" : "";
 
-       // FLIGHT NUMBER
-       alias([
-         `${pre} - FLIGHT NUMBER`,
-         `${pre} - N° DE VOL`,
-         `${pre} - N DE VOL`,
-         `${pre} - ARRIVAL FLIGHT NUMBER`,
-         `${pre} - VOL`,
-       ], vol.arr.flt);
-
-       // FROM/TO
-       alias([
-         `${pre} - FROM/TO`,
-         `${pre} - PROV/DEST`,
-         `${pre} - FROM`,
-         `${pre} - PROV`,
-       ], vol.arr.from);
-
-       // SENS
-       alias([
-         `${pre} - SENS ARRIVEE`,
-         `${pre} - ARRIVEE`,
-         `${pre} - ARRIVÉE`,
-       ], true);
-       alias([
-         `${pre} - SENS DEPART`,
-         `${pre} - DEPART`,
-         `${pre} - DÉPART`,
-       ], false);
-
-       o[`${pre} - TOILETTES VIDANGE`]       = "X";
-       o[`${pre} - EAU POTABLE VIDANGE`]     = "X";
-       o[`${pre} - GPU`]                     = "X";
-       o[`${pre} - COLLECTE DECHETS`]        = "X";
-       o[`${pre} - MENAGE TIDY`]             = (m === "TIDY") ? "X" : "";
-       o[`${pre} - MENAGE FULL`]             = (m === "FULL") ? "X" : "";
-
-       // Page 2 — TOUR AVION : HOLD SECURITY SEARCH
+       // Page 2 — HOLD SECURITY SEARCH
        if(extra?.hold){
-         alias([
-           `${pre} - HOLD SECURITY SEARCH`,
-           `${pre} - HOLD`,
-         ], true);
-         alias([
-           `${pre} - ARRIVAL FLIGHT NUMBER`,
-           `${pre} - FLIGHT NUMBER ARR`,
-         ], vol.arr.flt);
+         o[`FLIGHT ${letter} - HOLD SECURITY SEARCH`] = "__SELECT__";
+         // Remet le numéro de vol dans le champ ARR page 2
+         if(isA){
+           o["FLIGHT A -  FLIGHT NUMBER"] = vol.arr.flt;
+         } else {
+           o["FLIGHT B - FLIGHT NUMBER"]  = vol.arr.flt;
+         }
        } else {
-         alias([
-           `${pre} - HOLD SECURITY SEARCH`,
-           `${pre} - HOLD`,
-         ], false);
+         o[`FLIGHT ${letter} - HOLD SECURITY SEARCH`] = "__CLEAR__";
        }
      }
    };
@@ -547,9 +489,27 @@ async function fillAndPrint(docKey, volTarget = "1", extra = null) {
 
   for (const [name, raw] of Object.entries(fields)) {
     try {
-      // ===== BOOLEAN -> CHECKBOX ou RADIO ou TEXT =====
+      // ===== __SELECT__ / __CLEAR__ -> GROUPES RADIO =====
+      if (raw === "__SELECT__") {
+        try {
+          const rg = form.getRadioGroup(name);
+          const opts = rg.getOptions();
+          if (opts.length > 0) rg.select(opts[0]);
+        } catch(e) {
+          console.warn("⚠ Radio SELECT échoué:", name, e?.message);
+        }
+        continue;
+      }
+      if (raw === "__CLEAR__") {
+        try {
+          const rg = form.getRadioGroup(name);
+          rg.clear();
+        } catch {} // ignorer si pas radio ou déjà vide
+        continue;
+      }
+
+      // ===== BOOLEAN -> CHECKBOX ou TEXT =====
       if (typeof raw === "boolean") {
-        // 1) Essai checkbox standard
         let handled = false;
         try {
           const cb = form.getCheckBox(name);
@@ -557,7 +517,6 @@ async function fillAndPrint(docKey, volTarget = "1", extra = null) {
           handled = true;
         } catch {}
 
-        // 2) Si checkBox échoue et qu'on veut cocher, essai textField avec "X"
         if (!handled && raw) {
           try {
             const tf = form.getTextField(name);
@@ -568,7 +527,7 @@ async function fillAndPrint(docKey, volTarget = "1", extra = null) {
         }
 
         if (!handled) {
-          console.warn("⚠ SENS non trouvé (ni checkbox ni textField):", name);
+          console.warn("⚠ Boolean non géré (ni checkbox ni textField):", name);
         }
         continue;
       }
