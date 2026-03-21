@@ -252,6 +252,75 @@ PRESTA_RET:{
    return o;
  },
  flatten:true
+},
+
+/* ========= PRESTATIONS BASÉ (DÉPART + ARRIVÉE combinés) ========= */
+
+PRESTA_BASE:{
+ file: `${TEMPLATE_BASE}/templates/Suivi prestations basés arrivée-départ.pdf`,
+ fill:({vol1,vol2}, extra = null)=>{
+   const o={};
+   const mode = extra?.mode || "DEP"; // "DEP" ou "ARR"
+
+   if(!isVolEmpty(vol1)){
+     if(mode === "DEP"){
+       o["FLIGHT A - IMMATRICULATION"]        = vol1.dep.reg;
+       o["FLIGHT A - SENS DEPART"]            = true;
+       o["FLIGHT A - DATE"]                   = isoToDDMMYYYY(vol1.dep.date);
+       o["FLIGHT A - PARKING"]                = parking(1);
+       o["FLIGHT A - FLIGHT NUMBER"]          = vol1.dep.flt;
+       o["FLIGHT A - FROM/TO"]                = vol1.dep.to;
+       o["FLIGHT A - TOILETTES REMPLISSAGE"]  = "X";
+       o["FLIGHT A - EAU POTABLE REMPLISSAGE"]= "X";
+       o["FLIGHT A - GPU"]                    = "X";
+     } else {
+       const m1 = (extra?.menage?.["1"] || "");
+       o["FLIGHT A - IMMATRICULATION"]        = vol1.arr.reg;
+       o["FLIGHT A - SENS ARRIVEE"]           = true;
+       o["FLIGHT A - DATE"]                   = isoToDDMMYYYY(vol1.arr.date);
+       o["FLIGHT A - PARKING"]                = parking(1);
+       o["FLIGHT A - FLIGHT NUMBER"]          = vol1.arr.flt;
+       o["FLIGHT A - FROM/TO"]                = vol1.arr.from;
+       o["FLIGHT A - TOILETTES VIDANGE"]      = "X";
+       o["FLIGHT A - EAU POTABLE VIDANGE"]    = "X";
+       o["FLIGHT A - GPU"]                    = "X";
+       o["FLIGHT A - COLLECTE DECHETS"]       = "X";
+       o["FLIGHT A - MENAGE TIDY"]            = (m1 === "TIDY") ? "X" : "";
+       o["FLIGHT A - MENAGE FULL"]            = (m1 === "FULL") ? "X" : "";
+     }
+   }
+
+   if(!isVolEmpty(vol2)){
+     if(mode === "DEP"){
+       o["FLIGHT B - IMMATRICULATION"]        = vol2.dep.reg;
+       o["FLIGHT B - SENS DEPART"]            = true;
+       o["FLIGHT B - DATE"]                   = isoToDDMMYYYY(vol2.dep.date);
+       o["FLIGHT B - PARKING"]                = parking(2);
+       o["FLIGHT B - FLIGHT NUMBER"]          = vol2.dep.flt;
+       o["FLIGHT B - FROM/TO"]                = vol2.dep.to;
+       o["FLIGHT B - TOILETTES REMPLISSAGE"]  = "X";
+       o["FLIGHT B - EAU POTABLE REMPLISSAGE"]= "X";
+       o["FLIGHT B - GPU"]                    = "X";
+     } else {
+       const m2 = (extra?.menage?.["2"] || "");
+       o["FLIGHT B - IMMATRICULATION"]        = vol2.arr.reg;
+       o["FLIGHT B - SENS ARRIVEE"]           = true;
+       o["FLIGHT B - DATE"]                   = isoToDDMMYYYY(vol2.arr.date);
+       o["FLIGHT B - PARKING"]                = parking(2);
+       o["FLIGHT B - FLIGHT NUMBER"]          = vol2.arr.flt;
+       o["FLIGHT B - FROM/TO"]                = vol2.arr.from;
+       o["FLIGHT B - TOILETTES VIDANGE"]      = "X";
+       o["FLIGHT B - EAU POTABLE VIDANGE"]    = "X";
+       o["FLIGHT B - GPU"]                    = "X";
+       o["FLIGHT B - COLLECTE DECHETS"]       = "X";
+       o["FLIGHT B - MENAGE TIDY"]            = (m2 === "TIDY") ? "X" : "";
+       o["FLIGHT B - MENAGE FULL"]            = (m2 === "FULL") ? "X" : "";
+     }
+   }
+
+   return o;
+ },
+ flatten:true
 }
 
 };
@@ -493,6 +562,12 @@ document.addEventListener("click", async (e) => {
     return;
   }
 
+  // ✅ popup Départ/Retour basé pour PRESTA_BASE
+  if(docKey === "PRESTA_BASE"){
+    openPrestaBaseModal({ docKey, volTarget });
+    return;
+  }
+
   // ✅ popup BBCG Gate
 if(docKey === "BBCG_GATE"){
   openBBCGModal({ docKey, volTarget });
@@ -575,17 +650,64 @@ async function submitMenageModal(){
   closeMenageModal(true);
   _pendingMenagePrint = null;
 
-  await fillAndPrint(p.docKey, p.volTarget, {
-    menage: {
-      "1": window._menageByVol["1"] || "",
-      "2": window._menageByVol["2"] || "",
-    }
-  });
+  const menageData = {
+    "1": window._menageByVol["1"] || "",
+    "2": window._menageByVol["2"] || "",
+  };
+
+  const extra = { menage: menageData };
+  // ✅ Pour PRESTA_BASE retour, on passe le mode ARR
+  if(p.prestaMode) extra.mode = p.prestaMode;
+
+  await fillAndPrint(p.docKey, p.volTarget, extra);
 }
 
 window.openMenageModal = openMenageModal;
 window.closeMenageModal = closeMenageModal;
 window.submitMenageModal = submitMenageModal;
+
+// ===== PRESTA BASE MODAL (Départ basé / Retour basé) =====
+let _pendingPrestaBasePrint = null;
+
+function openPrestaBaseModal(pending){
+  _pendingPrestaBasePrint = pending;
+  const b = document.getElementById("prestaBaseBackdrop");
+  const m = document.getElementById("prestaBaseModal");
+  if(b) b.style.display = "block";
+  if(m) m.style.display = "flex";
+}
+
+function closePrestaBaseModal(){
+  const b = document.getElementById("prestaBaseBackdrop");
+  const m = document.getElementById("prestaBaseModal");
+  if(b) b.style.display = "none";
+  if(m) m.style.display = "none";
+  _pendingPrestaBasePrint = null;
+}
+
+async function submitPrestaBaseModal(mode){
+  const p = _pendingPrestaBasePrint;
+  if(!p) return;
+  closePrestaBaseModal();
+
+  if(mode === "ARR"){
+    // Ouvre le modal Ménage avec le mode ARR pour PRESTA_BASE
+    openMenageModal({ docKey: "PRESTA_BASE", volTarget: p.volTarget, prestaMode: "ARR" });
+    return;
+  }
+
+  // DEP : remplissage direct
+  try{
+    await fillAndPrint(p.docKey, p.volTarget, { mode: "DEP" });
+  }catch(err){
+    console.error(err);
+    alert(err?.message || String(err));
+  }
+}
+
+window.openPrestaBaseModal  = openPrestaBaseModal;
+window.closePrestaBaseModal = closePrestaBaseModal;
+window.submitPrestaBaseModal = submitPrestaBaseModal;
 
 // ===== BBCG MODAL (Bingo Gate) =====
 let _pendingBBCGPrint = null;
@@ -1503,6 +1625,7 @@ document.addEventListener("DOMContentLoaded", ()=>{
     if(document.getElementById("rzaBackdrop")?.style.display    !== "none") { closeRZAModal(false);    return; }
     if(document.getElementById("bbcgBackdrop")?.style.display   !== "none") { closeBBCGModal(false);   return; }
     if(document.getElementById("menageBackdrop")?.style.display !== "none") { closeMenageModal(false); return; }
+    if(document.getElementById("prestaBaseBackdrop")?.style.display !== "none") { closePrestaBaseModal(); return; }
     if(document.getElementById("akBackdrop")?.style.display     !== "none") { closeAKMenu();           return; }
   });
 
