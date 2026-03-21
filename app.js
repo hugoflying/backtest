@@ -258,7 +258,7 @@ PRESTA_RET:{
 // - SENS DEPART / SENS ARRIVEE = groupes radio (pas des checkboxes)
 
 PRESTA_BASE:{
- file: `${TEMPLATE_BASE}/templates/Suivi prestations bases arrivee-depart.pdf`,
+ file: `${TEMPLATE_BASE}/templates/suivi-prestations-bases-arrivee-depart.pdf`,
  fill:({vol1,vol2}, extra = null)=>{
    const o={};
    const mode = extra?.mode || "DEP";
