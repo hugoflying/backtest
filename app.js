@@ -258,42 +258,125 @@ PRESTA_BASE:{
    const o={};
    const mode = extra?.mode || "DEP"; // "DEP" ou "ARR"
 
+   // Helper : set toutes les variantes possibles d'un nom de champ
+   // (le moteur essaie chaque nom, les mauvais échouent silencieusement)
+   const alias = (variants, value) => {
+     for(const k of variants) o[k] = value;
+   };
+
    // ---- helper pour un vol (A ou B) ----
    const fillVol = (letter, vol, pkn) => {
      const pre = `FLIGHT ${letter}`;
+
      if(mode === "DEP"){
        o[`${pre} - IMMATRICULATION`]         = vol.dep.reg;
-       o[`${pre} - SENS DEPART`]             = true;
-       o[`${pre} - SENS ARRIVEE`]            = false;
        o[`${pre} - DATE`]                    = isoToDDMMYYYY(vol.dep.date);
-       o[`${pre} - PARKING`]                 = parking(pkn);
-       o[`${pre} - FLIGHT NUMBER`]           = vol.dep.flt;
-       o[`${pre} - FROM/TO`]                 = vol.dep.to;
+
+       // PARKING — plusieurs noms possibles selon le PDF
+       alias([
+         `${pre} - PARKING`,
+         `${pre} - STAND`,
+         `${pre} - PARKING STAND`,
+       ], parking(pkn));
+
+       // FLIGHT NUMBER — plusieurs noms possibles
+       alias([
+         `${pre} - FLIGHT NUMBER`,
+         `${pre} - N° DE VOL`,
+         `${pre} - N DE VOL`,
+         `${pre} - DEPARTURE FLIGHT NUMBER`,
+         `${pre} - VOL`,
+       ], vol.dep.flt);
+
+       // FROM/TO
+       alias([
+         `${pre} - FROM/TO`,
+         `${pre} - PROV/DEST`,
+         `${pre} - TO`,
+         `${pre} - DEST`,
+       ], vol.dep.to);
+
+       // SENS — noms de checkboxes/radio possibles (boolean + "X" textfield)
+       alias([
+         `${pre} - SENS DEPART`,
+         `${pre} - DEPART`,
+         `${pre} - DÉPART`,
+       ], true);
+       alias([
+         `${pre} - SENS ARRIVEE`,
+         `${pre} - ARRIVEE`,
+         `${pre} - ARRIVÉE`,
+       ], false);
+
        o[`${pre} - TOILETTES REMPLISSAGE`]   = "X";
        o[`${pre} - EAU POTABLE REMPLISSAGE`] = "X";
        o[`${pre} - GPU`]                     = "X";
+
      } else {
        const mKey = (letter === "A") ? "1" : "2";
        const m    = (extra?.menage?.[mKey] || "");
+
        o[`${pre} - IMMATRICULATION`]         = vol.arr.reg;
-       o[`${pre} - SENS ARRIVEE`]            = true;
-       o[`${pre} - SENS DEPART`]             = false;
        o[`${pre} - DATE`]                    = isoToDDMMYYYY(vol.arr.date);
-       o[`${pre} - PARKING`]                 = parking(pkn);
-       o[`${pre} - FLIGHT NUMBER`]           = vol.arr.flt;
-       o[`${pre} - FROM/TO`]                 = vol.arr.from;
+
+       // PARKING
+       alias([
+         `${pre} - PARKING`,
+         `${pre} - STAND`,
+         `${pre} - PARKING STAND`,
+       ], parking(pkn));
+
+       // FLIGHT NUMBER
+       alias([
+         `${pre} - FLIGHT NUMBER`,
+         `${pre} - N° DE VOL`,
+         `${pre} - N DE VOL`,
+         `${pre} - ARRIVAL FLIGHT NUMBER`,
+         `${pre} - VOL`,
+       ], vol.arr.flt);
+
+       // FROM/TO
+       alias([
+         `${pre} - FROM/TO`,
+         `${pre} - PROV/DEST`,
+         `${pre} - FROM`,
+         `${pre} - PROV`,
+       ], vol.arr.from);
+
+       // SENS
+       alias([
+         `${pre} - SENS ARRIVEE`,
+         `${pre} - ARRIVEE`,
+         `${pre} - ARRIVÉE`,
+       ], true);
+       alias([
+         `${pre} - SENS DEPART`,
+         `${pre} - DEPART`,
+         `${pre} - DÉPART`,
+       ], false);
+
        o[`${pre} - TOILETTES VIDANGE`]       = "X";
        o[`${pre} - EAU POTABLE VIDANGE`]     = "X";
        o[`${pre} - GPU`]                     = "X";
        o[`${pre} - COLLECTE DECHETS`]        = "X";
        o[`${pre} - MENAGE TIDY`]             = (m === "TIDY") ? "X" : "";
        o[`${pre} - MENAGE FULL`]             = (m === "FULL") ? "X" : "";
-       // Page 2 — TOUR AVION
+
+       // Page 2 — TOUR AVION : HOLD SECURITY SEARCH
        if(extra?.hold){
-         o[`${pre} - HOLD SECURITY SEARCH`]  = true;
-         o[`${pre} - ARRIVAL FLIGHT NUMBER`] = vol.arr.flt;
+         alias([
+           `${pre} - HOLD SECURITY SEARCH`,
+           `${pre} - HOLD`,
+         ], true);
+         alias([
+           `${pre} - ARRIVAL FLIGHT NUMBER`,
+           `${pre} - FLIGHT NUMBER ARR`,
+         ], vol.arr.flt);
        } else {
-         o[`${pre} - HOLD SECURITY SEARCH`]  = false;
+         alias([
+           `${pre} - HOLD SECURITY SEARCH`,
+           `${pre} - HOLD`,
+         ], false);
        }
      }
    };
@@ -419,10 +502,25 @@ async function fillAndPrint(docKey, volTarget = "1", extra = null) {
   pdfDoc.registerFontkit(fontkit);
   const form = pdfDoc.getForm();
 
-  // 🔎 DEBUG : liste exacte des champs
-  console.log("=== CHAMPS PDF ===");
+  // 🔎 DEBUG : liste exacte des champs + types
   const allFields = form.getFields();
-  allFields.forEach(f => console.log("[" + f.getName() + "]"));
+  console.group("=== CHAMPS PDF : " + docKey + " ===");
+  allFields.forEach(f => {
+    const type = f.constructor?.name || "?";
+    console.log(`[${f.getName()}] (${type})`);
+  });
+  console.groupEnd();
+
+  // ⚠️ Avertissement visible si PRESTA_BASE — aide au diagnostic des noms de champs
+  if(docKey === "PRESTA_BASE"){
+    const knownNames = new Set(allFields.map(f => f.getName()));
+    const toTry = Object.keys(fields);
+    const missed = toTry.filter(k => !knownNames.has(k));
+    if(missed.length > 0){
+      console.warn("⚠ PRESTA_BASE — champs demandés introuvables dans le PDF:", missed);
+      console.info("Champs réels disponibles:", [...knownNames]);
+    }
+  }
 
   // ✅ Roboto Condensed Bold uniquement
   const { bold } = await getFontsBytes(BASE);
@@ -449,10 +547,29 @@ async function fillAndPrint(docKey, volTarget = "1", extra = null) {
 
   for (const [name, raw] of Object.entries(fields)) {
     try {
-      // ===== BOOLEAN -> CHECKBOX =====
+      // ===== BOOLEAN -> CHECKBOX ou RADIO ou TEXT =====
       if (typeof raw === "boolean") {
-        const cb = form.getCheckBox(name);
-        raw ? cb.check() : cb.uncheck();
+        // 1) Essai checkbox standard
+        let handled = false;
+        try {
+          const cb = form.getCheckBox(name);
+          raw ? cb.check() : cb.uncheck();
+          handled = true;
+        } catch {}
+
+        // 2) Si checkBox échoue et qu'on veut cocher, essai textField avec "X"
+        if (!handled && raw) {
+          try {
+            const tf = form.getTextField(name);
+            tf.setText("X");
+            tf.updateAppearances(fontBold);
+            handled = true;
+          } catch {}
+        }
+
+        if (!handled) {
+          console.warn("⚠ SENS non trouvé (ni checkbox ni textField):", name);
+        }
         continue;
       }
 
