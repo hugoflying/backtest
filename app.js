@@ -341,13 +341,30 @@ function sleep(ms){
   return new Promise(r => setTimeout(r, ms));
 }
 
+// Détecte une redirection Cloudflare Access → recharge la page (re-auth)
+function checkCFRedirect(res, url){
+  if(
+    res.type === "opaqueredirect" ||
+    res.status === 0 ||
+    (res.status >= 300 && res.status < 400) ||
+    res.redirected
+  ){
+    console.warn("Session Cloudflare expirée, rechargement...", url);
+    window.location.reload();
+    return true;
+  }
+  return false;
+}
+
 async function fetchArrayBuffer(url, label){
   try{
     const res = await fetch(url, {
       cache: "no-store",
-      credentials: "include"
+      credentials: "include",
+      redirect: "manual"
     });
 
+    if(checkCFRedirect(res, url)) return new ArrayBuffer(0);
     if(!res.ok) throw new Error(`${label} HTTP ${res.status} (${url})`);
     return await res.arrayBuffer();
   }catch(e){
@@ -355,16 +372,18 @@ async function fetchArrayBuffer(url, label){
   }
 }
 
-// ✅ version retry (label + retries) + credentials/include
+// version retry + protection Cloudflare Access
 async function fetchArrayBufferRetry(url, label, retries = 3, delayMs = 400){
   let lastErr;
   for(let i = 0; i <= retries; i++){
     try{
       const res = await fetch(url, {
         cache: "no-cache",
-        credentials: "include"
+        credentials: "include",
+        redirect: "manual"
       });
 
+      if(checkCFRedirect(res, url)) return new ArrayBuffer(0);
       if(!res.ok) throw new Error(`${label} HTTP ${res.status} (${url})`);
       return await res.arrayBuffer();
 
