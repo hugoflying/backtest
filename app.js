@@ -342,29 +342,21 @@ function sleep(ms){
 }
 
 // Détecte une redirection Cloudflare Access → recharge la page (re-auth)
-function checkCFRedirect(res, url){
-  if(
-    res.type === "opaqueredirect" ||
-    res.status === 0 ||
-    (res.status >= 300 && res.status < 400) ||
-    res.redirected
-  ){
-    console.warn("Session Cloudflare expirée, rechargement...", url);
-    window.location.reload();
-    return true;
-  }
-  return false;
-}
-
 async function fetchArrayBuffer(url, label){
   try{
     const res = await fetch(url, {
       cache: "no-store",
-      credentials: "include",
-      redirect: "manual"
+      credentials: "include"
+      // pas de redirect:manual — on laisse le navigateur suivre les redirects normaux
     });
 
-    if(checkCFRedirect(res, url)) return new ArrayBuffer(0);
+    // Seul cas certain d'une session CF Access expirée : redirect vers cloudflareaccess.com
+    if(res.url && res.url.includes("cloudflareaccess.com")){
+      console.warn("Session Cloudflare expirée, rechargement...", url);
+      window.location.reload();
+      return new ArrayBuffer(0);
+    }
+
     if(!res.ok) throw new Error(`${label} HTTP ${res.status} (${url})`);
     return await res.arrayBuffer();
   }catch(e){
@@ -379,11 +371,16 @@ async function fetchArrayBufferRetry(url, label, retries = 3, delayMs = 400){
     try{
       const res = await fetch(url, {
         cache: "no-cache",
-        credentials: "include",
-        redirect: "manual"
+        credentials: "include"
       });
 
-      if(checkCFRedirect(res, url)) return new ArrayBuffer(0);
+      // Seul cas certain CF Access expiré
+      if(res.url && res.url.includes("cloudflareaccess.com")){
+        console.warn("Session Cloudflare expirée, rechargement...", url);
+        window.location.reload();
+        return new ArrayBuffer(0);
+      }
+
       if(!res.ok) throw new Error(`${label} HTTP ${res.status} (${url})`);
       return await res.arrayBuffer();
 
