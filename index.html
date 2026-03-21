@@ -760,45 +760,62 @@
   </div>
 </div>
 
-<!-- ===== PRESTA BASE MODAL (Départ basé / Retour basé) ===== -->
+<!-- ===== PRESTA BASE MODAL ===== -->
 <div id="prestaBaseBackdrop"
-     style="display:none; position:fixed; inset:0; background:rgba(0,0,0,.35); z-index:6800;"
+     style="display:none; position:fixed; inset:0; background:rgba(0,0,0,.45); z-index:6800;"
      onclick="closePrestaBaseModal()"></div>
 
 <div id="prestaBaseModal"
      style="display:none; position:fixed; inset:0; z-index:6900; align-items:center; justify-content:center; padding:14px;">
-  <div class="box" style="width:min(380px, 100%); border-radius:16px;">
-
+  <div class="box" style="width:min(380px,100%); border-radius:16px;">
     <div class="vol-header">
       <span>Prestations basé</span>
     </div>
-
     <div class="columns mt-4">
-
       <div class="column has-text-centered">
         <button class="button is-dark btn-band band-presta is-fullwidth"
                 type="button"
-                style="justify-content:center; min-height:54px; font-size:1rem; font-weight:700;"
+                style="justify-content:center; min-height:60px; font-size:1rem; font-weight:700;"
                 onclick="submitPrestaBaseModal('DEP')">
           ✈️ Départ basé
         </button>
       </div>
-
       <div class="column has-text-centered">
         <button class="button is-dark btn-band band-presta is-fullwidth"
                 type="button"
-                style="justify-content:center; min-height:54px; font-size:1rem; font-weight:700;"
+                style="justify-content:center; min-height:60px; font-size:1rem; font-weight:700;"
                 onclick="submitPrestaBaseModal('ARR')">
           🛬 Retour basé
         </button>
       </div>
-
     </div>
-
     <div class="buttons is-right mt-3">
       <button class="button is-light" type="button" onclick="closePrestaBaseModal()">Annuler</button>
     </div>
+  </div>
+</div>
 
+<!-- ===== HOLD SECURITY SEARCH MODAL ===== -->
+<div id="holdBackdrop"
+     style="display:none; position:fixed; inset:0; background:rgba(0,0,0,.45); z-index:7000;"
+     onclick="closeHoldModal()"></div>
+
+<div id="holdModal"
+     style="display:none; position:fixed; inset:0; z-index:7100; align-items:center; justify-content:center; padding:14px;">
+  <div class="box" style="width:min(380px,100%); border-radius:16px;">
+    <div class="vol-header">
+      <span>Retour basé</span>
+    </div>
+    <div class="field mt-5 mb-5" style="display:flex; align-items:center; gap:14px; font-size:1.05rem; font-weight:600;">
+      <label class="checkbox" style="display:flex; align-items:center; gap:10px; cursor:pointer;">
+        <input id="holdCheckbox" type="checkbox" style="width:20px; height:20px; cursor:pointer;">
+        Hold Security Search
+      </label>
+    </div>
+    <div class="buttons is-right mt-3">
+      <button class="button is-light" type="button" onclick="closeHoldModal()">Annuler</button>
+      <button class="button is-link" type="button" onclick="submitHoldModal()">Suivant</button>
+    </div>
   </div>
 </div>
 
