@@ -1752,11 +1752,41 @@ function bindAK(n){
 }
 
 // boot
+// Précharge tous les templates PDF en mémoire au démarrage
+// => les clics ne font plus jamais de requête réseau
+async function preloadAllTemplates(){
+  const BASE = new URL("./", location.href).toString();
+
+  // Précharge la font aussi
+  try{
+    await getFontsBytes(BASE);
+  }catch(e){
+    console.warn("Préchargement font échoué (réessai au 1er clic):", e?.message);
+  }
+
+  for(const [key, def] of Object.entries(DOCS)){
+    if(!def.file) continue;
+    if(_templateCache.has(key)) continue;
+    try{
+      const bytes = await fetchArrayBufferRetry(def.file, key, 2, 300);
+      if(bytes && bytes.byteLength > 0){
+        _templateCache.set(key, bytes);
+        console.log("✅ Template en cache :", key);
+      }
+    }catch(e){
+      console.warn("⚠ Préchargement échoué pour", key, "— sera réessayé au clic :", e?.message);
+    }
+  }
+}
+
 document.addEventListener("DOMContentLoaded", ()=>{
   bindAK(1);
   bindAK(2);
   loadAKAll();
   startAKAutoRefresh();
+
+  // Précharge tous les PDFs en arrière-plan dès le chargement
+  preloadAllTemplates();
 
   // Fermer les popups avec Échap
   document.addEventListener("keydown", (e)=>{
