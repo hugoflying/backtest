@@ -271,12 +271,8 @@ PRESTA_BASE:{
      o[`FLIGHT ${letter} - STAND`]           = parking(pkn);
      o[`FLIGHT ${letter} - FROM/TO`]         = (mode === "DEP") ? vol.dep.to : vol.arr.from;
 
-     // ⚠ FLIGHT NUMBER : double espace pour A, simple pour B
-     if(isA){
-       o["FLIGHT A -  FLIGHT NUMBER"] = (mode === "DEP") ? vol.dep.flt : vol.arr.flt;
-     } else {
-       o["FLIGHT B - FLIGHT NUMBER"]  = (mode === "DEP") ? vol.dep.flt : vol.arr.flt;
-     }
+     // FLIGHT NUMBER : même nom pour A et B (espace simple)
+     o[`FLIGHT ${letter} - FLIGHT NUMBER`] = (mode === "DEP") ? vol.dep.flt : vol.arr.flt;
 
      if(mode === "DEP"){
        // Sens radio : "SENS DEPART" = sélectionner, "SENS ARRIVEE" = effacer
@@ -312,11 +308,7 @@ PRESTA_BASE:{
        if(extra?.hold){
          o[`FLIGHT ${letter} - HOLD SECURITY SEARCH`] = "__SELECT__";
          // Remet le numéro de vol dans le champ ARR page 2
-         if(isA){
-           o["FLIGHT A -  FLIGHT NUMBER"] = vol.arr.flt;
-         } else {
-           o["FLIGHT B - FLIGHT NUMBER"]  = vol.arr.flt;
-         }
+         o[`FLIGHT ${letter} - FLIGHT NUMBER`] = vol.arr.flt;
        } else {
          o[`FLIGHT ${letter} - HOLD SECURITY SEARCH`] = "__CLEAR__";
        }
