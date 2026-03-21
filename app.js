@@ -446,17 +446,6 @@ async function fillAndPrint(docKey, volTarget = "1", extra = null) {
   });
   console.groupEnd();
 
-  // ⚠️ Avertissement visible si PRESTA_BASE — aide au diagnostic des noms de champs
-  if(docKey === "PRESTA_BASE"){
-    const knownNames = new Set(allFields.map(f => f.getName()));
-    const toTry = Object.keys(fields);
-    const missed = toTry.filter(k => !knownNames.has(k));
-    if(missed.length > 0){
-      console.warn("⚠ PRESTA_BASE — champs demandés introuvables dans le PDF:", missed);
-      console.info("Champs réels disponibles:", [...knownNames]);
-    }
-  }
-
   // ✅ Roboto Condensed Bold uniquement
   const { bold } = await getFontsBytes(BASE);
   const fontBold = await pdfDoc.embedFont(bold);
@@ -465,6 +454,16 @@ async function fillAndPrint(docKey, volTarget = "1", extra = null) {
     (volTarget === "both")
       ? def.fill({ vol1: v1, vol2: v2 }, extra)
       : def.fill({ vol1, vol2 }, extra);
+
+  // ⚠️ Avertissement si PRESTA_BASE — champs manquants dans le PDF
+  if(docKey === "PRESTA_BASE"){
+    const knownNames = new Set(allFields.map(f => f.getName()));
+    const missed = Object.keys(fields).filter(k => !knownNames.has(k));
+    if(missed.length > 0){
+      console.warn("⚠ PRESTA_BASE — champs introuvables dans le PDF:", missed);
+      console.info("Champs réels disponibles:", [...knownNames]);
+    }
+  }
 
   // 🔎 Trouve automatiquement le vrai champ SI
   let siFieldName = null;
