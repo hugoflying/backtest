@@ -237,15 +237,11 @@ PRESTA_RET:{
      o["FLIGHT B - FROM"] = vol2.arr.from;
    }
 
-   // ✅ MENAGE (checkbox fields) — on force X / vide
    const m1 = (extra?.menage?.["1"] || "");
    const m2 = (extra?.menage?.["2"] || "");
 
-   // Vol 1 -> FLIGHT A
    o["FLIGHT A - MENAGE TIDY"] = (m1 === "TIDY") ? "X" : "";
    o["FLIGHT A - MENAGE FULL"] = (m1 === "FULL") ? "X" : "";
-
-   // Vol 2 -> FLIGHT B
    o["FLIGHT B - MENAGE TIDY"] = (m2 === "TIDY") ? "X" : "";
    o["FLIGHT B - MENAGE FULL"] = (m2 === "FULL") ? "X" : "";
 
@@ -254,7 +250,7 @@ PRESTA_RET:{
  flatten:true
 },
 
-/* ========= PRESTATIONS BASÉ (DÉPART + ARRIVÉE combinés) ========= */
+/* ========= PRESTATIONS BASÉ (arrivée-départ combiné) ========= */
 
 PRESTA_BASE:{
  file: `${TEMPLATE_BASE}/templates/Suivi prestations basés arrivée-départ.pdf`,
@@ -262,61 +258,48 @@ PRESTA_BASE:{
    const o={};
    const mode = extra?.mode || "DEP"; // "DEP" ou "ARR"
 
-   if(!isVolEmpty(vol1)){
+   // ---- helper pour un vol (A ou B) ----
+   const fillVol = (letter, vol, pkn) => {
+     const pre = `FLIGHT ${letter}`;
      if(mode === "DEP"){
-       o["FLIGHT A - IMMATRICULATION"]        = vol1.dep.reg;
-       o["FLIGHT A - SENS DEPART"]            = true;
-       o["FLIGHT A - DATE"]                   = isoToDDMMYYYY(vol1.dep.date);
-       o["FLIGHT A - PARKING"]                = parking(1);
-       o["FLIGHT A - FLIGHT NUMBER"]          = vol1.dep.flt;
-       o["FLIGHT A - FROM/TO"]                = vol1.dep.to;
-       o["FLIGHT A - TOILETTES REMPLISSAGE"]  = "X";
-       o["FLIGHT A - EAU POTABLE REMPLISSAGE"]= "X";
-       o["FLIGHT A - GPU"]                    = "X";
+       o[`${pre} - IMMATRICULATION`]         = vol.dep.reg;
+       o[`${pre} - SENS DEPART`]             = true;
+       o[`${pre} - SENS ARRIVEE`]            = false;
+       o[`${pre} - DATE`]                    = isoToDDMMYYYY(vol.dep.date);
+       o[`${pre} - PARKING`]                 = parking(pkn);
+       o[`${pre} - FLIGHT NUMBER`]           = vol.dep.flt;
+       o[`${pre} - FROM/TO`]                 = vol.dep.to;
+       o[`${pre} - TOILETTES REMPLISSAGE`]   = "X";
+       o[`${pre} - EAU POTABLE REMPLISSAGE`] = "X";
+       o[`${pre} - GPU`]                     = "X";
      } else {
-       const m1 = (extra?.menage?.["1"] || "");
-       o["FLIGHT A - IMMATRICULATION"]        = vol1.arr.reg;
-       o["FLIGHT A - SENS ARRIVEE"]           = true;
-       o["FLIGHT A - DATE"]                   = isoToDDMMYYYY(vol1.arr.date);
-       o["FLIGHT A - PARKING"]                = parking(1);
-       o["FLIGHT A - FLIGHT NUMBER"]          = vol1.arr.flt;
-       o["FLIGHT A - FROM/TO"]                = vol1.arr.from;
-       o["FLIGHT A - TOILETTES VIDANGE"]      = "X";
-       o["FLIGHT A - EAU POTABLE VIDANGE"]    = "X";
-       o["FLIGHT A - GPU"]                    = "X";
-       o["FLIGHT A - COLLECTE DECHETS"]       = "X";
-       o["FLIGHT A - MENAGE TIDY"]            = (m1 === "TIDY") ? "X" : "";
-       o["FLIGHT A - MENAGE FULL"]            = (m1 === "FULL") ? "X" : "";
+       const mKey = (letter === "A") ? "1" : "2";
+       const m    = (extra?.menage?.[mKey] || "");
+       o[`${pre} - IMMATRICULATION`]         = vol.arr.reg;
+       o[`${pre} - SENS ARRIVEE`]            = true;
+       o[`${pre} - SENS DEPART`]             = false;
+       o[`${pre} - DATE`]                    = isoToDDMMYYYY(vol.arr.date);
+       o[`${pre} - PARKING`]                 = parking(pkn);
+       o[`${pre} - FLIGHT NUMBER`]           = vol.arr.flt;
+       o[`${pre} - FROM/TO`]                 = vol.arr.from;
+       o[`${pre} - TOILETTES VIDANGE`]       = "X";
+       o[`${pre} - EAU POTABLE VIDANGE`]     = "X";
+       o[`${pre} - GPU`]                     = "X";
+       o[`${pre} - COLLECTE DECHETS`]        = "X";
+       o[`${pre} - MENAGE TIDY`]             = (m === "TIDY") ? "X" : "";
+       o[`${pre} - MENAGE FULL`]             = (m === "FULL") ? "X" : "";
+       // Page 2 — TOUR AVION
+       if(extra?.hold){
+         o[`${pre} - HOLD SECURITY SEARCH`]  = true;
+         o[`${pre} - ARRIVAL FLIGHT NUMBER`] = vol.arr.flt;
+       } else {
+         o[`${pre} - HOLD SECURITY SEARCH`]  = false;
+       }
      }
-   }
+   };
 
-   if(!isVolEmpty(vol2)){
-     if(mode === "DEP"){
-       o["FLIGHT B - IMMATRICULATION"]        = vol2.dep.reg;
-       o["FLIGHT B - SENS DEPART"]            = true;
-       o["FLIGHT B - DATE"]                   = isoToDDMMYYYY(vol2.dep.date);
-       o["FLIGHT B - PARKING"]                = parking(2);
-       o["FLIGHT B - FLIGHT NUMBER"]          = vol2.dep.flt;
-       o["FLIGHT B - FROM/TO"]                = vol2.dep.to;
-       o["FLIGHT B - TOILETTES REMPLISSAGE"]  = "X";
-       o["FLIGHT B - EAU POTABLE REMPLISSAGE"]= "X";
-       o["FLIGHT B - GPU"]                    = "X";
-     } else {
-       const m2 = (extra?.menage?.["2"] || "");
-       o["FLIGHT B - IMMATRICULATION"]        = vol2.arr.reg;
-       o["FLIGHT B - SENS ARRIVEE"]           = true;
-       o["FLIGHT B - DATE"]                   = isoToDDMMYYYY(vol2.arr.date);
-       o["FLIGHT B - PARKING"]                = parking(2);
-       o["FLIGHT B - FLIGHT NUMBER"]          = vol2.arr.flt;
-       o["FLIGHT B - FROM/TO"]                = vol2.arr.from;
-       o["FLIGHT B - TOILETTES VIDANGE"]      = "X";
-       o["FLIGHT B - EAU POTABLE VIDANGE"]    = "X";
-       o["FLIGHT B - GPU"]                    = "X";
-       o["FLIGHT B - COLLECTE DECHETS"]       = "X";
-       o["FLIGHT B - MENAGE TIDY"]            = (m2 === "TIDY") ? "X" : "";
-       o["FLIGHT B - MENAGE FULL"]            = (m2 === "FULL") ? "X" : "";
-     }
-   }
+   if(!isVolEmpty(vol1)) fillVol("A", vol1, 1);
+   if(!isVolEmpty(vol2)) fillVol("B", vol2, 2);
 
    return o;
  },
@@ -562,7 +545,7 @@ document.addEventListener("click", async (e) => {
     return;
   }
 
-  // ✅ popup Départ/Retour basé pour PRESTA_BASE
+  // ✅ popup Prestations basé (DEP ou ARR)
   if(docKey === "PRESTA_BASE"){
     openPrestaBaseModal({ docKey, volTarget });
     return;
@@ -650,14 +633,16 @@ async function submitMenageModal(){
   closeMenageModal(true);
   _pendingMenagePrint = null;
 
-  const menageData = {
-    "1": window._menageByVol["1"] || "",
-    "2": window._menageByVol["2"] || "",
+  const extra = {
+    menage: {
+      "1": window._menageByVol["1"] || "",
+      "2": window._menageByVol["2"] || "",
+    }
   };
 
-  const extra = { menage: menageData };
-  // ✅ Pour PRESTA_BASE retour, on passe le mode ARR
+  // Pour PRESTA_BASE retour, on transmet mode + hold
   if(p.prestaMode) extra.mode = p.prestaMode;
+  if(p.hold !== undefined) extra.hold = p.hold;
 
   await fillAndPrint(p.docKey, p.volTarget, extra);
 }
@@ -666,11 +651,11 @@ window.openMenageModal = openMenageModal;
 window.closeMenageModal = closeMenageModal;
 window.submitMenageModal = submitMenageModal;
 
-// ===== PRESTA BASE MODAL (Départ basé / Retour basé) =====
-let _pendingPrestaBasePrint = null;
+// ===== PRESTA BASE MODAL (choix Départ / Retour basé) =====
+let _pendingPrestaBase = null;
 
 function openPrestaBaseModal(pending){
-  _pendingPrestaBasePrint = pending;
+  _pendingPrestaBase = pending;
   const b = document.getElementById("prestaBaseBackdrop");
   const m = document.getElementById("prestaBaseModal");
   if(b) b.style.display = "block";
@@ -682,32 +667,65 @@ function closePrestaBaseModal(){
   const m = document.getElementById("prestaBaseModal");
   if(b) b.style.display = "none";
   if(m) m.style.display = "none";
-  _pendingPrestaBasePrint = null;
+  _pendingPrestaBase = null;
 }
 
 async function submitPrestaBaseModal(mode){
-  const p = _pendingPrestaBasePrint;
+  const p = _pendingPrestaBase;
   if(!p) return;
   closePrestaBaseModal();
 
-  if(mode === "ARR"){
-    // Ouvre le modal Ménage avec le mode ARR pour PRESTA_BASE
-    openMenageModal({ docKey: "PRESTA_BASE", volTarget: p.volTarget, prestaMode: "ARR" });
-    return;
-  }
-
-  // DEP : remplissage direct
-  try{
-    await fillAndPrint(p.docKey, p.volTarget, { mode: "DEP" });
-  }catch(err){
-    console.error(err);
-    alert(err?.message || String(err));
+  if(mode === "DEP"){
+    // Départ basé : impression directe
+    try{
+      await fillAndPrint(p.docKey, p.volTarget, { mode: "DEP" });
+    }catch(err){
+      console.error(err);
+      alert(err?.message || String(err));
+    }
+  } else {
+    // Retour basé : d abord Hold Security Search, puis Ménage
+    openHoldModal({ docKey: p.docKey, volTarget: p.volTarget, prestaMode: "ARR" });
   }
 }
 
 window.openPrestaBaseModal  = openPrestaBaseModal;
 window.closePrestaBaseModal = closePrestaBaseModal;
 window.submitPrestaBaseModal = submitPrestaBaseModal;
+
+// ===== HOLD SECURITY SEARCH MODAL (Retour basé) =====
+let _pendingHold = null;
+
+function openHoldModal(pending){
+  _pendingHold = pending;
+  const b = document.getElementById("holdBackdrop");
+  const m = document.getElementById("holdModal");
+  const cb = document.getElementById("holdCheckbox");
+  if(cb) cb.checked = false;
+  if(b) b.style.display = "block";
+  if(m) m.style.display = "flex";
+}
+
+function closeHoldModal(){
+  const b = document.getElementById("holdBackdrop");
+  const m = document.getElementById("holdModal");
+  if(b) b.style.display = "none";
+  if(m) m.style.display = "none";
+  _pendingHold = null;
+}
+
+function submitHoldModal(){
+  const p = _pendingHold;
+  if(!p) return;
+  const holdChecked = !!document.getElementById("holdCheckbox")?.checked;
+  closeHoldModal();
+  // Enchaine sur le modal Ménage, en passant hold + prestaMode
+  openMenageModal({ docKey: p.docKey, volTarget: p.volTarget, prestaMode: p.prestaMode, hold: holdChecked });
+}
+
+window.openHoldModal  = openHoldModal;
+window.closeHoldModal = closeHoldModal;
+window.submitHoldModal = submitHoldModal;
 
 // ===== BBCG MODAL (Bingo Gate) =====
 let _pendingBBCGPrint = null;
@@ -1232,6 +1250,13 @@ function applyArrToVol(n, arr){
   setVal(`arr_reg_${n}`, upper(arr?.reg || ""));
   setVal(`arr_type_${n}`, akAcType(arr));
 
+  // Meme avion : pre-remplit les champs visibles Registration + A/C Type
+  // (seront ecrases si un DEP lie est trouve via applyDepOnlyToVol)
+  const regVal  = upper(arr?.reg || "");
+  const typeVal = akAcType(arr);
+  if(regVal)  setVal(`dep_reg_${n}`,  regVal);
+  if(typeVal) setVal(`dep_type_${n}`, typeVal);
+
   const stand = (arr?.pkg || "").toString().replace(/^P/i,"").trim();
   if(stand) setVal(`parking_${n}`, stand);
 
@@ -1624,9 +1649,10 @@ document.addEventListener("DOMContentLoaded", ()=>{
     if(document.getElementById("siBackdrop")?.style.display     !== "none") { closeSIModal(false);     return; }
     if(document.getElementById("rzaBackdrop")?.style.display    !== "none") { closeRZAModal(false);    return; }
     if(document.getElementById("bbcgBackdrop")?.style.display   !== "none") { closeBBCGModal(false);   return; }
-    if(document.getElementById("menageBackdrop")?.style.display !== "none") { closeMenageModal(false); return; }
+    if(document.getElementById("menageBackdrop")?.style.display      !== "none") { closeMenageModal(false);  return; }
     if(document.getElementById("prestaBaseBackdrop")?.style.display !== "none") { closePrestaBaseModal(); return; }
-    if(document.getElementById("akBackdrop")?.style.display     !== "none") { closeAKMenu();           return; }
+    if(document.getElementById("holdBackdrop")?.style.display       !== "none") { closeHoldModal();       return; }
+    if(document.getElementById("akBackdrop")?.style.display         !== "none") { closeAKMenu();          return; }
   });
 
   // Toggle UTC / Local
