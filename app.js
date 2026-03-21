@@ -304,10 +304,11 @@ PRESTA_BASE:{
        o[`FLIGHT ${letter} - MENAGE TIDY`]          = (m === "TIDY") ? "X" : "";
        o[`FLIGHT ${letter} - MENAGE FULL`]          = (m === "FULL") ? "X" : "";
 
-       // Page 2 — HOLD SECURITY SEARCH
-       if(extra?.hold){
+       // Page 2 — HOLD SECURITY SEARCH (par vol)
+       const holdKey = isA ? "1" : "2";
+       const isHold = !!(extra?.hold?.[holdKey]);
+       if(isHold){
          o[`FLIGHT ${letter} - HOLD SECURITY SEARCH`] = "__SELECT__";
-         // Remet le numéro de vol dans le champ ARR page 2
          o[`FLIGHT ${letter} - FLIGHT NUMBER`] = vol.arr.flt;
        } else {
          o[`FLIGHT ${letter} - HOLD SECURITY SEARCH`] = "__CLEAR__";
@@ -766,10 +767,22 @@ let _pendingHold = null;
 
 function openHoldModal(pending){
   _pendingHold = pending;
+  // reset les deux cases
+  const cb1 = document.getElementById("holdCheckbox1");
+  const cb2 = document.getElementById("holdCheckbox2");
+  if(cb1) cb1.checked = false;
+  if(cb2) cb2.checked = false;
+
+  // Afficher les lignes vol selon vols remplis
+  const v1 = getVol(1);
+  const v2 = getVol(2);
+  const row1 = document.getElementById("holdRow1");
+  const row2 = document.getElementById("holdRow2");
+  if(row1) row1.style.display = isVolEmpty(v1) ? "none" : "flex";
+  if(row2) row2.style.display = isVolEmpty(v2) ? "none" : "flex";
+
   const b = document.getElementById("holdBackdrop");
   const m = document.getElementById("holdModal");
-  const cb = document.getElementById("holdCheckbox");
-  if(cb) cb.checked = false;
   if(b) b.style.display = "block";
   if(m) m.style.display = "flex";
 }
@@ -785,10 +798,13 @@ function closeHoldModal(){
 function submitHoldModal(){
   const p = _pendingHold;
   if(!p) return;
-  const holdChecked = !!document.getElementById("holdCheckbox")?.checked;
+  const hold = {
+    "1": !!document.getElementById("holdCheckbox1")?.checked,
+    "2": !!document.getElementById("holdCheckbox2")?.checked,
+  };
   closeHoldModal();
-  // Enchaine sur le modal Ménage, en passant hold + prestaMode
-  openMenageModal({ docKey: p.docKey, volTarget: p.volTarget, prestaMode: p.prestaMode, hold: holdChecked });
+  // Enchaine sur le modal Ménage, en passant hold (par vol) + prestaMode
+  openMenageModal({ docKey: p.docKey, volTarget: p.volTarget, prestaMode: p.prestaMode, hold });
 }
 
 window.openHoldModal  = openHoldModal;
