@@ -263,16 +263,24 @@ PRESTA_BASE:{
    const o={};
    const mode = extra?.mode || "DEP";
 
+   // Lecture directe du DOM (comme parking()), indépendante du snapshot getVol()
+   const domVal = (id) => (document.getElementById(id)?.value || "").trim().toUpperCase();
+
    const fillVol = (letter, vol, pkn) => {
      const isA = (letter === "A");
+     const n   = isA ? 1 : 2;
 
      o[`FLIGHT ${letter} - IMMATRICULATION`] = (mode === "DEP") ? vol.dep.reg : vol.arr.reg;
      o[`FLIGHT ${letter} - DATE`]            = (mode === "DEP") ? isoToDDMMYYYY(vol.dep.date) : isoToDDMMYYYY(vol.arr.date);
      o[`FLIGHT ${letter} - STAND`]           = parking(pkn);
      o[`FLIGHT ${letter} - FROM/TO`]         = (mode === "DEP") ? vol.dep.to : vol.arr.from;
 
-     // FLIGHT NUMBER : même nom pour A et B (espace simple)
-     o[`FLIGHT ${letter} - FLIGHT NUMBER`] = (mode === "DEP") ? vol.dep.flt : vol.arr.flt;
+     // FLIGHT NUMBER : lecture directe du DOM pour éviter tout problème de snapshot
+     const fltDep = domVal(`dep_flt_${n}`);
+     const fltArr = domVal(`arr_flt_${n}`);
+     const fltNum = (mode === "DEP") ? fltDep : fltArr;
+     console.log(`[PRESTA_BASE] FLIGHT ${letter} mode=${mode} dep_flt=${fltDep} arr_flt=${fltArr} → fltNum=${fltNum}`);
+     o[`FLIGHT ${letter} - FLIGHT NUMBER`] = fltNum;
 
      if(mode === "DEP"){
        // Sens radio : "SENS DEPART" = sélectionner, "SENS ARRIVEE" = effacer
