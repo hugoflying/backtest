@@ -263,27 +263,28 @@ PRESTA_BASE:{
    const o={};
    const mode = extra?.mode || "DEP";
 
-   // Lecture directe du DOM (comme parking()), indépendante du snapshot getVol()
+   // Lecture directe du DOM (indépendante du snapshot getVol())
    const domVal = (id) => (document.getElementById(id)?.value || "").trim().toUpperCase();
 
    const fillVol = (letter, vol, pkn) => {
      const isA = (letter === "A");
      const n   = isA ? 1 : 2;
 
+     // FLIGHT NUMBER : espace simple pour A et B (confirmé Acrobat)
+     const fltFieldName = `FLIGHT ${letter} - FLIGHT NUMBER`;
+
      o[`FLIGHT ${letter} - IMMATRICULATION`] = (mode === "DEP") ? vol.dep.reg : vol.arr.reg;
      o[`FLIGHT ${letter} - DATE`]            = (mode === "DEP") ? isoToDDMMYYYY(vol.dep.date) : isoToDDMMYYYY(vol.arr.date);
      o[`FLIGHT ${letter} - STAND`]           = parking(pkn);
      o[`FLIGHT ${letter} - FROM/TO`]         = (mode === "DEP") ? vol.dep.to : vol.arr.from;
 
-     // FLIGHT NUMBER : lecture directe du DOM pour éviter tout problème de snapshot
+     // FLIGHT NUMBER : lecture directe du DOM + nom exact avec double espace pour A
      const fltDep = domVal(`dep_flt_${n}`);
      const fltArr = domVal(`arr_flt_${n}`);
      const fltNum = (mode === "DEP") ? fltDep : fltArr;
-     console.log(`[PRESTA_BASE] FLIGHT ${letter} mode=${mode} dep_flt=${fltDep} arr_flt=${fltArr} → fltNum=${fltNum}`);
-     o[`FLIGHT ${letter} - FLIGHT NUMBER`] = fltNum;
+     o[fltFieldName] = fltNum;
 
      if(mode === "DEP"){
-       // Sens radio : "SENS DEPART" = sélectionner, "SENS ARRIVEE" = effacer
        o[`FLIGHT ${letter} - SENS DEPART`]  = "__SELECT__";
        o[`FLIGHT ${letter} - SENS ARRIVEE`] = "__CLEAR__";
 
@@ -301,7 +302,6 @@ PRESTA_BASE:{
        const mKey = isA ? "1" : "2";
        const m    = (extra?.menage?.[mKey] || "");
 
-       // Sens radio : "SENS ARRIVEE" = sélectionner, "SENS DEPART" = effacer
        o[`FLIGHT ${letter} - SENS ARRIVEE`] = "__SELECT__";
        o[`FLIGHT ${letter} - SENS DEPART`]  = "__CLEAR__";
 
@@ -312,14 +312,14 @@ PRESTA_BASE:{
        o[`FLIGHT ${letter} - MENAGE TIDY`]          = (m === "TIDY") ? "X" : "";
        o[`FLIGHT ${letter} - MENAGE FULL`]          = (m === "FULL") ? "X" : "";
 
-       // Page 2 — HOLD SECURITY SEARCH (par vol)
+       // Page 2 — HOLD SECURITY SEARCH (noms exacts vus dans la console)
        const holdKey = isA ? "1" : "2";
        const isHold = !!(extra?.hold?.[holdKey]);
        if(isHold){
-         o[`FLIGHT ${letter} - HOLD SECURITY SEARCH`] = "__SELECT__";
-         o[`FLIGHT ${letter} - FLIGHT NUMBER`] = vol.arr.flt;
+         o[`FLIGHT ${letter} - ARRIVAL HOLD SECURITY SEARCH`] = "__SELECT__";
+         o[`FLIGHT ${letter} - ARRIVAL FLIGHT NUMBER`]        = fltArr;
        } else {
-         o[`FLIGHT ${letter} - HOLD SECURITY SEARCH`] = "__CLEAR__";
+         o[`FLIGHT ${letter} - ARRIVAL HOLD SECURITY SEARCH`] = "__CLEAR__";
        }
      }
    };
