@@ -706,6 +706,14 @@ function openMenageModal(pending){
   setMenageUI(1, window._menageByVol["1"] || "");
   setMenageUI(2, window._menageByVol["2"] || "");
 
+  // Masquer les colonnes des vols vides (comme le modal Hold)
+  const v1 = getVol(1);
+  const v2 = getVol(2);
+  const col1 = document.getElementById("menageCol1");
+  const col2 = document.getElementById("menageCol2");
+  if(col1) col1.style.display = isVolEmpty(v1) ? "none" : "";
+  if(col2) col2.style.display = isVolEmpty(v2) ? "none" : "";
+
   // bind buttons (idempotent)
   bindMenageButtons();
 
