@@ -212,7 +212,7 @@ PRESTA_DEP:{
    return o;
  },
  flatten:true,
- fontSize: 10
+ fontSize: 14
 },
 
 /* ========= PRESTATIONS ARRIVÉE ========= */
@@ -249,7 +249,7 @@ PRESTA_RET:{
    return o;
  },
  flatten:true,
- fontSize: 10
+ fontSize: 14
 },
 
 /* ========= PRESTATIONS BASÉ (arrivée-départ combiné) ========= */
@@ -295,7 +295,7 @@ PRESTA_BASE:{
          o["FLIGHT A - TOILETTES REMPLISSAGE"]   = "X";
          o["FLIGHT A - EAU POTABLE REMPLISSAGE"] = "X";
        } else {
-         o["FLIGHT B - REMPLISSAGE TOILETTES"]   = "X";
+         o["FLIGHT B - TOILETTES REMPLISSAGE"]   = "X";
          o["FLIGHT B - EAU POTABLE REMPLISSAGE"] = "X";
        }
        o[`FLIGHT ${letter} - GPU`] = "X";
@@ -332,7 +332,7 @@ PRESTA_BASE:{
    return o;
  },
  flatten:true,
- fontSize: 10
+ fontSize: 14
 }
 
 };
