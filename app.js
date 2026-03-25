@@ -211,7 +211,8 @@ PRESTA_DEP:{
 
    return o;
  },
- flatten:true
+ flatten:true,
+ fontSize: 10
 },
 
 /* ========= PRESTATIONS ARRIVÉE ========= */
@@ -247,7 +248,8 @@ PRESTA_RET:{
 
    return o;
  },
- flatten:true
+ flatten:true,
+ fontSize: 10
 },
 
 /* ========= PRESTATIONS BASÉ (arrivée-départ combiné) ========= */
@@ -329,7 +331,8 @@ PRESTA_BASE:{
 
    return o;
  },
- flatten:true
+ flatten:true,
+ fontSize: 10
 }
 
 };
@@ -578,6 +581,10 @@ async function fillAndPrint(docKey, volTarget = "1", extra = null) {
 
         const isName = name.includes("NOM PRENOM");
         tf.setAlignment(isName ? PDFLib.TextAlignment.Left : PDFLib.TextAlignment.Center);
+
+        if(def.fontSize && typeof tf.setFontSize === "function"){
+          tf.setFontSize(def.fontSize);
+        }
 
         tf.updateAppearances(fontBold);
       }
