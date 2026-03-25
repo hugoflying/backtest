@@ -189,7 +189,7 @@ AUTOCONTROLE:{
 /* ========= PRESTATIONS DÉPART ========= */
 
 PRESTA_DEP:{
- file: `${TEMPLATE_BASE}/templates/Suivi prestations basés départ.pdf`,
+ file: `${TEMPLATE_BASE}/templates/suivi-prestations-bases-arrivee-depart.pdf`,
  fill:({vol1,vol2})=>{
    const o={};
 
@@ -217,7 +217,7 @@ PRESTA_DEP:{
 /* ========= PRESTATIONS ARRIVÉE ========= */
 
 PRESTA_RET:{
- file: `${TEMPLATE_BASE}/templates/Suivi prestations basés arrivée.pdf`,
+ file: `${TEMPLATE_BASE}/templates/suivi-prestations-bases-arrivee-depart.pdf`,
  fill:({vol1,vol2}, extra = null)=>{
    const o={};
 
