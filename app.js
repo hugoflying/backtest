@@ -172,7 +172,7 @@ AUTOCONTROLE:{
       o["FLIGHT A - DATE"] = isoToDDMMYYYY(vol1.dep.date);
       o["FLIGHT A - TO"] = vol1.dep.to;
     } else {
-      o["FLIGHT A - DATE"] = "      /      /      ";
+      o["FLIGHT A - DATE"] = "            /            /            ";
     }
 
     // ===== VOL B =====
@@ -182,7 +182,7 @@ AUTOCONTROLE:{
       o["FLIGHT B - DATE"] = isoToDDMMYYYY(vol2.dep.date);
       o["FLIGHT B - TO"] = vol2.dep.to;
     } else {
-      o["FLIGHT B - DATE"] = "      /      /      ";
+      o["FLIGHT B - DATE"] = "            /            /            ";
     }
 
     return o;
