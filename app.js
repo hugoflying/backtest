@@ -171,6 +171,8 @@ AUTOCONTROLE:{
       o["FLIGHT A - DEPARTURE FLIGHT NUMBER"] = vol1.dep.flt;
       o["FLIGHT A - DATE"] = isoToDDMMYYYY(vol1.dep.date);
       o["FLIGHT A - TO"] = vol1.dep.to;
+    } else {
+      o["FLIGHT A - DATE"] = "  /  /    ";
     }
 
     // ===== VOL B =====
@@ -179,6 +181,8 @@ AUTOCONTROLE:{
       o["FLIGHT B - DEPARTURE FLIGHT NUMBER"] = vol2.dep.flt;
       o["FLIGHT B - DATE"] = isoToDDMMYYYY(vol2.dep.date);
       o["FLIGHT B - TO"] = vol2.dep.to;
+    } else {
+      o["FLIGHT B - DATE"] = "  /  /    ";
     }
 
     return o;
