@@ -1794,16 +1794,27 @@ document.addEventListener("DOMContentLoaded", ()=>{
   // Précharge tous les PDFs en arrière-plan dès le chargement
   preloadAllTemplates();
 
-  // Fermer les popups avec Échap
+  // Fermer les popups avec Échap + valider avec Entrée
   document.addEventListener("keydown", (e)=>{
-    if(e.key !== "Escape") return;
-    if(document.getElementById("siBackdrop")?.style.display     !== "none") { closeSIModal(false);     return; }
-    if(document.getElementById("rzaBackdrop")?.style.display    !== "none") { closeRZAModal(false);    return; }
-    if(document.getElementById("bbcgBackdrop")?.style.display   !== "none") { closeBBCGModal(false);   return; }
-    if(document.getElementById("menageBackdrop")?.style.display      !== "none") { closeMenageModal(false);  return; }
-    if(document.getElementById("prestaBaseBackdrop")?.style.display !== "none") { closePrestaBaseModal(); return; }
-    if(document.getElementById("holdBackdrop")?.style.display       !== "none") { closeHoldModal();       return; }
-    if(document.getElementById("akBackdrop")?.style.display         !== "none") { closeAKMenu();          return; }
+    if(e.key === "Escape"){
+      if(document.getElementById("siBackdrop")?.style.display          !== "none") { closeSIModal(false);        return; }
+      if(document.getElementById("rzaBackdrop")?.style.display         !== "none") { closeRZAModal(false);       return; }
+      if(document.getElementById("bbcgBackdrop")?.style.display        !== "none") { closeBBCGModal(false);      return; }
+      if(document.getElementById("menageBackdrop")?.style.display      !== "none") { closeMenageModal(false);    return; }
+      if(document.getElementById("prestaBaseBackdrop")?.style.display  !== "none") { closePrestaBaseModal();     return; }
+      if(document.getElementById("holdBackdrop")?.style.display        !== "none") { closeHoldModal();           return; }
+      if(document.getElementById("akBackdrop")?.style.display          !== "none") { closeAKMenu();              return; }
+    }
+    if(e.key === "Enter"){
+      // Ne pas intercepter si on est dans un textarea
+      if(e.target.tagName === "TEXTAREA") return;
+      if(document.getElementById("siBackdrop")?.style.display          !== "none") { e.preventDefault(); submitSIModal();        return; }
+      if(document.getElementById("rzaBackdrop")?.style.display         !== "none") { e.preventDefault(); submitRZAModal();       return; }
+      if(document.getElementById("bbcgBackdrop")?.style.display        !== "none") { e.preventDefault(); submitBBCGModal();      return; }
+      if(document.getElementById("menageBackdrop")?.style.display      !== "none") { e.preventDefault(); submitMenageModal();    return; }
+      if(document.getElementById("prestaBaseBackdrop")?.style.display  !== "none") { e.preventDefault(); submitPrestaBaseModal(); return; }
+      if(document.getElementById("holdBackdrop")?.style.display        !== "none") { e.preventDefault(); submitHoldModal();      return; }
+    }
   });
 
   // Toggle UTC / Local
