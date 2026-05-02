@@ -1144,6 +1144,7 @@ window.submitRZAModal = submitRZAModal;
 
 const AK_API_URL = "https://api.app.airport-keeper.com/flights/v1/airport";
 const AK_TOKEN   = "eyJhbGciOiJIUzUxMiJ9.eyJzdWIiOiJidmFfZXh0IiwidXNlcm5hbWUiOiJidmFfZXh0IiwiYWlycG9ydHMiOiJMRk9CIn0.PkSbBw_BF5dnX0bG3gbP7E7P7SHhW9egJ_in6OaWTnJm0OpirhJP4FZzbztH0r6lQxrA5JliEopo7__CyYvfIA";
+const AK_AIRPORT = "LFOB";
 
 function $(id){ return document.getElementById(id); }
 
@@ -1171,30 +1172,20 @@ function arrListMs(f){ return Date.parse(f?.sibt || "") || null; } // ✅ SIBT
 
 async function fetchAK(flow, from, to){
   const url =
-    `${AK_API_URL}?airport=BVA` +
+    `${AK_API_URL}?airport=${encodeURIComponent(AK_AIRPORT)}` +
     `&flow=${encodeURIComponent(flow)}` +
     `&from=${encodeURIComponent(from)}` +
     `&to=${encodeURIComponent(to)}`;
 
-  let res;
-  try{
-    res = await fetch(url, {
-      cache: "no-store",
-      headers: {
-        "Authorization": `Bearer ${AK_TOKEN}`
-      }
-    });
-  }catch(e){
-    throw new Error(`AK fetch network error: ${e?.message || e} (url=${url})`);
-  }
-
+  const res = await fetch(url, {
+    headers: { "Authorization": `Bearer ${AK_TOKEN}` }
+  });
   if(!res.ok) throw new Error(`AK error ${res.status} (url=${url})`);
 
   const data = await res.json();
-
-  if (Array.isArray(data)) return data;
-  if (Array.isArray(data?.flights)) return data.flights;
-  if (Array.isArray(data?.data)) return data.data;
+  if(Array.isArray(data)) return data;
+  if(Array.isArray(data?.flights)) return data.flights;
+  if(Array.isArray(data?.data)) return data.data;
 
   console.log("AK payload inconnu:", data);
   return [];
