@@ -351,10 +351,8 @@ function sleep(ms){
 // Détecte une redirection Cloudflare Access → recharge la page (re-auth)
 async function fetchArrayBuffer(url, label){
   try{
-    const res = await fetch(url, {
-      cache: "no-store",
-      credentials: "include"
-      // pas de redirect:manual — on laisse le navigateur suivre les redirects normaux
+    const res = await fetch(encodeURI(url), {
+      cache: "no-store"
     });
 
     // Seul cas certain d'une session CF Access expirée : redirect vers cloudflareaccess.com
