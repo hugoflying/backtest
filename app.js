@@ -1145,7 +1145,8 @@ window.submitRZAModal = submitRZAModal;
      * <=-5  => en avance bleu
    ========================= */
 
-const AK_PROXY = "/ak";
+const AK_API_URL = "https://api.app.airport-keeper.com/flights/v1/airport";
+const AK_TOKEN   = "eyJhbGciOiJIUzUxMiJ9.eyJzdWIiOiJidmFfZXh0IiwidXNlcm5hbWUiOiJidmFfZXh0IiwiYWlycG9ydHMiOiJMRk9CIn0.PkSbBw_BF5dnX0bG3gbP7E7P7SHhW9egJ_in6OaWTnJm0OpirhJP4FZzbztH0r6lQxrA5JliEopo7__CyYvfIA";
 
 function $(id){ return document.getElementById(id); }
 
@@ -1173,7 +1174,7 @@ function arrListMs(f){ return Date.parse(f?.sibt || "") || null; } // ✅ SIBT
 
 async function fetchAK(flow, from, to){
   const url =
-    `${AK_PROXY}?flow=${encodeURIComponent(flow)}` +
+    `${AK_API_URL}?flow=${encodeURIComponent(flow)}` +
     `&from=${encodeURIComponent(from)}` +
     `&to=${encodeURIComponent(to)}`;
 
@@ -1181,8 +1182,10 @@ async function fetchAK(flow, from, to){
   try{
     res = await fetch(url, {
       cache: "no-store",
-      credentials: "include",
       redirect: "manual", // ✅ ne suit pas les redirects (login)
+      headers: {
+        "Authorization": `Bearer ${AK_TOKEN}`
+      }
     });
   }catch(e){
     throw new Error(`AK fetch network error: ${e?.message || e} (url=${url})`);
