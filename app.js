@@ -1,6 +1,6 @@
 import fontkit from "https://cdn.skypack.dev/@pdf-lib/fontkit";
 
-const TEMPLATE_BASE = ""; 
+const TEMPLATE_BASE = "https://raw.githubusercontent.com/hugoflying/prepavols/main";
 const { PDFDocument, StandardFonts } = PDFLib;
 
 function isoToDDMMYYYY(iso){
@@ -62,7 +62,7 @@ BINGO_FR:{
 /* ========= LIR RYANAIR ========= */
 
 LIR_RYANAIR:{
-  file: `${TEMPLATE_BASE}/templates/LIR RYANAIR BELLOVA.pdf`,
+  file: `${TEMPLATE_BASE}/templates/LIR RYANAIR BELLOVA 2026.pdf`,
   fill:({vol1}, extra = null)=>{
     const x = lirTypeX(vol1.dep.type);
 
@@ -97,7 +97,7 @@ LIR_RYANAIR:{
 /* ========= LIR LAUDA ========= */
 
 LIR_LAUDA:{
- file: `${TEMPLATE_BASE}/templates/lauda-lir.pdf`,
+ file: `${TEMPLATE_BASE}/templates/lauda-lir 2026.pdf`,
  fill:({vol1})=>({
    "DEPARTURE FLIGHT NUMBER": vol1.dep.flt,
    "REGISTRATION": vol1.dep.reg,
