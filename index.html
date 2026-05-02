@@ -615,6 +615,60 @@
   </div>
 </div>
 
+<!-- ===== LAUDA MODAL (SI + Poussettes) ===== -->
+<div id="laudaBackdrop"
+     style="display:none; position:fixed; inset:0; background:rgba(0,0,0,.35); z-index:6200;"
+     onclick="closeLaudaModal(false)"></div>
+
+<div id="laudaModal"
+     style="display:none; position:fixed; inset:0; z-index:6300; align-items:center; justify-content:center; padding:14px;">
+  <div class="box" style="width:min(520px, 100%); border-radius:16px;">
+
+    <div class="vol-header">
+      <span>LIR Lauda</span>
+    </div>
+
+    <div class="field">
+      <label class="label">Poussettes</label>
+      <div style="display:flex; flex-direction:column; gap:8px; margin-bottom:8px;">
+        <div style="display:flex; align-items:center; gap:10px;">
+          <input id="laudaModalPoussettesPorte" class="input" style="max-width:70px; text-align:center;" inputmode="numeric" placeholder="—">
+          <span style="font-size:.9rem;">Poussette(s) porte</span>
+        </div>
+        <div style="display:flex; align-items:center; gap:10px;">
+          <input id="laudaModalPoussettesCBS" class="input" style="max-width:70px; text-align:center;" inputmode="numeric" placeholder="—">
+          <span style="font-size:.9rem;">Poussette(s) soute</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="field">
+      <label class="label">Texte SI :</label>
+      <div class="control">
+        <textarea id="laudaModalInput"
+                  class="textarea"
+                  rows="5"
+                  placeholder="Ex: Wheelchair, bagages spéciaux, cargo etc."></textarea>
+      </div>
+      <p class="help">Tu peux laisser vide.</p>
+    </div>
+
+    <div class="buttons is-right">
+      <button class="button is-light"
+              type="button"
+              onclick="closeLaudaModal(false)">
+        Annuler
+      </button>
+      <button class="button is-link"
+              type="button"
+              onclick="submitLaudaModal()">
+        Imprimer
+      </button>
+    </div>
+
+  </div>
+</div>
+
 <!-- ===== BBCG MODAL (Bingo Gate) ===== -->
 <div id="bbcgBackdrop"
      style="display:none; position:fixed; inset:0; background:rgba(0,0,0,.35); z-index:6600;"
