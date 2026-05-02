@@ -98,12 +98,13 @@ LIR_RYANAIR:{
 
 LIR_LAUDA:{
  file: `${TEMPLATE_BASE}/templates/lauda-lir 2026.pdf`,
- fill:({vol1})=>({
+ fill:({vol1}, extra = null)=>({
    "DEPARTURE FLIGHT NUMBER": vol1.dep.flt,
    "REGISTRATION": vol1.dep.reg,
    "DATE": isoToDDMMYYYY(vol1.dep.date),
    "FROM": "BVA", // forcé
-   "TO": vol1.dep.to
+   "TO": vol1.dep.to,
+   "SI": extra?.si || ""
  }),
  flatten:true
 },
@@ -553,10 +554,10 @@ async function fillAndPrint(docKey, volTarget = "1", extra = null) {
       }
 
       const rawStr = String(raw ?? "");
-      const value = (name === "SI") ? rawStr : rawStr.toUpperCase();
+      const value = (name === "SI" || name === "SPECIAL INSTRUCTIONS") ? rawStr : rawStr.toUpperCase();
 
-      // ===== CHECKBOX "X" (sauf SI / MAX 5) =====
-      if (name !== "SI" && name !== "MAX 5") {
+      // ===== CHECKBOX "X" (sauf SI / SPECIAL INSTRUCTIONS / MAX 5) =====
+      if (name !== "SI" && name !== "SPECIAL INSTRUCTIONS" && name !== "MAX 5") {
         try {
           const cb = form.getCheckBox(name);
           if (value === "X") cb.check();
@@ -576,6 +577,16 @@ async function fillAndPrint(docKey, volTarget = "1", extra = null) {
         if (typeof tf.setFontSize === "function") tf.setFontSize(14);
 
         tf.updateAppearances(fontBold);
+      } else if (name === "SPECIAL INSTRUCTIONS") {
+        try {
+          const tf = form.getTextField("SPECIAL INSTRUCTIONS");
+          tf.setText(rawStr.replace(/\r\n/g, "\n"));
+          tf.setAlignment(PDFLib.TextAlignment.Left);
+          if (typeof tf.setFontSize === "function") tf.setFontSize(12);
+          tf.updateAppearances(fontBold);
+        } catch(e) {
+          console.warn("Champ SPECIAL INSTRUCTIONS introuvable:", e?.message);
+        }
       } else {
         const tf = form.getTextField(name);
         tf.setText(value);
@@ -636,6 +647,12 @@ document.addEventListener("click", async (e) => {
   // ✅ popup SI uniquement pour LIR_RYANAIR (vol 1 ou 2)
   if(docKey === "LIR_RYANAIR" && volTarget !== "both"){
     openSIModal({ docKey, volTarget });
+    return;
+  }
+
+  // ✅ popup SI + Poussettes pour LIR_LAUDA
+  if(docKey === "LIR_LAUDA" && volTarget !== "both"){
+    openLaudaModal({ docKey, volTarget });
     return;
   }
 
@@ -1036,6 +1053,69 @@ async function submitSIModal(){
 window.openSIModal = openSIModal;
 window.closeSIModal = closeSIModal;
 window.submitSIModal = submitSIModal;
+
+/* ========= LAUDA MODAL (SI + Poussettes) ========= */
+
+let _pendingLaudaPrint = null;
+window._laudaSiByVol = { "1": "", "2": "" };
+
+function openLaudaModal(pending){
+  _pendingLaudaPrint = pending;
+  const vol = String(pending?.volTarget || "1");
+
+  const b = document.getElementById("laudaBackdrop");
+  const m = document.getElementById("laudaModal");
+  const t = document.getElementById("laudaModalInput");
+  const pPorte = document.getElementById("laudaModalPoussettesPorte");
+  const pCBS   = document.getElementById("laudaModalPoussettesCBS");
+
+  if(t){ t.value = window._laudaSiByVol[vol] || ""; setTimeout(()=> t.focus(), 0); }
+  if(pPorte) pPorte.value = "";
+  if(pCBS)   pCBS.value   = "";
+
+  if(b) b.style.display = "block";
+  if(m) m.style.display = "flex";
+}
+
+function closeLaudaModal(keepPending){
+  const b = document.getElementById("laudaBackdrop");
+  const m = document.getElementById("laudaModal");
+  if(b) b.style.display = "none";
+  if(m) m.style.display = "none";
+  if(!keepPending) _pendingLaudaPrint = null;
+}
+
+async function submitLaudaModal(){
+  const t = document.getElementById("laudaModalInput");
+  const p = _pendingLaudaPrint;
+  if(!p) return;
+
+  const vol = String(p.volTarget || "1");
+  const siRaw = (t?.value || "");
+  window._laudaSiByVol[vol] = siRaw;
+
+  const nPorte = parseInt(document.getElementById("laudaModalPoussettesPorte")?.value || "", 10);
+  const nCBS   = parseInt(document.getElementById("laudaModalPoussettesCBS")?.value   || "", 10);
+  const parts  = [];
+  if(!isNaN(nPorte) && nPorte > 0)
+    parts.push(nPorte === 1 ? "1 poussette porte" : `${nPorte} poussettes porte`);
+  if(!isNaN(nCBS) && nCBS > 0)
+    parts.push(nCBS === 1 ? "1 poussette soute" : `${nCBS} poussettes soute`);
+  const prefix = parts.join("\n");
+
+  const si = prefix && siRaw.trim()
+    ? prefix + "\n" + siRaw.trim()
+    : prefix || siRaw.trim();
+
+  closeLaudaModal(true);
+  _pendingLaudaPrint = null;
+
+  await fillAndPrint(p.docKey, p.volTarget, { si });
+}
+
+window.openLaudaModal  = openLaudaModal;
+window.closeLaudaModal = closeLaudaModal;
+window.submitLaudaModal = submitLaudaModal;
 
 // ===== POUSSETTES MANUEL TOGGLE =====
 window._siPoussettesManuel = false;
@@ -1775,6 +1855,7 @@ document.addEventListener("DOMContentLoaded", ()=>{
   document.addEventListener("keydown", (e)=>{
     if(e.key === "Escape"){
       if(document.getElementById("siBackdrop")?.style.display          !== "none") { closeSIModal(false);        return; }
+      if(document.getElementById("laudaBackdrop")?.style.display        !== "none") { closeLaudaModal(false);     return; }
       if(document.getElementById("rzaBackdrop")?.style.display         !== "none") { closeRZAModal(false);       return; }
       if(document.getElementById("bbcgBackdrop")?.style.display        !== "none") { closeBBCGModal(false);      return; }
       if(document.getElementById("menageBackdrop")?.style.display      !== "none") { closeMenageModal(false);    return; }
@@ -1786,6 +1867,7 @@ document.addEventListener("DOMContentLoaded", ()=>{
       // Ne pas intercepter si on est dans un textarea
       if(e.target.tagName === "TEXTAREA") return;
       if(document.getElementById("siBackdrop")?.style.display          !== "none") { e.preventDefault(); submitSIModal();        return; }
+      if(document.getElementById("laudaBackdrop")?.style.display        !== "none") { e.preventDefault(); submitLaudaModal();     return; }
       if(document.getElementById("rzaBackdrop")?.style.display         !== "none") { e.preventDefault(); submitRZAModal();       return; }
       if(document.getElementById("bbcgBackdrop")?.style.display        !== "none") { e.preventDefault(); submitBBCGModal();      return; }
       if(document.getElementById("menageBackdrop")?.style.display      !== "none") { e.preventDefault(); submitMenageModal();    return; }
