@@ -1180,27 +1180,12 @@ async function fetchAK(flow, from, to){
   try{
     res = await fetch(url, {
       cache: "no-store",
-      redirect: "manual", // ✅ ne suit pas les redirects (login)
       headers: {
         "Authorization": `Bearer ${AK_TOKEN}`
       }
     });
   }catch(e){
     throw new Error(`AK fetch network error: ${e?.message || e} (url=${url})`);
-  }
-
-  // ✅ Si la session saute, beaucoup de navigateurs donnent:
-  // - res.type === "opaqueredirect"
-  // - status 0
-  // - ou un 3xx (si même-origin)
-  if(
-    res.type === "opaqueredirect" ||
-    res.status === 0 ||
-    (res.status >= 300 && res.status < 400) ||
-    res.redirected
-  ){
-    window.location.reload();
-    return [];
   }
 
   if(!res.ok) throw new Error(`AK error ${res.status} (url=${url})`);
