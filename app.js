@@ -1171,7 +1171,8 @@ function arrListMs(f){ return Date.parse(f?.sibt || "") || null; } // ✅ SIBT
 
 async function fetchAK(flow, from, to){
   const url =
-    `${AK_API_URL}?flow=${encodeURIComponent(flow)}` +
+    `${AK_API_URL}?airport=BVA` +
+    `&flow=${encodeURIComponent(flow)}` +
     `&from=${encodeURIComponent(from)}` +
     `&to=${encodeURIComponent(to)}`;
 
