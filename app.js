@@ -376,9 +376,8 @@ async function fetchArrayBufferRetry(url, label, retries = 3, delayMs = 400){
   let lastErr;
   for(let i = 0; i <= retries; i++){
     try{
-      const res = await fetch(url, {
-        cache: "no-cache",
-        credentials: "include"
+      const res = await fetch(encodeURI(url), {
+        cache: "no-cache"
       });
 
       // Seul cas certain CF Access expiré
