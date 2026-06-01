@@ -586,8 +586,66 @@
     }
   }
   window.checkPW=checkPW;
-  if(sessionStorage.getItem(KEY)==="1"){
-    document.getElementById("pwScreen").style.display="none";
+
+  // ── Auto-logout après 2 min d'inactivité ──────────────────────────────
+  const TIMEOUT_MS = 2 * 60 * 1000; // 2 minutes
+  const WARNING_MS = 20 * 1000;     // avertissement 20s avant
+  let logoutTimer, warningTimer, warningEl;
+
+  function createWarningBanner() {
+    if (warningEl) return;
+    warningEl = document.createElement("div");
+    warningEl.id = "inactivityWarning";
+    Object.assign(warningEl.style, {
+      position: "fixed", bottom: "24px", left: "50%",
+      transform: "translateX(-50%)",
+      background: "#ef4444", color: "#fff",
+      padding: "10px 24px", borderRadius: "10px",
+      fontFamily: "Inter, system-ui, sans-serif",
+      fontWeight: "700", fontSize: "14px",
+      zIndex: "99999", display: "none",
+      boxShadow: "0 4px 20px rgba(0,0,0,.4)"
+    });
+    document.body.appendChild(warningEl);
+  }
+
+  function logout() {
+    sessionStorage.removeItem(KEY);
+    location.reload();
+  }
+
+  function resetTimers() {
+    // Seulement si la session est active
+    if (sessionStorage.getItem(KEY) !== "1") return;
+
+    clearTimeout(logoutTimer);
+    clearTimeout(warningTimer);
+    if (warningEl) warningEl.style.display = "none";
+
+    // Avertissement 20s avant expiration
+    warningTimer = setTimeout(() => {
+      createWarningBanner();
+      let secs = Math.round(WARNING_MS / 1000);
+      warningEl.style.display = "block";
+      warningEl.textContent = `⚠️ Déconnexion dans ${secs}s…`;
+      const tick = setInterval(() => {
+        secs--;
+        if (warningEl) warningEl.textContent = `⚠️ Déconnexion dans ${secs}s…`;
+        if (secs <= 0) clearInterval(tick);
+      }, 1000);
+    }, TIMEOUT_MS - WARNING_MS);
+
+    // Logout effectif
+    logoutTimer = setTimeout(logout, TIMEOUT_MS);
+  }
+
+  // Écoute toute interaction utilisateur
+  ["mousemove","mousedown","keydown","touchstart","scroll","click"]
+    .forEach(ev => document.addEventListener(ev, resetTimers, { passive: true }));
+
+  if (sessionStorage.getItem(KEY) === "1") {
+    document.getElementById("pwScreen").style.display = "none";
+    resetTimers(); // démarre le compteur dès la session active
   }
 })();
 </script>
