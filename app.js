@@ -1222,8 +1222,8 @@ window.submitRZAModal = submitRZAModal;
      * <=-5  => en avance bleu
    ========================= */
 
-const AK_API_URL = "https://api.app.airport-keeper.com/flights/v1/airport";
-const AK_TOKEN   = "eyJhbGciOiJIUzUxMiJ9.eyJ1c2VybmFtZSI6ImJ2YV9leHQiLCJhaXJwb3J0cyI6IkxGT0IiLCJzdWIiOiJidmFfZXh0In0.e2xErOZw1uM89Zu-B_BlWslpk9SODToq7wVKPB6FU6yqVjDo3SxDnqY2GRtKbujvcR55xMrPQfoinN_rl1rGGw";
+// Proxy Cloudflare Pages Function — le token est géré côté serveur
+const AK_API_URL = "/api/flights";
 const AK_AIRPORT = "LFOB";
 
 function $(id){ return document.getElementById(id); }
@@ -1257,9 +1257,7 @@ async function fetchAK(flow, from, to){
     `&from=${encodeURIComponent(from)}` +
     `&to=${encodeURIComponent(to)}`;
 
-  const res = await fetch(url, {
-    headers: { "Authorization": `Bearer ${AK_TOKEN}` }
-  });
+  const res = await fetch(url);
   if(!res.ok) throw new Error(`AK error ${res.status} (url=${url})`);
 
   const data = await res.json();
