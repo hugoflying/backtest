@@ -1223,7 +1223,7 @@ window.submitRZAModal = submitRZAModal;
    ========================= */
 
 // Proxy Cloudflare Pages Function — le token est géré côté serveur
-const AK_API_URL = "/api/flights";
+const AK_API_URL = "/ak";
 const AK_AIRPORT = "LFOB";
 
 function $(id){ return document.getElementById(id); }
