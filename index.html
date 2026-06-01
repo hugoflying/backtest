@@ -640,7 +640,7 @@
   }
 
   // Écoute toute interaction utilisateur
-  ["mousemove","mousedown","keydown","touchstart","scroll","click"]
+  ["mousedown","keydown","touchstart","click"]
     .forEach(ev => document.addEventListener(ev, resetTimers, { passive: true }));
 
   if (sessionStorage.getItem(KEY) === "1") {
