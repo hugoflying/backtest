@@ -1756,6 +1756,7 @@ function refreshAKDropdown(n){
   }
 
   if(st) st.textContent = `${list.length} vol(s)`;
+  window.syncCustomDrop?.(n);
 }
 
 function bindAK(n){
