@@ -147,6 +147,10 @@
     border-radius: 7px !important;
   }
 
+  /* Cache les conteneurs vides sous ARRIVÉE / DÉPART */
+  .tags:empty { display: none !important; margin: 0 !important; }
+  p.help:empty { display: none !important; margin: 0 !important; }
+
   /* Colonnes ARRIVÉE / DÉPART : titre plus compact */
   .columns .title.is-6 {
     font-size: .7rem !important;
@@ -811,7 +815,7 @@
             <div class="column pb-0">
               <h3 class="title is-6">ARRIVÉE</h3>
               <div class="tags mb-2" id="arr_badges_1"></div>
-              <p class="help" id="sibt_display_1" style="text-align:center; font-family:'JetBrains Mono',monospace; font-size:.85rem; min-height:1.2em; margin-top:-6px; margin-bottom:6px;"></p>
+              <p class="help" id="sibt_display_1" style="text-align:center; font-family:'JetBrains Mono',monospace; font-size:.85rem; margin-top:-6px; margin-bottom:0;"></p>
               <input id="arr_date_1" type="date" class="input mb-2">
               <input id="arr_flt_1" class="input mb-2" placeholder="Flight Number">
               <input id="arr_from_1" class="input mb-2" placeholder="From">
@@ -820,7 +824,7 @@
             <div class="column pb-0">
               <h3 class="title is-6">DÉPART</h3>
               <div class="tags mb-2" id="dep_badges_1"></div>
-              <p class="help" id="sobt_display_1" style="text-align:center; font-family:'JetBrains Mono',monospace; font-size:.85rem; min-height:1.2em; margin-top:-6px; margin-bottom:6px;"></p>
+              <p class="help" id="sobt_display_1" style="text-align:center; font-family:'JetBrains Mono',monospace; font-size:.85rem; margin-top:-6px; margin-bottom:0;"></p>
               <input id="dep_date_1" type="date" class="input mb-2">
               <input id="dep_flt_1" class="input mb-2" placeholder="Flight Number">
               <input id="dep_to_1" class="input mb-2" placeholder="To">
@@ -880,7 +884,7 @@
             <div class="column pb-0">
               <h3 class="title is-6">ARRIVÉE</h3>
               <div class="tags mb-2" id="arr_badges_2"></div>
-              <p class="help" id="sibt_display_2" style="text-align:center; font-family:'JetBrains Mono',monospace; font-size:.85rem; min-height:1.2em; margin-top:-6px; margin-bottom:6px;"></p>
+              <p class="help" id="sibt_display_2" style="text-align:center; font-family:'JetBrains Mono',monospace; font-size:.85rem; margin-top:-6px; margin-bottom:0;"></p>
               <input id="arr_date_2" type="date" class="input mb-2">
               <input id="arr_flt_2" class="input mb-2" placeholder="Flight Number">
               <input id="arr_from_2" class="input mb-2" placeholder="From">
@@ -889,7 +893,7 @@
             <div class="column pb-0">
               <h3 class="title is-6">DÉPART</h3>
               <div class="tags mb-2" id="dep_badges_2"></div>
-              <p class="help" id="sobt_display_2" style="text-align:center; font-family:'JetBrains Mono',monospace; font-size:.85rem; min-height:1.2em; margin-top:-6px; margin-bottom:6px;"></p>
+              <p class="help" id="sobt_display_2" style="text-align:center; font-family:'JetBrains Mono',monospace; font-size:.85rem; margin-top:-6px; margin-bottom:0;"></p>
               <input id="dep_date_2" type="date" class="input mb-2">
               <input id="dep_flt_2" class="input mb-2" placeholder="Flight Number">
               <input id="dep_to_2" class="input mb-2" placeholder="To">
