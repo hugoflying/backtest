@@ -368,33 +368,9 @@
     }
   }
 
-  /* ── Alignement ARRIVÉE / DÉPART via subgrid ─────────────────────── */
-  .box > .columns.mb-0 {
-    display: grid !important;
-    grid-template-columns: 1fr 1fr;
-    column-gap: 12px;
-    row-gap: 0;
-    align-items: start;
-  }
-  .box > .columns.mb-0 > .column {
-    display: grid !important;
-    grid-template-rows: subgrid;
-    grid-row: span 6;
-    width: auto !important;
-    padding: 0 !important;
-  }
-
-  /* Éléments vides : restent dans le flux subgrid mais prennent 0 hauteur */
-  .tags:empty {
-    height: 0 !important; min-height: 0 !important;
-    overflow: hidden !important; margin: 0 !important; padding: 0 !important;
-    visibility: hidden;
-  }
-  p.help:empty {
-    height: 0 !important; min-height: 0 !important;
-    overflow: hidden !important; margin: 0 !important; padding: 0 !important;
-    visibility: hidden;
-  }
+  /* Cache les éléments vides */
+  .tags:empty { display: none !important; margin: 0 !important; }
+  p.help:empty { display: none !important; margin: 0 !important; }
 
   /* Colonnes ARRIVÉE / DÉPART : titre plus compact */
   .columns .title.is-6 {
@@ -1820,6 +1796,68 @@ window.addEventListener('resize', function() {
     initVolTabs();
   }
 });
+</script>
+
+
+<script>
+/* ================================================
+   ÉGALISATION HAUTEURS ARRIVÉE / DÉPART
+   MutationObserver — sans modifier app.js
+   ================================================ */
+(function() {
+  function equalizeVol(n) {
+    var arrBadges = document.getElementById('arr_badges_' + n);
+    var depBadges = document.getElementById('dep_badges_' + n);
+    var sibt      = document.getElementById('sibt_display_' + n);
+    var sobt      = document.getElementById('sobt_display_' + n);
+
+    // Reset min-heights
+    [arrBadges, depBadges, sibt, sobt].forEach(function(el) {
+      if (el) el.style.minHeight = '';
+    });
+
+    // Égalise badges
+    var arrBH = arrBadges ? arrBadges.offsetHeight : 0;
+    var depBH = depBadges ? depBadges.offsetHeight : 0;
+    var maxBH = Math.max(arrBH, depBH);
+    if (maxBH > 0) {
+      if (arrBadges) arrBadges.style.minHeight = maxBH + 'px';
+      if (depBadges) depBadges.style.minHeight = maxBH + 'px';
+    }
+
+    // Égalise SIBT / SOBT
+    var sibtH = sibt ? sibt.offsetHeight : 0;
+    var sobtH = sobt ? sobt.offsetHeight : 0;
+    var maxSH = Math.max(sibtH, sobtH);
+    if (maxSH > 0) {
+      if (sibt) sibt.style.minHeight = maxSH + 'px';
+      if (sobt) sobt.style.minHeight = maxSH + 'px';
+    }
+  }
+
+  function observeVol(n) {
+    var targets = [
+      document.getElementById('arr_badges_' + n),
+      document.getElementById('dep_badges_' + n),
+      document.getElementById('sibt_display_' + n),
+      document.getElementById('sobt_display_' + n)
+    ].filter(Boolean);
+
+    var obs = new MutationObserver(function() {
+      // Petit délai pour que le DOM soit stable
+      setTimeout(function() { equalizeVol(n); }, 0);
+    });
+
+    targets.forEach(function(el) {
+      obs.observe(el, { childList: true, characterData: true, subtree: true, attributes: true });
+    });
+  }
+
+  document.addEventListener('DOMContentLoaded', function() {
+    observeVol(1);
+    observeVol(2);
+  });
+})();
 </script>
 
 </body>
