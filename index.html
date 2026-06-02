@@ -74,15 +74,61 @@
     justify-content: flex-start;
   }
 
+  /* Modals — même police que l'UI */
+  .modal-card, .modal-card-head, .modal-card-body, .modal-card-foot,
+  .modal-card-title, .modal-content, .modal .box {
+    font-family: 'Inter', system-ui, sans-serif !important;
+  }
+
   /* === FLAT DESIGN OVERRIDES === */
 
   /* Titre */
   .title { letter-spacing: -.02em !important; }
 
+  /* VOL header row avec bouton effacer */
+  .vol-header-flat {
+    display: flex !important;
+    align-items: center !important;
+    justify-content: space-between !important;
+  }
+
+  .vol-clear-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 28px; height: 28px;
+    border-radius: 7px;
+    border: 1px solid transparent;
+    cursor: pointer;
+    background: transparent;
+    transition: background .12s, border-color .12s, color .12s;
+    flex-shrink: 0;
+  }
+  html:not([data-theme="light"]) .vol-clear-btn {
+    color: #8b97a8;
+    border-color: #28303c;
+  }
+  html[data-theme="light"] .vol-clear-btn {
+    color: #9ba8b8;
+    border-color: #e2e7ee;
+  }
+  html:not([data-theme="light"]) .vol-clear-btn:hover {
+    background: #2d1a1a;
+    border-color: #f4476b;
+    color: #f4476b;
+  }
+  html[data-theme="light"] .vol-clear-btn:hover {
+    background: #fff0f3;
+    border-color: #f4476b;
+    color: #f4476b;
+  }
+
   /* VOL badge — pill bleu top-left */
   .vol-header-flat {
     display: flex !important;
-    justify-content: flex-start !important;
+    justify-content: space-between !important;
+    align-items: center !important;
+    width: 100% !important;
     padding: 0 !important;
     margin-bottom: 16px !important;
     border: none !important;
@@ -295,14 +341,14 @@
       border-color: #2563eb;
     }
 
-    /* Masque la colonne inactive */
-    .columns {
+    /* Masque la colonne inactive — seulement dans le layout principal */
+    .section > .container > .columns {
       display: block !important;
     }
     .column.tab-hidden {
       display: none !important;
     }
-    .column {
+    .section > .container > .columns > .column {
       width: 100% !important;
       padding: 0 !important;
     }
@@ -954,6 +1000,9 @@
         <div class="box">
           <div class="vol-header vol-header-flat">
             <span class="vol-badge">VOL 1</span>
+            <button class="vol-clear-btn" onclick="window.clearVolCard(1)" title="Effacer les données du vol 1">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+            </button>
           </div>
 
           <!-- Liste AK (dans VOL 1) -->
@@ -1028,6 +1077,9 @@
         <div class="box">
           <div class="vol-header vol-header-flat">
             <span class="vol-badge">VOL 2</span>
+            <button class="vol-clear-btn" onclick="window.clearVolCard(2)" title="Effacer les données du vol 2">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+            </button>
           </div>
 
           <!-- Liste AK (dans VOL 2) -->
