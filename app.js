@@ -1222,8 +1222,8 @@ window.submitRZAModal = submitRZAModal;
      * <=-5  => en avance bleu
    ========================= */
 
-// Proxy Cloudflare Pages Function — le token est géré côté serveur
 const AK_API_URL = "/ak";
+// Proxy Cloudflare Pages Function — le token est géré côté serveur
 const AK_AIRPORT = "LFOB";
 
 function $(id){ return document.getElementById(id); }
@@ -1329,13 +1329,9 @@ function buildDepLabel(f){
     status = "ARRIVÉ";
   }
 
-  const cTime = padCol(t || "--:--", 6);
-  const cFlt  = padCol(flt || "—", 8);
-  const cTo   = padCol(to || "---", 4);
-  const cReg  = padCol(reg, 7);
-  const cPk   = padCol(p || "", 5);
-
-  return `${cTime}${cFlt}🛫 ${cTo}${cReg}${cPk}${status ? " " + status : ""}`;
+  const parts = [t || "--:--", flt || "—", to ? "🛫 " + to : "", reg, p].filter(Boolean);
+  const base  = parts.join("  ·  ");
+  return base + (status ? "  —  " + status : "");
 }
 
 function buildArrLabel(f){
@@ -1363,13 +1359,9 @@ function buildArrLabel(f){
     status = "ARRIVÉ";
   }
 
-  const cTime = padCol(t || "--:--", 6);
-  const cFlt  = padCol(flt || "—", 8);
-  const cFrom = padCol(from || "---", 4);
-  const cReg  = padCol(reg, 7);
-  const cPk   = padCol(p || "", 5);
-
-  return `${cTime}${cFlt}🛬 ${cFrom}${cReg}${cPk}${status ? " " + status : ""}`;
+  const parts = [t || "--:--", flt || "—", from ? "🛬 " + from : "", reg, p].filter(Boolean);
+  const base  = parts.join("  ·  ");
+  return base + (status ? "  —  " + status : "");
 }
 
 function setVal(id, v){
