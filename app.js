@@ -1881,3 +1881,24 @@ document.addEventListener("DOMContentLoaded", ()=>{
     });
   }
 });
+
+/* ================================================
+   EXPOSITION GLOBALE — clearVolCard
+   ================================================ */
+window.clearVolCard = function(n) {
+  clearBadges(n);
+  resetVolUI(n);
+  // Reset native select + custom dropdown
+  const sel = document.getElementById('ak_flight_' + n);
+  if (sel) sel.value = '';
+  const valEl = document.getElementById('cvd_val_' + n);
+  if (valEl) {
+    valEl.textContent = '— Choisir un vol —';
+    valEl.classList.add('placeholder');
+  }
+  // Deselect all options in custom panel
+  const panel = document.getElementById('cvd_panel_' + n);
+  if (panel) {
+    panel.querySelectorAll('.cvd-opt').forEach(o => o.classList.remove('selected'));
+  }
+};
