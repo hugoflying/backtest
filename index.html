@@ -80,6 +80,20 @@
     font-family: 'Inter', system-ui, sans-serif !important;
   }
 
+  /* Colonnes en hauteur égale — documents alignés en bas */
+  @media (min-width: 1024px) {
+    .section > .container > .columns {
+      align-items: stretch;
+    }
+    .section > .container > .columns > .column {
+      display: flex;
+      flex-direction: column;
+    }
+    .section > .container > .columns > .column > .box:last-of-type {
+      margin-top: auto;
+    }
+  }
+
   /* === FLAT DESIGN OVERRIDES === */
 
   /* Titre */
