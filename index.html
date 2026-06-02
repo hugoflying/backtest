@@ -23,14 +23,8 @@
   }
 
   /* Inputs + selects = JetBrains Mono */
-  input,
-  select,
-  textarea,
-  #ak_flight_1, #ak_flight_2,
-  #ak_flight_1 option, #ak_flight_2 option{
-    font-family: "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas,
-                 "Liberation Mono", "Courier New", monospace;
-    font-variant-numeric: tabular-nums;
+  input, select, textarea {
+    font-family: "JetBrains Mono", monospace;
   }
 
   /* =========================
@@ -147,6 +141,101 @@
     border-radius: 7px !important;
   }
 
+  /* ================================================
+     CUSTOM VOL DROPDOWN
+     ================================================ */
+  .cvd { position: relative; width: 100%; }
+
+  .cvd-btn {
+    width: 100%;
+    display: flex; align-items: center; justify-content: space-between; gap: 8px;
+    padding: 0 12px;
+    height: 40px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-family: inherit;
+    font-size: .9rem;
+    font-weight: 400;
+    text-align: left;
+    transition: border-color .15s;
+    white-space: nowrap;
+    overflow: hidden;
+  }
+  html:not([data-theme="light"]) .cvd-btn {
+    background: #0d1117; color: #e9eef5;
+    border: 1px solid #28303c;
+  }
+  html[data-theme="light"] .cvd-btn {
+    background: #f6f8fb; color: #0f1722;
+    border: 1px solid #e2e7ee;
+  }
+  .cvd-btn:hover { border-color: #3b82f6 !important; }
+  .cvd-btn.open   { border-color: #3b82f6 !important; border-bottom-left-radius: 0; border-bottom-right-radius: 0; }
+
+  .cvd-val { flex: 1; overflow: hidden; text-overflow: ellipsis; }
+  .cvd-val.placeholder { opacity: .45; }
+
+  .cvd-arrow { flex-shrink: 0; opacity: .5; transition: transform .15s; }
+  .cvd-btn.open .cvd-arrow { transform: rotate(180deg); }
+
+  .cvd-panel {
+    position: absolute;
+    top: 100%; left: 0; right: 0;
+    z-index: 2000;
+    max-height: 340px;
+    overflow-y: auto;
+    border-radius: 0 0 8px 8px;
+    border-top: none !important;
+    scrollbar-width: thin;
+  }
+  html:not([data-theme="light"]) .cvd-panel {
+    background: #0d1117;
+    border: 1px solid #3b82f6;
+    box-shadow: 0 8px 24px rgba(0,0,0,.5);
+  }
+  html[data-theme="light"] .cvd-panel {
+    background: #fff;
+    border: 1px solid #3b82f6;
+    box-shadow: 0 8px 24px rgba(0,0,0,.12);
+  }
+  .cvd-panel[hidden] { display: none !important; }
+
+  .cvd-opt {
+    display: flex; align-items: center; gap: 10px;
+    padding: 9px 12px;
+    cursor: pointer;
+    font-size: .85rem;
+    font-family: inherit;
+    transition: background .1s;
+    border-bottom: 1px solid transparent;
+  }
+  html:not([data-theme="light"]) .cvd-opt {
+    color: #e9eef5;
+    border-bottom-color: #28303c;
+  }
+  html[data-theme="light"] .cvd-opt {
+    color: #0f1722;
+    border-bottom-color: #f0f2f5;
+  }
+  html:not([data-theme="light"]) .cvd-opt:hover { background: #1b2330; }
+  html[data-theme="light"] .cvd-opt:hover        { background: #f6f8fb; }
+  html:not([data-theme="light"]) .cvd-opt.selected { background: #1b2330; color: #60a5fa; }
+  html[data-theme="light"] .cvd-opt.selected        { background: #eff6ff; color: #2563eb; }
+
+  .cvd-opt:last-child { border-bottom: none; }
+
+  .cvd-icon { flex-shrink: 0; opacity: .75; }
+  .cvd-opt-label { flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .cvd-opt-status { flex-shrink: 0; font-size: .75rem; font-weight: 600; opacity: .65; }
+
+  .cvd-empty {
+    padding: 14px 12px;
+    font-size: .82rem;
+    opacity: .4;
+    text-align: center;
+    font-style: italic;
+  }
+
   /* Cache les conteneurs vides sous ARRIVÉE / DÉPART */
   .tags:empty { display: none !important; margin: 0 !important; }
   p.help:empty { display: none !important; margin: 0 !important; }
@@ -190,10 +279,7 @@
   /* =========================
      AK dropdown alignment
      ========================= */
-  #ak_flight_1, #ak_flight_2,
-  #ak_flight_1 option, #ak_flight_2 option{
-    white-space: pre;
-  }
+
 
   /* =========================
      Center headers + badges
@@ -803,10 +889,15 @@
           </div>
 
           <div class="field">
-            <div class="select is-fullwidth">
-              <select id="ak_flight_1">
-                <option value="">-- Choisir un vol --</option>
-              </select>
+            <select id="ak_flight_1" style="display:none">
+              <option value="">-- Choisir un vol --</option>
+            </select>
+            <div class="cvd" id="cvd_1">
+              <button type="button" class="cvd-btn" id="cvd_btn_1" aria-haspopup="listbox" aria-expanded="false">
+                <span class="cvd-val placeholder" id="cvd_val_1">— Choisir un vol —</span>
+                <svg class="cvd-arrow" width="12" height="12" viewBox="0 0 24 24" fill="currentColor"><path d="M7 10l5 5 5-5z"/></svg>
+              </button>
+              <div class="cvd-panel" id="cvd_panel_1" hidden role="listbox"></div>
             </div>
             <p class="help" id="ak_status_1">—</p>
           </div>
@@ -872,10 +963,15 @@
           </div>
 
           <div class="field">
-            <div class="select is-fullwidth">
-              <select id="ak_flight_2">
-                <option value="">-- Choisir un vol --</option>
-              </select>
+            <select id="ak_flight_2" style="display:none">
+              <option value="">-- Choisir un vol --</option>
+            </select>
+            <div class="cvd" id="cvd_2">
+              <button type="button" class="cvd-btn" id="cvd_btn_2" aria-haspopup="listbox" aria-expanded="false">
+                <span class="cvd-val placeholder" id="cvd_val_2">— Choisir un vol —</span>
+                <svg class="cvd-arrow" width="12" height="12" viewBox="0 0 24 24" fill="currentColor"><path d="M7 10l5 5 5-5z"/></svg>
+              </button>
+              <div class="cvd-panel" id="cvd_panel_2" hidden role="listbox"></div>
             </div>
             <p class="help" id="ak_status_2">—</p>
           </div>
@@ -1376,5 +1472,140 @@
   applyTheme(saved);
 })();
 </script>
+
+<script>
+/* ================================================
+   CUSTOM VOL DROPDOWN — icônes SVG DEP / ARR
+   ================================================ */
+(function(){
+
+  const SVG_DEP = `<svg class="cvd-icon" width="15" height="15" viewBox="0 0 24 24" fill="currentColor" style="color:#60a5fa"><path d="M21 16v-2l-8-5V3.5c0-.83-.67-1.5-1.5-1.5S10 2.67 10 3.5V9l-8 5v2l8-2.5V19l-2 1.5V22l3.5-1 3.5 1v-1.5L13 19v-5.5l8 2.5z"/></svg>`;
+  const SVG_ARR = `<svg class="cvd-icon" width="15" height="15" viewBox="0 0 24 24" fill="currentColor" style="color:#34d399"><path d="M2.5 19h19v2h-19zm16.84-3.58c.71.2 1.56-.17 1.76-.88.21-.7-.26-1.47-.97-1.68l-5.31-1.42-2.76-9.03-1.74-.46v8.84l-4.75-1.27-.92-3.06-1.36-.37-.56 6.89 16.61 4.44z"/></svg>`;
+
+  function getFlow(n){
+    return (document.getElementById('ak_flow_' + n)?.value || 'DEP');
+  }
+
+  function buildOptHTML(icon, label, status){
+    const statusHtml = status
+      ? `<span class="cvd-opt-status">${status}</span>`
+      : '';
+    return `${icon}<span class="cvd-opt-label">${label}</span>${statusHtml}`;
+  }
+
+  function openPanel(n){
+    const btn   = document.getElementById('cvd_btn_'   + n);
+    const panel = document.getElementById('cvd_panel_' + n);
+    if(!btn || !panel) return;
+    btn.classList.add('open');
+    btn.setAttribute('aria-expanded', 'true');
+    panel.removeAttribute('hidden');
+  }
+
+  function closePanel(n){
+    const btn   = document.getElementById('cvd_btn_'   + n);
+    const panel = document.getElementById('cvd_panel_' + n);
+    if(!btn || !panel) return;
+    btn.classList.remove('open');
+    btn.setAttribute('aria-expanded', 'false');
+    panel.setAttribute('hidden', '');
+  }
+
+  function selectOpt(n, value, label, flow){
+    const sel   = document.getElementById('ak_flight_' + n);
+    const valEl = document.getElementById('cvd_val_'   + n);
+    if(!sel || !valEl) return;
+
+    // Highlight selected
+    document.querySelectorAll('#cvd_panel_' + n + ' .cvd-opt')
+      .forEach(o => o.classList.toggle('selected', o.dataset.value === value));
+
+    if(value === ''){
+      valEl.textContent = '— Choisir un vol —';
+      valEl.classList.add('placeholder');
+    } else {
+      valEl.textContent = label;
+      valEl.classList.remove('placeholder');
+    }
+
+    sel.value = value;
+    sel.dispatchEvent(new Event('change', { bubbles: true }));
+    closePanel(n);
+  }
+
+  window.syncCustomDrop = function(n){
+    const sel   = document.getElementById('ak_flight_' + n);
+    const panel = document.getElementById('cvd_panel_' + n);
+    const valEl = document.getElementById('cvd_val_'   + n);
+    if(!sel || !panel) return;
+
+    const flow = getFlow(n);
+    const icon = flow === 'DEP' ? SVG_DEP : SVG_ARR;
+
+    // Reset value display
+    if(valEl){
+      valEl.textContent = '— Choisir un vol —';
+      valEl.classList.add('placeholder');
+    }
+
+    // Rebuild panel options
+    const opts = Array.from(sel.options);
+    if(opts.length <= 1){
+      panel.innerHTML = '<div class="cvd-empty">Aucun vol disponible</div>';
+      return;
+    }
+
+    panel.innerHTML = '';
+    opts.forEach(opt => {
+      if(!opt.value) return; // skip placeholder
+      // Extract status from label (after " — ")
+      const parts = opt.textContent.split('  —  ');
+      const label  = parts[0].trim();
+      const status = parts[1]?.trim() || '';
+
+      const div = document.createElement('div');
+      div.className = 'cvd-opt';
+      div.dataset.value = opt.value;
+      div.dataset.label = label;
+      div.setAttribute('role', 'option');
+      div.innerHTML = buildOptHTML(icon, label, status);
+      div.addEventListener('click', () => selectOpt(n, opt.value, label, flow));
+      panel.appendChild(div);
+    });
+  };
+
+  function initDrop(n){
+    const btn   = document.getElementById('cvd_btn_'   + n);
+    const panel = document.getElementById('cvd_panel_' + n);
+    if(!btn || !panel) return;
+
+    btn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      const isOpen = btn.classList.contains('open');
+      // Close all other dropdowns
+      [1,2].forEach(i => { if(i !== n) closePanel(i); });
+      isOpen ? closePanel(n) : openPanel(n);
+    });
+
+    // Close on Escape
+    document.addEventListener('keydown', (e) => {
+      if(e.key === 'Escape') [1,2].forEach(i => closePanel(i));
+    });
+  }
+
+  // Init on DOM ready
+  document.addEventListener('DOMContentLoaded', () => {
+    initDrop(1);
+    initDrop(2);
+  });
+
+  // Close when clicking outside
+  document.addEventListener('click', () => {
+    [1,2].forEach(i => closePanel(i));
+  });
+
+})();
+</script>
+
 </body>
 </html>
