@@ -384,9 +384,17 @@
     padding: 0 !important;
   }
 
-  /* Cache les conteneurs vides sous ARRIVÉE / DÉPART */
-  .tags:empty { display: none !important; margin: 0 !important; }
-  p.help:empty { display: none !important; margin: 0 !important; }
+  /* Éléments vides : restent dans le flux subgrid mais prennent 0 hauteur */
+  .tags:empty {
+    height: 0 !important; min-height: 0 !important;
+    overflow: hidden !important; margin: 0 !important; padding: 0 !important;
+    visibility: hidden;
+  }
+  p.help:empty {
+    height: 0 !important; min-height: 0 !important;
+    overflow: hidden !important; margin: 0 !important; padding: 0 !important;
+    visibility: hidden;
+  }
 
   /* Colonnes ARRIVÉE / DÉPART : titre plus compact */
   .columns .title.is-6 {
@@ -1542,7 +1550,7 @@
       <div style="text-align:center;">
         <button class="button is-dark btn-band band-presta is-fullwidth"
                 type="button"
-                style="justify-content:center; min-height:60px; font-size:1rem; font-weight:700;"
+                style="justify-content:center; padding-left:0; min-height:56px; font-size:.95rem; font-weight:700; width:100%;"
                 onclick="submitPrestaBaseModal('ARR')">
           🛬 Retour basé
         </button>
@@ -1550,7 +1558,7 @@
       <div style="text-align:center;">
         <button class="button is-dark btn-band band-presta is-fullwidth"
                 type="button"
-                style="justify-content:center; min-height:60px; font-size:1rem; font-weight:700;"
+                style="justify-content:center; padding-left:0; min-height:56px; font-size:.95rem; font-weight:700; width:100%;"
                 onclick="submitPrestaBaseModal('DEP')">
           ✈️ Départ basé
         </button>
