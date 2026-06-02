@@ -1802,36 +1802,72 @@ window.addEventListener('resize', function() {
 <script>
 /* ================================================
    ÉGALISATION HAUTEURS ARRIVÉE / DÉPART
-   MutationObserver — sans modifier app.js
    ================================================ */
 (function() {
+
+  // Mesure la vraie hauteur même si l'élément est display:none
+  function measureH(el) {
+    if (!el) return 0;
+    var cs = getComputedStyle(el);
+    if (cs.display !== 'none') return el.offsetHeight;
+    // Révèle temporairement pour mesurer
+    el.style.cssText += ';display:block!important;visibility:hidden!important;position:absolute!important';
+    var h = el.offsetHeight;
+    el.style.cssText = el.style.cssText
+      .replace(/display:[^;]+;?/g,'')
+      .replace(/visibility:[^;]+;?/g,'')
+      .replace(/position:[^;]+;?/g,'');
+    return h;
+  }
+
+  // Rend un élément caché visible mais invisible (prend de la place)
+  function makeSpacerVisible(el, h) {
+    el.style.display = 'block';
+    el.style.visibility = 'hidden';
+    el.style.minHeight = h + 'px';
+  }
+
   function equalizeVol(n) {
     var arrBadges = document.getElementById('arr_badges_' + n);
     var depBadges = document.getElementById('dep_badges_' + n);
     var sibt      = document.getElementById('sibt_display_' + n);
     var sobt      = document.getElementById('sobt_display_' + n);
 
-    // Reset min-heights
+    // Reset tout
     [arrBadges, depBadges, sibt, sobt].forEach(function(el) {
-      if (el) el.style.minHeight = '';
+      if (!el) return;
+      el.style.display = '';
+      el.style.visibility = '';
+      el.style.minHeight = '';
+      el.style.position = '';
     });
 
-    // Égalise badges
-    var arrBH = arrBadges ? arrBadges.offsetHeight : 0;
-    var depBH = depBadges ? depBadges.offsetHeight : 0;
+    // === Badges ===
+    var arrBH = measureH(arrBadges);
+    var depBH = measureH(depBadges);
     var maxBH = Math.max(arrBH, depBH);
+
     if (maxBH > 0) {
-      if (arrBadges) arrBadges.style.minHeight = maxBH + 'px';
-      if (depBadges) depBadges.style.minHeight = maxBH + 'px';
+      // Le côté avec contenu : s'affiche normalement
+      // Le côté vide : devient un spacer invisible
+      if (arrBH === 0 && arrBadges) makeSpacerVisible(arrBadges, maxBH);
+      else if (arrBadges)           arrBadges.style.minHeight = maxBH + 'px';
+
+      if (depBH === 0 && depBadges) makeSpacerVisible(depBadges, maxBH);
+      else if (depBadges)           depBadges.style.minHeight = maxBH + 'px';
     }
 
-    // Égalise SIBT / SOBT
-    var sibtH = sibt ? sibt.offsetHeight : 0;
-    var sobtH = sobt ? sobt.offsetHeight : 0;
+    // === SIBT / SOBT ===
+    var sibtH = measureH(sibt);
+    var sobtH = measureH(sobt);
     var maxSH = Math.max(sibtH, sobtH);
+
     if (maxSH > 0) {
-      if (sibt) sibt.style.minHeight = maxSH + 'px';
-      if (sobt) sobt.style.minHeight = maxSH + 'px';
+      if (sibtH === 0 && sibt) makeSpacerVisible(sibt, maxSH);
+      else if (sibt)           sibt.style.minHeight = maxSH + 'px';
+
+      if (sobtH === 0 && sobt) makeSpacerVisible(sobt, maxSH);
+      else if (sobt)           sobt.style.minHeight = maxSH + 'px';
     }
   }
 
@@ -1843,9 +1879,10 @@ window.addEventListener('resize', function() {
       document.getElementById('sobt_display_' + n)
     ].filter(Boolean);
 
+    var timer = null;
     var obs = new MutationObserver(function() {
-      // Petit délai pour que le DOM soit stable
-      setTimeout(function() { equalizeVol(n); }, 0);
+      clearTimeout(timer);
+      timer = setTimeout(function() { equalizeVol(n); }, 30);
     });
 
     targets.forEach(function(el) {
