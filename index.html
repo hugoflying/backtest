@@ -368,6 +368,22 @@
     }
   }
 
+  /* ── Alignement ARRIVÉE / DÉPART via subgrid ─────────────────────── */
+  .box > .columns.mb-0 {
+    display: grid !important;
+    grid-template-columns: 1fr 1fr;
+    column-gap: 12px;
+    row-gap: 0;
+    align-items: start;
+  }
+  .box > .columns.mb-0 > .column {
+    display: grid !important;
+    grid-template-rows: subgrid;
+    grid-row: span 6;
+    width: auto !important;
+    padding: 0 !important;
+  }
+
   /* Cache les conteneurs vides sous ARRIVÉE / DÉPART */
   .tags:empty { display: none !important; margin: 0 !important; }
   p.help:empty { display: none !important; margin: 0 !important; }
@@ -1518,12 +1534,12 @@
 
 <div id="prestaBaseModal"
      style="display:none; position:fixed; inset:0; z-index:6900; align-items:center; justify-content:center; padding:14px;">
-  <div class="box" style="width:min(380px,100%); border-radius:16px;">
+  <div class="box" style="width:min(380px,100%); border-radius:16px; overflow:hidden;">
     <div class="vol-header">
       <span>Prestations basé</span>
     </div>
-    <div class="columns mt-4">
-      <div class="column has-text-centered">
+    <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-top:1rem;">
+      <div style="text-align:center;">
         <button class="button is-dark btn-band band-presta is-fullwidth"
                 type="button"
                 style="justify-content:center; min-height:60px; font-size:1rem; font-weight:700;"
@@ -1531,7 +1547,7 @@
           🛬 Retour basé
         </button>
       </div>
-      <div class="column has-text-centered">
+      <div style="text-align:center;">
         <button class="button is-dark btn-band band-presta is-fullwidth"
                 type="button"
                 style="justify-content:center; min-height:60px; font-size:1rem; font-weight:700;"
