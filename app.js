@@ -1329,7 +1329,7 @@ function buildDepLabel(f){
     status = "ARRIVÉ";
   }
 
-  const parts = [t || "--:--", flt || "—", to ? "🛫 " + to : "", reg, p].filter(Boolean);
+  const parts = [t || "--:--", flt || "—", to || "", reg, p].filter(Boolean);
   const base  = parts.join("  ·  ");
   return base + (status ? "  —  " + status : "");
 }
@@ -1359,7 +1359,7 @@ function buildArrLabel(f){
     status = "ARRIVÉ";
   }
 
-  const parts = [t || "--:--", flt || "—", from ? "🛬 " + from : "", reg, p].filter(Boolean);
+  const parts = [t || "--:--", flt || "—", from or "", reg, p].filter(Boolean);
   const base  = parts.join("  ·  ");
   return base + (status ? "  —  " + status : "");
 }
