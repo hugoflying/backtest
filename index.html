@@ -1899,6 +1899,18 @@ window.addEventListener('resize', function() {
   document.addEventListener('DOMContentLoaded', function() {
     observeVol(1);
     observeVol(2);
+
+    // Déclenche aussi l'égalisation après la sélection d'un vol
+    // (les badges/SIBT sont mis à jour par app.js après l'event change)
+    [1, 2].forEach(function(n) {
+      var sel = document.getElementById('ak_flight_' + n);
+      if (!sel) return;
+      sel.addEventListener('change', function() {
+        // Deux passes : l'une courte (badges), l'autre longue (SIBT/SOBT)
+        setTimeout(function() { equalizeVol(n); }, 80);
+        setTimeout(function() { equalizeVol(n); }, 350);
+      });
+    });
   });
 })();
 </script>
