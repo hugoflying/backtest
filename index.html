@@ -379,11 +379,20 @@
   .tags:empty { display: none; margin: 0 !important; }
   p.help:empty { display: none; margin: 0 !important; }
 
+  /* ── Labels de champs ──────────────────────────────────────────────── */
+  .field-label {
+    display: block; font-size: .68rem; font-weight: 700;
+    letter-spacing: .07em; text-transform: uppercase;
+    margin-bottom: 4px; margin-top: 10px;
+  }
+  html:not([data-theme="light"]) .field-label { color: #8b97a8; }
+  html[data-theme="light"] .field-label { color: #5f6b7a; }
+
   /* ── Carte Parking ───────────────────────────────────────────────── */
   .pv-parking-card {
     display: flex; flex-direction: column;
     align-items: center; justify-content: center;
-    padding: 10px 16px 12px;
+    padding: 7px 14px 8px;
     border-radius: 10px; border: 1px solid;
     margin-bottom: 12px; text-align: center;
     transition: border-color .15s;
@@ -401,7 +410,7 @@
 
   .pv-parking-input {
     font-family: 'JetBrains Mono', monospace;
-    font-size: 1.6rem; font-weight: 800; letter-spacing: .04em;
+    font-size: 1.1rem; font-weight: 800; letter-spacing: .06em;
     text-align: center;
     background: transparent; border: none; box-shadow: none !important;
     width: 100%; max-width: 130px; padding: 0; outline: none;
@@ -1209,18 +1218,24 @@
               <h3 class="title is-6">ARRIVÉE</h3>
               <div class="tags mb-2" id="arr_badges_1"></div>
               <p class="help" id="sibt_display_1" style="text-align:center; font-family:'JetBrains Mono',monospace; font-size:.85rem; margin-top:4px; margin-bottom:10px;"></p>
+              <span class="field-label">Date</span>
               <input id="arr_date_1" type="date" class="input mb-2">
-              <input id="arr_flt_1" class="input mb-2" placeholder="Flight Number">
-              <input id="arr_from_1" class="input mb-2" placeholder="From">
+              <span class="field-label">N° de vol</span>
+              <input id="arr_flt_1" class="input mb-2" placeholder="—">
+              <span class="field-label">Provenance</span>
+              <input id="arr_from_1" class="input mb-2" placeholder="—">
             </div>
 
             <div class="column pb-0">
               <h3 class="title is-6">DÉPART</h3>
               <div class="tags mb-2" id="dep_badges_1"></div>
               <p class="help" id="sobt_display_1" style="text-align:center; font-family:'JetBrains Mono',monospace; font-size:.85rem; margin-top:4px; margin-bottom:10px;"></p>
+              <span class="field-label">Date</span>
               <input id="dep_date_1" type="date" class="input mb-2">
-              <input id="dep_flt_1" class="input mb-2" placeholder="Flight Number">
-              <input id="dep_to_1" class="input mb-2" placeholder="To">
+              <span class="field-label">N° de vol</span>
+              <input id="dep_flt_1" class="input mb-2" placeholder="—">
+              <span class="field-label">Destination</span>
+              <input id="dep_to_1" class="input mb-2" placeholder="—">
             </div>
           </div>
 
@@ -1228,13 +1243,25 @@
             <span class="pv-parking-label">Parking</span>
             <input id="parking_1" class="pv-parking-input" placeholder="—" autocomplete="off" spellcheck="false">
           </div>
-          <div style="display:grid; grid-template-columns:1fr 1fr; gap:0.75rem; margin-bottom:.5rem;">
-            <input id="arr_reg_1" class="input" placeholder="Arr. Registration">
-            <input id="dep_reg_1" class="input" placeholder="Dep. Registration">
+          <div style="display:grid; grid-template-columns:1fr 1fr; gap:0.75rem; margin-bottom:8px;">
+            <div>
+              <span class="field-label">Immat. ARR</span>
+              <input id="arr_reg_1" class="input" placeholder="—">
+            </div>
+            <div>
+              <span class="field-label">Immat. DEP</span>
+              <input id="dep_reg_1" class="input" placeholder="—">
+            </div>
           </div>
-          <div style="display:grid; grid-template-columns:1fr 1fr; gap:0.75rem; margin-bottom:.5rem;">
-            <input id="arr_type_1" class="input" placeholder="Arr. A/C Type">
-            <input id="dep_type_1" class="input" placeholder="Dep. A/C Type">
+          <div style="display:grid; grid-template-columns:1fr 1fr; gap:0.75rem; margin-bottom:8px;">
+            <div>
+              <span class="field-label">Type ARR</span>
+              <input id="arr_type_1" class="input" placeholder="—">
+            </div>
+            <div>
+              <span class="field-label">Type DEP</span>
+              <input id="dep_type_1" class="input" placeholder="—">
+            </div>
           </div>
         </div>
 
@@ -1293,18 +1320,24 @@
               <h3 class="title is-6">ARRIVÉE</h3>
               <div class="tags mb-2" id="arr_badges_2"></div>
               <p class="help" id="sibt_display_2" style="text-align:center; font-family:'JetBrains Mono',monospace; font-size:.85rem; margin-top:4px; margin-bottom:10px;"></p>
+              <span class="field-label">Date</span>
               <input id="arr_date_2" type="date" class="input mb-2">
-              <input id="arr_flt_2" class="input mb-2" placeholder="Flight Number">
-              <input id="arr_from_2" class="input mb-2" placeholder="From">
+              <span class="field-label">N° de vol</span>
+              <input id="arr_flt_2" class="input mb-2" placeholder="—">
+              <span class="field-label">Provenance</span>
+              <input id="arr_from_2" class="input mb-2" placeholder="—">
             </div>
 
             <div class="column pb-0">
               <h3 class="title is-6">DÉPART</h3>
               <div class="tags mb-2" id="dep_badges_2"></div>
               <p class="help" id="sobt_display_2" style="text-align:center; font-family:'JetBrains Mono',monospace; font-size:.85rem; margin-top:4px; margin-bottom:10px;"></p>
+              <span class="field-label">Date</span>
               <input id="dep_date_2" type="date" class="input mb-2">
-              <input id="dep_flt_2" class="input mb-2" placeholder="Flight Number">
-              <input id="dep_to_2" class="input mb-2" placeholder="To">
+              <span class="field-label">N° de vol</span>
+              <input id="dep_flt_2" class="input mb-2" placeholder="—">
+              <span class="field-label">Destination</span>
+              <input id="dep_to_2" class="input mb-2" placeholder="—">
             </div>
           </div>
 
@@ -1312,13 +1345,25 @@
             <span class="pv-parking-label">Parking</span>
             <input id="parking_2" class="pv-parking-input" placeholder="—" autocomplete="off" spellcheck="false">
           </div>
-          <div style="display:grid; grid-template-columns:1fr 1fr; gap:0.75rem; margin-bottom:.5rem;">
-            <input id="arr_reg_2" class="input" placeholder="Arr. Registration">
-            <input id="dep_reg_2" class="input" placeholder="Dep. Registration">
+          <div style="display:grid; grid-template-columns:1fr 1fr; gap:0.75rem; margin-bottom:8px;">
+            <div>
+              <span class="field-label">Immat. ARR</span>
+              <input id="arr_reg_2" class="input" placeholder="—">
+            </div>
+            <div>
+              <span class="field-label">Immat. DEP</span>
+              <input id="dep_reg_2" class="input" placeholder="—">
+            </div>
           </div>
-          <div style="display:grid; grid-template-columns:1fr 1fr; gap:0.75rem; margin-bottom:.5rem;">
-            <input id="arr_type_2" class="input" placeholder="Arr. A/C Type">
-            <input id="dep_type_2" class="input" placeholder="Dep. A/C Type">
+          <div style="display:grid; grid-template-columns:1fr 1fr; gap:0.75rem; margin-bottom:8px;">
+            <div>
+              <span class="field-label">Type ARR</span>
+              <input id="arr_type_2" class="input" placeholder="—">
+            </div>
+            <div>
+              <span class="field-label">Type DEP</span>
+              <input id="dep_type_2" class="input" placeholder="—">
+            </div>
           </div>
         </div>
 
@@ -2093,7 +2138,6 @@ window.addEventListener('resize', function() {
   document.addEventListener('DOMContentLoaded', function() {
     initCustomSelect('ak_flow_1');
     initCustomSelect('ak_flow_2');
-    initCustomSelect('bbcgComp');
   });
 
   // Close on outside click (supplement the existing listener)
@@ -2107,6 +2151,20 @@ window.addEventListener('resize', function() {
     });
   });
 
+})();
+</script>
+
+
+<script>
+/* Set date inputs to today by default */
+(function(){
+  var today = new Date().toISOString().split('T')[0];
+  document.addEventListener('DOMContentLoaded', function() {
+    ['arr_date_1','dep_date_1','arr_date_2','dep_date_2'].forEach(function(id) {
+      var el = document.getElementById(id);
+      if (el && !el.value) el.value = today;
+    });
+  });
 })();
 </script>
 
