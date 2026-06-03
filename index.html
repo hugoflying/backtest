@@ -1703,9 +1703,8 @@
     opts.forEach(opt => {
       if(!opt.value) return; // skip placeholder
       // Extract status from label (after " — ")
-      const parts = opt.textContent.split('  —  ');
-      const label  = parts[0].trim();
-      const status = parts[1]?.trim() || '';
+      const label  = opt.textContent.replace(/\s*—\s*\S+$/, '').trim();
+      const status = opt.dataset.status || '';
 
       const div = document.createElement('div');
       div.className = 'cvd-opt';
