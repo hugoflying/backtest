@@ -206,33 +206,39 @@
      ================================================ */
   .cvd { position: relative; width: 100%; }
 
+  /* cvd-btn = même apparence que les <select> natifs */
   .cvd-btn {
     width: 100%;
     display: flex; align-items: center; justify-content: space-between; gap: 8px;
-    padding: 0 12px;
-    height: 40px;
+    padding: 0 calc(.625em - 1px) 0 calc(.625em - 1px);
+    height: 2.5em; /* même hauteur que Bulma select */
     border-radius: 8px;
     cursor: pointer;
     font-family: inherit;
-    font-size: .9rem;
+    font-size: 1rem;
     font-weight: 400;
     text-align: left;
-    transition: border-color .15s;
+    transition: border-color .15s, box-shadow .15s;
     white-space: nowrap;
     overflow: hidden;
+    appearance: none;
   }
   html:not([data-theme="light"]) .cvd-btn {
-    background: #0d1117; color: #e9eef5;
-    border: 1px solid #28303c;
+    background: #0d1117 !important;
+    color: #e9eef5 !important;
+    border: 1px solid #28303c !important;
+    box-shadow: none;
   }
   html[data-theme="light"] .cvd-btn {
-    background: #f6f8fb; color: #0f1722;
-    border: 1px solid #e2e7ee;
+    background: #f6f8fb !important;
+    color: #0f1722 !important;
+    border: 1px solid #e2e7ee !important;
+    box-shadow: none;
   }
   .cvd-btn:hover { border-color: #3b82f6 !important; }
-  .cvd-btn.open   { border-color: #3b82f6 !important; border-bottom-left-radius: 0; border-bottom-right-radius: 0; }
+  .cvd-btn.open { border-color: #3b82f6 !important; border-bottom-left-radius: 0; border-bottom-right-radius: 0; }
 
-  .cvd-val { flex: 1; overflow: hidden; text-overflow: ellipsis; }
+  .cvd-val { flex: 1; overflow: hidden; text-overflow: ellipsis; font-size: 1rem; }
   .cvd-val.placeholder { opacity: .45; }
 
   .cvd-arrow { flex-shrink: 0; opacity: .5; transition: transform .15s; }
@@ -1895,6 +1901,156 @@ window.addEventListener('resize', function() {
     observeVol(1);
     observeVol(2);
   });
+})();
+</script>
+
+
+<script>
+/* ================================================
+   GENERIC CUSTOM SELECT — convertit tous les <select>
+   Réutilise le CSS .cvd existant
+   ================================================ */
+(function(){
+
+  var ARROW_SVG = '<svg class="cvd-arrow" width="12" height="12" viewBox="0 0 24 24" fill="currentColor"><path d="M7 10l5 5 5-5z"/></svg>';
+
+  function initCustomSelect(selectId) {
+    var sel = document.getElementById(selectId);
+    if (!sel) return;
+
+    // Hide the native select + its Bulma wrapper
+    var bulmaWrap = sel.closest('.select');
+    sel.style.display = 'none';
+    if (bulmaWrap) bulmaWrap.style.display = 'none';
+
+    // Create CVD wrapper
+    var cvd   = document.createElement('div');
+    cvd.className = 'cvd';
+    cvd.id = 'cvd_' + selectId;
+
+    var btn = document.createElement('button');
+    btn.type = 'button';
+    btn.className = 'cvd-btn';
+    btn.id = 'cvd_btn_' + selectId;
+    btn.setAttribute('aria-haspopup', 'listbox');
+    btn.setAttribute('aria-expanded', 'false');
+
+    var valEl = document.createElement('span');
+    valEl.className = 'cvd-val';
+    valEl.id = 'cvd_val_' + selectId;
+
+    btn.innerHTML = '';
+    btn.appendChild(valEl);
+    btn.insertAdjacentHTML('beforeend', ARROW_SVG);
+
+    var panel = document.createElement('div');
+    panel.className = 'cvd-panel';
+    panel.id = 'cvd_panel_' + selectId;
+    panel.setAttribute('hidden', '');
+    panel.setAttribute('role', 'listbox');
+
+    cvd.appendChild(btn);
+    cvd.appendChild(panel);
+
+    // Insert CVD right before the hidden bulmaWrap (or select)
+    var insertBefore = bulmaWrap || sel;
+    insertBefore.parentNode.insertBefore(cvd, insertBefore);
+
+    function buildPanel() {
+      panel.innerHTML = '';
+      var opts = Array.from(sel.options);
+      if (opts.length === 0) {
+        panel.innerHTML = '<div class="cvd-empty">Aucun choix</div>';
+        return;
+      }
+      opts.forEach(function(opt) {
+        var div = document.createElement('div');
+        div.className = 'cvd-opt' + (opt.value === sel.value ? ' selected' : '');
+        div.dataset.value = opt.value;
+        div.setAttribute('role', 'option');
+        div.innerHTML = '<span class="cvd-opt-label">' + opt.textContent + '</span>';
+        div.addEventListener('click', function() {
+          sel.value = opt.value;
+          sel.dispatchEvent(new Event('change', { bubbles: true }));
+          updateDisplay();
+          closePanel();
+        });
+        panel.appendChild(div);
+      });
+    }
+
+    function updateDisplay() {
+      var selected = sel.options[sel.selectedIndex];
+      if (selected && selected.value !== '') {
+        valEl.textContent = selected.textContent;
+        valEl.classList.remove('placeholder');
+      } else if (selected) {
+        valEl.textContent = selected.textContent;
+        valEl.classList.add('placeholder');
+      }
+      panel.querySelectorAll('.cvd-opt').forEach(function(o) {
+        o.classList.toggle('selected', o.dataset.value === sel.value);
+      });
+    }
+
+    function openPanel() {
+      // Close all other CVDs
+      document.querySelectorAll('.cvd-btn.open').forEach(function(b) {
+        if (b !== btn) {
+          b.classList.remove('open');
+          b.setAttribute('aria-expanded', 'false');
+          var p = document.getElementById(b.id.replace('cvd_btn_', 'cvd_panel_'));
+          if (p) p.setAttribute('hidden', '');
+        }
+      });
+      btn.classList.add('open');
+      btn.setAttribute('aria-expanded', 'true');
+      panel.removeAttribute('hidden');
+      buildPanel();
+    }
+
+    function closePanel() {
+      btn.classList.remove('open');
+      btn.setAttribute('aria-expanded', 'false');
+      panel.setAttribute('hidden', '');
+    }
+
+    btn.addEventListener('click', function(e) {
+      e.stopPropagation();
+      btn.classList.contains('open') ? closePanel() : openPanel();
+    });
+
+    document.addEventListener('keydown', function(e) {
+      if (e.key === 'Escape') closePanel();
+    });
+
+    // Watch for option changes (e.g. dynamically populated)
+    new MutationObserver(function() {
+      buildPanel();
+      updateDisplay();
+    }).observe(sel, { childList: true, attributes: true, subtree: true });
+
+    updateDisplay();
+  }
+
+  // Init on DOM ready
+  document.addEventListener('DOMContentLoaded', function() {
+    initCustomSelect('ak_flow_1');
+    initCustomSelect('ak_flow_2');
+    initCustomSelect('bbcgComp');
+  });
+
+  // Close on outside click (supplement the existing listener)
+  document.addEventListener('click', function() {
+    document.querySelectorAll('.cvd-btn.open').forEach(function(b) {
+      b.classList.remove('open');
+      b.setAttribute('aria-expanded', 'false');
+      var pid = b.id.replace('cvd_btn_', 'cvd_panel_');
+      var p = document.getElementById(pid);
+      if (p) p.setAttribute('hidden', '');
+    });
+  });
+
 })();
 </script>
 
