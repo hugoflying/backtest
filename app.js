@@ -1302,6 +1302,26 @@ function padCol(s, w){
   return s + NBSP.repeat(w - s.length);
 }
 
+function getDepStatus(f){
+  const lid = String(f?.linkedId || "").trim();
+  const arr = lid ? (window._akArrAll || []).find(a => String(a?.id || "") === lid) : null;
+  const arrived  = Number.isFinite(Date.parse(arr?.aibt || ""));
+  const departed = Number.isFinite(Date.parse(f?.atot || ""));
+  if(departed) return "DÉCOLLÉ";
+  if(arrived)  return "ARRIVÉ";
+  return "";
+}
+
+function getArrStatus(f){
+  const arrived  = Number.isFinite(Date.parse(f?.aibt || ""));
+  const lid = String(f?.linkedId || "").trim();
+  const dep = lid ? (window._akDepById?.get(lid) || null) : null;
+  const departed = Number.isFinite(Date.parse(dep?.atot || ""));
+  if(departed) return "DÉCOLLÉ";
+  if(arrived)  return "ARRIVÉ";
+  return "";
+}
+
 function buildDepLabel(f){
   const t     = hhmmFromMs(depListMs(f));
   const flt   = upper(f?.fullFlightNumber || f?.callsign || "");
@@ -1752,6 +1772,7 @@ function refreshAKDropdown(n){
     const opt = document.createElement("option");
     opt.value = String(f?.id ?? "");
     opt.textContent = (flow === "DEP") ? buildDepLabel(f) : buildArrLabel(f);
+    opt.dataset.status = (flow === "DEP") ? getDepStatus(f) : getArrStatus(f);
     sel.appendChild(opt);
   }
 
