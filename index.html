@@ -379,6 +379,37 @@
   .tags:empty { display: none; margin: 0 !important; }
   p.help:empty { display: none; margin: 0 !important; }
 
+  /* ── Carte Parking ───────────────────────────────────────────────── */
+  .pv-parking-card {
+    display: flex; flex-direction: column;
+    align-items: center; justify-content: center;
+    padding: 10px 16px 12px;
+    border-radius: 10px; border: 1px solid;
+    margin-bottom: 12px; text-align: center;
+    transition: border-color .15s;
+  }
+  html:not([data-theme="light"]) .pv-parking-card { background: #1b2330; border-color: #28303c; }
+  html[data-theme="light"] .pv-parking-card { background: #f6f8fb; border-color: #e2e7ee; }
+  .pv-parking-card:focus-within { border-color: #3b82f6 !important; }
+
+  .pv-parking-label {
+    font-size: .62rem; font-weight: 800;
+    letter-spacing: .12em; text-transform: uppercase; margin-bottom: 6px;
+  }
+  html:not([data-theme="light"]) .pv-parking-label { color: #8b97a8; }
+  html[data-theme="light"] .pv-parking-label { color: #5f6b7a; }
+
+  .pv-parking-input {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 1.6rem; font-weight: 800; letter-spacing: .04em;
+    text-align: center;
+    background: transparent; border: none; box-shadow: none !important;
+    width: 100%; max-width: 130px; padding: 0; outline: none;
+  }
+  html:not([data-theme="light"]) .pv-parking-input { color: #e9eef5; }
+  html[data-theme="light"] .pv-parking-input { color: #0f1722; }
+  .pv-parking-input::placeholder { opacity: .25; }
+
   /* Colonnes ARRIVÉE / DÉPART : titre plus compact */
   .columns .title.is-6 {
     font-size: .7rem !important;
@@ -1193,11 +1224,18 @@
             </div>
           </div>
 
-          <input id="parking_1" class="input mb-2" placeholder="Parking">
-          <input id="dep_reg_1" class="input mb-2" placeholder="Registration">
-          <input id="dep_type_1" class="input mb-2" placeholder="A/C Type">
-          <input id="arr_reg_1" type="hidden">
-          <input id="arr_type_1" type="hidden">
+          <div class="pv-parking-card">
+            <span class="pv-parking-label">Parking</span>
+            <input id="parking_1" class="pv-parking-input" placeholder="—" autocomplete="off" spellcheck="false">
+          </div>
+          <div style="display:grid; grid-template-columns:1fr 1fr; gap:0.75rem; margin-bottom:.5rem;">
+            <input id="arr_reg_1" class="input" placeholder="Arr. Registration">
+            <input id="dep_reg_1" class="input" placeholder="Dep. Registration">
+          </div>
+          <div style="display:grid; grid-template-columns:1fr 1fr; gap:0.75rem; margin-bottom:.5rem;">
+            <input id="arr_type_1" class="input" placeholder="Arr. A/C Type">
+            <input id="dep_type_1" class="input" placeholder="Dep. A/C Type">
+          </div>
         </div>
 
         <div class="box">
@@ -1270,11 +1308,18 @@
             </div>
           </div>
 
-          <input id="parking_2" class="input mb-2" placeholder="Parking">
-          <input id="dep_reg_2" class="input mb-2" placeholder="Registration">
-          <input id="dep_type_2" class="input mb-2" placeholder="A/C Type">
-          <input id="arr_reg_2" type="hidden">
-          <input id="arr_type_2" type="hidden">
+          <div class="pv-parking-card">
+            <span class="pv-parking-label">Parking</span>
+            <input id="parking_2" class="pv-parking-input" placeholder="—" autocomplete="off" spellcheck="false">
+          </div>
+          <div style="display:grid; grid-template-columns:1fr 1fr; gap:0.75rem; margin-bottom:.5rem;">
+            <input id="arr_reg_2" class="input" placeholder="Arr. Registration">
+            <input id="dep_reg_2" class="input" placeholder="Dep. Registration">
+          </div>
+          <div style="display:grid; grid-template-columns:1fr 1fr; gap:0.75rem; margin-bottom:.5rem;">
+            <input id="arr_type_2" class="input" placeholder="Arr. A/C Type">
+            <input id="dep_type_2" class="input" placeholder="Dep. A/C Type">
+          </div>
         </div>
 
         <div class="box">
