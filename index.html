@@ -1858,57 +1858,61 @@ window.addEventListener('resize', function() {
 <script>
 /* ================================================
    ÉGALISATION HAUTEURS ARRIVÉE / DÉPART
+   Déconnecte les observers pendant l'égalisation
+   pour éviter la boucle de rétroaction
    ================================================ */
 (function() {
 
-  // Mesure la vraie hauteur même si l'élément est display:none
+  var _observers = {};   // stocke les observers par vol
+  var _busy      = {};   // verrou anti-boucle
+
   function measureH(el) {
     if (!el) return 0;
     var cs = getComputedStyle(el);
     if (cs.display !== 'none') return el.offsetHeight;
-    // Révèle temporairement pour mesurer
-    el.style.cssText += ';display:block!important;visibility:hidden!important;position:absolute!important';
+    el.style.setProperty('display',    'block',    'important');
+    el.style.setProperty('visibility', 'hidden',   'important');
+    el.style.setProperty('position',   'absolute', 'important');
     var h = el.offsetHeight;
-    el.style.cssText = el.style.cssText
-      .replace(/display:[^;]+;?/g,'')
-      .replace(/visibility:[^;]+;?/g,'')
-      .replace(/position:[^;]+;?/g,'');
+    el.style.removeProperty('display');
+    el.style.removeProperty('visibility');
+    el.style.removeProperty('position');
     return h;
   }
 
-  // Rend un élément caché visible mais invisible (prend de la place)
   function makeSpacerVisible(el, h) {
-    el.style.setProperty('display', 'block', 'important');
+    el.style.setProperty('display',    'block',  'important');
     el.style.setProperty('visibility', 'hidden', 'important');
     el.style.minHeight = h + 'px';
   }
 
   function equalizeVol(n) {
+    if (_busy[n]) return;
+    _busy[n] = true;
+
+    // Déconnecte l'observer pendant qu'on modifie les styles
+    if (_observers[n]) _observers[n].disconnect();
+
     var arrBadges = document.getElementById('arr_badges_' + n);
     var depBadges = document.getElementById('dep_badges_' + n);
     var sibt      = document.getElementById('sibt_display_' + n);
     var sobt      = document.getElementById('sobt_display_' + n);
 
-    // Reset tout
+    // Reset
     [arrBadges, depBadges, sibt, sobt].forEach(function(el) {
       if (!el) return;
-      el.style.display = '';
-      el.style.visibility = '';
+      el.style.removeProperty('display');
+      el.style.removeProperty('visibility');
       el.style.minHeight = '';
-      el.style.position = '';
     });
 
     // === Badges ===
     var arrBH = measureH(arrBadges);
     var depBH = measureH(depBadges);
     var maxBH = Math.max(arrBH, depBH);
-
     if (maxBH > 0) {
-      // Le côté avec contenu : s'affiche normalement
-      // Le côté vide : devient un spacer invisible
       if (arrBH === 0 && arrBadges) makeSpacerVisible(arrBadges, maxBH);
       else if (arrBadges)           arrBadges.style.minHeight = maxBH + 'px';
-
       if (depBH === 0 && depBadges) makeSpacerVisible(depBadges, maxBH);
       else if (depBadges)           depBadges.style.minHeight = maxBH + 'px';
     }
@@ -1917,48 +1921,57 @@ window.addEventListener('resize', function() {
     var sibtH = measureH(sibt);
     var sobtH = measureH(sobt);
     var maxSH = Math.max(sibtH, sobtH);
-
     if (maxSH > 0) {
       if (sibtH === 0 && sibt) makeSpacerVisible(sibt, maxSH);
       else if (sibt)           sibt.style.minHeight = maxSH + 'px';
-
       if (sobtH === 0 && sobt) makeSpacerVisible(sobt, maxSH);
       else if (sobt)           sobt.style.minHeight = maxSH + 'px';
     }
+
+    // Reconnecte l'observer
+    if (_observers[n]) reconnectObserver(n);
+    _busy[n] = false;
   }
 
-  function observeVol(n) {
-    var targets = [
-      document.getElementById('arr_badges_' + n),
-      document.getElementById('dep_badges_' + n),
+  function getTargets(n) {
+    return [
+      document.getElementById('arr_badges_'   + n),
+      document.getElementById('dep_badges_'   + n),
       document.getElementById('sibt_display_' + n),
       document.getElementById('sobt_display_' + n)
     ].filter(Boolean);
+  }
 
-    var timer = null;
-    var obs = new MutationObserver(function() {
-      clearTimeout(timer);
-      timer = setTimeout(function() { equalizeVol(n); }, 30);
-    });
-
-    targets.forEach(function(el) {
-      obs.observe(el, { childList: true, characterData: true, subtree: true, attributes: true });
+  function reconnectObserver(n) {
+    var obs = _observers[n];
+    if (!obs) return;
+    getTargets(n).forEach(function(el) {
+      // Observer uniquement les changements de contenu (pas attributes)
+      obs.observe(el, { childList: true, characterData: true, subtree: true });
     });
   }
 
-  document.addEventListener('DOMContentLoaded', function() {
-    observeVol(1);
-    observeVol(2);
+  function setupObserver(n) {
+    var timer = null;
+    var obs = new MutationObserver(function() {
+      clearTimeout(timer);
+      timer = setTimeout(function() { equalizeVol(n); }, 50);
+    });
+    _observers[n] = obs;
+    reconnectObserver(n);
+  }
 
-    // Déclenche aussi l'égalisation après la sélection d'un vol
-    // (les badges/SIBT sont mis à jour par app.js après l'event change)
+  document.addEventListener('DOMContentLoaded', function() {
+    setupObserver(1);
+    setupObserver(2);
+
     [1, 2].forEach(function(n) {
       var sel = document.getElementById('ak_flight_' + n);
       if (!sel) return;
       sel.addEventListener('change', function() {
-        // Deux passes : l'une courte (badges), l'autre longue (SIBT/SOBT)
-        setTimeout(function() { equalizeVol(n); }, 80);
-        setTimeout(function() { equalizeVol(n); }, 350);
+        setTimeout(function() { equalizeVol(n); }, 100);
+        setTimeout(function() { equalizeVol(n); }, 400);
+        setTimeout(function() { equalizeVol(n); }, 700);
       });
     });
   });
