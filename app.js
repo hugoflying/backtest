@@ -1121,19 +1121,12 @@ window.submitLaudaModal = submitLaudaModal;
 window._siPoussettesManuel = false;
 
 window.togglePoussettesManuel = function togglePoussettesManuel(){
-  window._siPoussettesManuel = !window._siPoussettesManuel;
-  const on = window._siPoussettesManuel;
+  const chk    = document.getElementById("siPoussettesManuelBtn");
+  const on     = chk ? chk.checked : (window._siPoussettesManuel = !window._siPoussettesManuel);
+  window._siPoussettesManuel = on;
 
-  const btn   = document.getElementById("siPoussettesManuelBtn");
   const pPorte = document.getElementById("siModalPoussettesPorte");
   const pCBS   = document.getElementById("siModalPoussettesCBS");
-
-  if(btn){
-    btn.style.opacity       = on ? "1" : ".7";
-    btn.style.background    = on ? "rgba(234,179,8,.25)"  : "none";
-    btn.style.borderColor   = on ? "rgba(234,179,8,.7)"   : "rgba(255,255,255,.25)";
-    btn.style.color         = on ? "#fde68a" : "inherit";
-  }
 
   if(pPorte){ pPorte.disabled = on; pPorte.style.opacity = on ? ".35" : "1"; }
   if(pCBS)  { pCBS.disabled   = on; pCBS.style.opacity   = on ? ".35" : "1"; }
