@@ -1410,10 +1410,12 @@
     </div>
     <div class="pv-body">
       <div>
-        <div style="display:flex; align-items:center; gap:8px; margin-bottom:8px;">
+        <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:8px;">
           <span class="pv-label" style="margin-bottom:0;">Poussettes</span>
-          <button type="button" id="siPoussettesManuelBtn" onclick="togglePoussettesManuel()"
-                  class="pv-inline-btn" title="Ajouter dans SI (écriture manuelle)">🖨️</button>
+          <label class="pv-check" style="font-size:.78rem; gap:6px; cursor:pointer;">
+            <input type="checkbox" id="siPoussettesManuelBtn" onchange="togglePoussettesManuel()">
+            Saisie manuelle dans SI
+          </label>
         </div>
         <div style="display:flex; flex-direction:column; gap:8px;">
           <div class="pv-pousset-row">
