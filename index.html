@@ -294,19 +294,21 @@
   /* Dropdown vols — grille colonnes fixes */
   .cvd-opt-label {
     display: grid;
-    grid-template-columns: 42px 72px 36px 62px 36px;
+    grid-template-columns: 48px 80px 40px 68px 44px;
     gap: 0;
     font-family: 'JetBrains Mono', monospace;
-    font-size: .78rem;
+    font-size: .85rem;
     align-items: center;
     overflow: hidden;
     white-space: nowrap;
+    flex: 1;
   }
-  .cvd-col-time  { color: inherit; font-weight: 600; }
-  .cvd-col-flt   { color: inherit; padding-left: 6px; }
-  .cvd-col-dest  { padding-left: 6px; opacity: .75; }
-  .cvd-col-reg   { padding-left: 6px; opacity: .65; font-size: .72rem; }
-  .cvd-col-park  { padding-left: 6px; opacity: .75; font-weight: 600; }
+  .cvd-opt-label + .cvd-opt-status { margin-left: auto; padding-left: 24px; }
+  .cvd-col-time  { color: inherit; font-weight: 700; }
+  .cvd-col-flt   { color: inherit; padding-left: 8px; }
+  .cvd-col-dest  { padding-left: 8px; opacity: .75; }
+  .cvd-col-reg   { padding-left: 8px; opacity: .65; font-size: .78rem; }
+  .cvd-col-park  { padding-left: 8px; opacity: .8; font-weight: 700; }
 
   .cvd-icon { flex-shrink: 0; opacity: .75; }
   .cvd-opt-label { flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
