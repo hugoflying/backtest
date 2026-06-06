@@ -1295,6 +1295,20 @@ function padCol(s, w){
   return s + NBSP.repeat(w - s.length);
 }
 
+function getDepDelay(f){
+  const sobt = Date.parse(f?.sobt || '');
+  const eobt = Date.parse(f?.eobt || '');
+  if(!Number.isFinite(sobt) || !Number.isFinite(eobt)) return 0;
+  return Math.round((eobt - sobt) / 60000);
+}
+
+function getArrDelay(f){
+  const sibt = Date.parse(f?.sibt || '');
+  const eibt = Date.parse(f?.eibt || '');
+  if(!Number.isFinite(sibt) || !Number.isFinite(eibt)) return 0;
+  return Math.round((eibt - sibt) / 60000);
+}
+
 function getDepStatus(f){
   const lid = String(f?.linkedId || "").trim();
   const arr = lid ? (window._akArrAll || []).find(a => String(a?.id || "") === lid) : null;
@@ -1766,6 +1780,8 @@ function refreshAKDropdown(n){
     opt.value = String(f?.id ?? "");
     opt.textContent = (flow === "DEP") ? buildDepLabel(f) : buildArrLabel(f);
     opt.dataset.status = (flow === "DEP") ? getDepStatus(f) : getArrStatus(f);
+    const _delay = (flow === "DEP") ? getDepDelay(f) : getArrDelay(f);
+    opt.dataset.delay = _delay > 15 ? _delay : 0;
     sel.appendChild(opt);
   }
 
