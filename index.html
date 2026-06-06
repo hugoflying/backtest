@@ -291,6 +291,23 @@
 
   .cvd-opt:last-child { border-bottom: none; }
 
+  /* Dropdown vols — grille colonnes fixes */
+  .cvd-opt-label {
+    display: grid;
+    grid-template-columns: 42px 72px 36px 62px 36px;
+    gap: 0;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: .78rem;
+    align-items: center;
+    overflow: hidden;
+    white-space: nowrap;
+  }
+  .cvd-col-time  { color: inherit; font-weight: 600; }
+  .cvd-col-flt   { color: inherit; padding-left: 6px; }
+  .cvd-col-dest  { padding-left: 6px; opacity: .75; }
+  .cvd-col-reg   { padding-left: 6px; opacity: .65; font-size: .72rem; }
+  .cvd-col-park  { padding-left: 6px; opacity: .75; font-weight: 600; }
+
   .cvd-icon { flex-shrink: 0; opacity: .75; }
   .cvd-opt-label { flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
   .cvd-opt-status { flex-shrink: 0; font-size: .75rem; font-weight: 600; opacity: .65; }
@@ -1692,11 +1709,18 @@
     return (document.getElementById('ak_flow_' + n)?.value || 'DEP');
   }
 
-  function buildOptHTML(icon, label, status){
+  function buildOptHTML(icon, parts, status){
+    const [t, flt, dest, reg, park] = parts;
     const statusHtml = status
       ? `<span class="cvd-opt-status">${status}</span>`
       : '';
-    return `<span class="cvd-opt-label">${label}</span>${statusHtml}`;
+    return `<span class="cvd-opt-label">
+      <span class="cvd-col-time">${t  || ''}</span>
+      <span class="cvd-col-flt" >${flt  || ''}</span>
+      <span class="cvd-col-dest">${dest || ''}</span>
+      <span class="cvd-col-reg" >${reg  || ''}</span>
+      <span class="cvd-col-park">${park || ''}</span>
+    </span>${statusHtml}`;
   }
 
   function openPanel(n){
@@ -1775,7 +1799,8 @@
       div.dataset.value = opt.value;
       div.dataset.label = label;
       div.setAttribute('role', 'option');
-      div.innerHTML = buildOptHTML(icon, label, status);
+      const parts = label.split('  ·  ');
+      div.innerHTML = buildOptHTML(icon, parts, status);
       div.addEventListener('click', () => selectOpt(n, opt.value, label, flow));
       panel.appendChild(div);
     });
