@@ -304,6 +304,15 @@
     flex: 1;
   }
   .cvd-opt-label + .cvd-opt-status { margin-left: auto; padding-left: 24px; }
+  .cvd-opt-delay {
+    flex-shrink: 0;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: .72rem; font-weight: 700;
+    padding: 2px 7px; border-radius: 5px;
+    margin-left: 8px;
+    background: rgba(240,169,30,.2);
+    color: #f0a91e;
+  }
   .cvd-col-time  { color: inherit; font-weight: 700; }
   .cvd-col-flt   { color: inherit; padding-left: 8px; }
   .cvd-col-dest  { padding-left: 8px; opacity: .75; }
@@ -1711,10 +1720,13 @@
     return (document.getElementById('ak_flow_' + n)?.value || 'DEP');
   }
 
-  function buildOptHTML(icon, parts, status){
+  function buildOptHTML(icon, parts, status, delay){
     const [t, flt, dest, reg, park] = parts;
     const statusHtml = status
       ? `<span class="cvd-opt-status">${status}</span>`
+      : '';
+    const delayHtml = (delay > 15)
+      ? `<span class="cvd-opt-delay">+${delay}'</span>`
       : '';
     return `<span class="cvd-opt-label">
       <span class="cvd-col-time">${t  || ''}</span>
@@ -1722,7 +1734,7 @@
       <span class="cvd-col-dest">${dest || ''}</span>
       <span class="cvd-col-reg" >${reg  || ''}</span>
       <span class="cvd-col-park">${park || ''}</span>
-    </span>${statusHtml}`;
+    </span>${delayHtml}${statusHtml}`;
   }
 
   function openPanel(n){
@@ -1802,7 +1814,8 @@
       div.dataset.label = label;
       div.setAttribute('role', 'option');
       const parts = label.split('  ·  ');
-      div.innerHTML = buildOptHTML(icon, parts, status);
+      const delay = parseInt(opt.dataset.delay) || 0;
+      div.innerHTML = buildOptHTML(icon, parts, status, delay);
       div.addEventListener('click', () => selectOpt(n, opt.value, label, flow));
       panel.appendChild(div);
     });
