@@ -310,8 +310,8 @@
     font-size: .72rem; font-weight: 700;
     padding: 2px 7px; border-radius: 5px;
     margin-left: 8px;
-    background: rgba(240,169,30,.2);
-    color: #f0a91e;
+    background: #f4476b;
+    color: #fff;
   }
   .cvd-col-time  { color: inherit; font-weight: 700; }
   .cvd-col-flt   { color: inherit; padding-left: 8px; }
@@ -1726,7 +1726,7 @@
       ? `<span class="cvd-opt-status">${status}</span>`
       : '';
     const delayHtml = (delay > 15)
-      ? `<span class="cvd-opt-delay">+${delay}'</span>`
+      ? `<span class="cvd-opt-delay">RETARDÉ</span>`
       : '';
     return `<span class="cvd-opt-label">
       <span class="cvd-col-time">${t  || ''}</span>
