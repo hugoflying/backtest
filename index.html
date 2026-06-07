@@ -80,6 +80,21 @@
     font-family: 'Inter', system-ui, sans-serif !important;
   }
 
+  /* Alignement ARRIVÉE / DÉPART via subgrid */
+  .box > .columns.mb-0 {
+    display: grid !important;
+    grid-template-columns: 1fr 1fr;
+    column-gap: 12px;
+    align-items: start;
+  }
+  .box > .columns.mb-0 > .column {
+    display: grid !important;
+    grid-template-rows: subgrid;
+    grid-row: span 6;
+    width: auto !important;
+    padding: 0 !important;
+  }
+
   /* Colonnes en hauteur égale — documents alignés en bas */
   @media (min-width: 1024px) {
     .section > .container > .columns {
@@ -413,9 +428,17 @@
     }
   }
 
-  /* Cache les éléments vides (sans !important pour que le JS puisse créer des spacers) */
-  .tags:empty { display: none; margin: 0 !important; }
-  p.help:empty { display: none; margin: 0 !important; }
+  /* Éléments vides : collapsés mais dans le flux grid (pour subgrid) */
+  .tags:empty {
+    height: 0 !important; overflow: hidden !important;
+    margin: 0 !important; padding: 0 !important;
+    visibility: hidden;
+  }
+  p.help:empty {
+    height: 0 !important; overflow: hidden !important;
+    margin: 0 !important; padding: 0 !important;
+    visibility: hidden;
+  }
 
   /* ── Labels de champs ──────────────────────────────────────────────── */
   .field-label {
@@ -1272,14 +1295,10 @@
           </div>
 
           <input id="parking_1" class="input mb-2" placeholder="Parking">
-          <div style="display:grid; grid-template-columns:1fr 1fr; gap:0.75rem; margin-bottom:.5rem;">
-            <input id="arr_reg_1" class="input" placeholder="Arr. Registration">
-            <input id="dep_reg_1" class="input" placeholder="Dep. Registration">
-          </div>
-          <div style="display:grid; grid-template-columns:1fr 1fr; gap:0.75rem; margin-bottom:.5rem;">
-            <input id="arr_type_1" class="input" placeholder="Arr. A/C Type">
-            <input id="dep_type_1" class="input" placeholder="Dep. A/C Type">
-          </div>
+          <input id="arr_reg_1" type="hidden">
+          <input id="arr_type_1" type="hidden">
+          <input id="dep_reg_1" class="input mb-2" placeholder="Registration">
+          <input id="dep_type_1" class="input mb-2" placeholder="A/C Type">
         </div>
 
         <div class="box">
@@ -1353,14 +1372,10 @@
           </div>
 
           <input id="parking_2" class="input mb-2" placeholder="Parking">
-          <div style="display:grid; grid-template-columns:1fr 1fr; gap:0.75rem; margin-bottom:.5rem;">
-            <input id="arr_reg_2" class="input" placeholder="Arr. Registration">
-            <input id="dep_reg_2" class="input" placeholder="Dep. Registration">
-          </div>
-          <div style="display:grid; grid-template-columns:1fr 1fr; gap:0.75rem; margin-bottom:.5rem;">
-            <input id="arr_type_2" class="input" placeholder="Arr. A/C Type">
-            <input id="dep_type_2" class="input" placeholder="Dep. A/C Type">
-          </div>
+          <input id="arr_reg_2" type="hidden">
+          <input id="arr_type_2" type="hidden">
+          <input id="dep_reg_2" class="input mb-2" placeholder="Registration">
+          <input id="dep_type_2" class="input mb-2" placeholder="A/C Type">
         </div>
 
         <div class="box">
