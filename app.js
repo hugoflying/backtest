@@ -443,10 +443,12 @@ function buildPdfFilename(docKey, volTarget, v1, v2){
     return `${safeFilePart(docKey)}_${d1 || "VOL1"}_${d2 || "VOL2"}.pdf`;
   }
 
-  const v = (volTarget === "2") ? v2 : v1;
+  const v    = (volTarget === "2") ? v2 : v1;
   const date = ymd(v?.dep?.date || v?.arr?.date);
-  const flt  = safeFilePart(v?.dep?.flt || v?.arr?.flt || "");
-  return `${safeFilePart(docKey)}_${date || "DATE"}${flt ? "_" + flt : ""}.pdf`;
+  const flt  = safeFilePart(v?.dep?.flt  || v?.arr?.flt  || "");
+  const dest = safeFilePart(v?.dep?.to   || v?.arr?.from || "");
+  const parts = [safeFilePart(docKey), date || "DATE", flt, dest].filter(Boolean);
+  return parts.join("_") + ".pdf";
 }
 
 async function fillAndPrint(docKey, volTarget = "1", extra = null) {
@@ -626,8 +628,14 @@ async function fillAndPrint(docKey, volTarget = "1", extra = null) {
   document.body.appendChild(iframe);
 
   iframe.onload = () => {
+    // Nom de fichier pour l'impression / Adobe PDF
+    const _prevTitle = document.title;
+    const v1 = getVol(1), v2 = getVol(2);
+    document.title = buildPdfFilename(docKey, volTarget, v1, v2).replace(/\.pdf$/i, "");
     iframe.contentWindow.focus();
     iframe.contentWindow.print();
+    // Restaure le titre après un court délai
+    setTimeout(() => { document.title = _prevTitle; }, 2000);
   };
 }
 
