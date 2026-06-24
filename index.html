@@ -319,9 +319,13 @@
     white-space: nowrap;
     flex: 1;
   }
-  /* RETARDÉ juste avant le statut, les deux à droite */
-  .cvd-opt-delay { margin-left: auto; }
-  .cvd-opt-status { margin-left: 8px; }
+  /* Zone droite fixe : RETARDÉ | STATUT — toujours alignés */
+  .cvd-opt-right {
+    display: flex; align-items: center; gap: 6px;
+    margin-left: auto; flex-shrink: 0;
+  }
+  .cvd-opt-delay-slot  { width: 76px; display: flex; justify-content: flex-end; }
+  .cvd-opt-status-slot { width: 62px; display: flex; justify-content: flex-end; }
   .cvd-opt-delay {
     flex-shrink: 0;
     font-family: 'Inter', system-ui, sans-serif;
@@ -1755,7 +1759,10 @@
       <span class="cvd-col-dest">${dest || ''}</span>
       <span class="cvd-col-reg" >${reg  || ''}</span>
       <span class="cvd-col-park">${park || ''}</span>
-    </span>${delayHtml}${statusHtml}`;
+    </span><span class="cvd-opt-right">
+      <span class="cvd-opt-delay-slot">${delayHtml}</span>
+      <span class="cvd-opt-status-slot">${statusHtml}</span>
+    </span>`;
   }
 
   function openPanel(n){
