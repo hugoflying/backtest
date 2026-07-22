@@ -963,7 +963,10 @@ window.submitBBCGModal = submitBBCGModal;
 
 // ===== SI MODAL (LIR Ryanair) =====
 let _pendingSIPrint = null;
-window._lirSiByVol ||= { "1": "", "2": "" };
+window._lirSiByVol      ||= { "1": "", "2": "" };
+window._lirPorteByVol   ||= { "1": "", "2": "" };
+window._lirCBSByVol     ||= { "1": "", "2": "" };
+window._lirManuelByVol  ||= { "1": false, "2": false };
 
 function openSIModal(pending){
   _pendingSIPrint = pending;
@@ -989,18 +992,19 @@ function openSIModal(pending){
   // HOLD default: décoché
   if(cbHold) cbHold.checked = false;
 
-  // Poussettes : reset à chaque ouverture
+  // Poussettes : restaure les valeurs sauvegardées
   const pPorte = document.getElementById("siModalPoussettesPorte");
   const pCBS   = document.getElementById("siModalPoussettesCBS");
-  if(pPorte) pPorte.value = "";
-  if(pCBS)   pCBS.value   = "";
+  if(pPorte) pPorte.value = window._lirPorteByVol[vol] || "";
+  if(pCBS)   pCBS.value   = window._lirCBSByVol[vol]   || "";
 
-  // Reset toggle manuel
-  window._siPoussettesManuel = false;
+  // Restaure l'état du toggle manuel
+  const wasManuel = window._lirManuelByVol[vol] || false;
+  window._siPoussettesManuel = wasManuel;
   const btn = document.getElementById("siPoussettesManuelBtn");
-  if(btn){ btn.style.opacity="0.7"; btn.style.background="none"; btn.style.borderColor="rgba(255,255,255,.25)"; btn.style.color="inherit"; }
-  if(pPorte){ pPorte.disabled=false; pPorte.style.opacity="1"; }
-  if(pCBS)  { pCBS.disabled=false;   pCBS.style.opacity="1"; }
+  if(btn && btn.type === "checkbox") btn.checked = wasManuel;
+  if(pPorte){ pPorte.disabled = wasManuel; pPorte.style.opacity = wasManuel ? ".35" : "1"; }
+  if(pCBS)  { pCBS.disabled   = wasManuel; pCBS.style.opacity   = wasManuel ? ".35" : "1"; }
 
   if(b) b.style.display = "block";
   if(m) m.style.display = "flex";
@@ -1026,7 +1030,10 @@ async function submitSIModal(){
   const v = getVol(Number(vol)); // gardé si tu t'en sers ailleurs
 
   const siRaw = (t?.value || "");
-  window._lirSiByVol[vol] = siRaw;
+  window._lirSiByVol[vol]     = siRaw;
+  window._lirPorteByVol[vol]  = document.getElementById("siModalPoussettesPorte")?.value || "";
+  window._lirCBSByVol[vol]    = document.getElementById("siModalPoussettesCBS")?.value   || "";
+  window._lirManuelByVol[vol] = window._siPoussettesManuel || false;
 
   // Poussettes
   let prefix = "";
