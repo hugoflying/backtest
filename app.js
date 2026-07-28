@@ -1804,6 +1804,19 @@ function refreshAKDropdown(n){
   window.syncCustomDrop?.(n);
 }
 
+
+function clearSIModalState(n) {
+  const v = String(n);
+  if (window._lirSiByVol)     window._lirSiByVol[v]     = "";
+  if (window._lirPorteByVol)  window._lirPorteByVol[v]  = "";
+  if (window._lirCBSByVol)    window._lirCBSByVol[v]    = "";
+  if (window._lirManuelByVol) window._lirManuelByVol[v] = false;
+  // Même chose pour Lauda si applicable
+  if (window._laudaSiByVol)       window._laudaSiByVol[v]       = "";
+  if (window._laudaPorteByVol)    window._laudaPorteByVol[v]    = "";
+  if (window._laudaCBSByVol)      window._laudaCBSByVol[v]      = "";
+}
+
 function bindAK(n){
   const flowSel = $(`ak_flow_${n}`);
   const sel = $(`ak_flight_${n}`);
@@ -1820,10 +1833,12 @@ function bindAK(n){
     if(!id){
       clearBadges(n);
       resetVolUI(n); // ✅ reset si tu remets "-- Choisir un vol --"
+      clearSIModalState(n);
       return;
     }
 
     resetVolUI(n); // ✅ reset avant de remplir
+    clearSIModalState(n);
 
     const flow = flowSel.value;
 
@@ -1933,6 +1948,7 @@ document.addEventListener("DOMContentLoaded", ()=>{
 window.clearVolCard = function(n) {
   clearBadges(n);
   resetVolUI(n);
+  clearSIModalState(n);
   // Reset native select + custom dropdown
   const sel = document.getElementById('ak_flight_' + n);
   if (sel) sel.value = '';
