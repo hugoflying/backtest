@@ -1168,6 +1168,9 @@ function applyPoussettesMode(manuel){
   if(segCount) segCount.classList.toggle("is-active", !on);
   if(segText)  segText.classList.toggle("is-active",  on);
 
+  const fields = document.getElementById("siPoussettesFields");
+  if(fields) fields.style.display = on ? "none" : "flex";
+
   const pPorte = document.getElementById("siModalPoussettesPorte");
   const pCBS   = document.getElementById("siModalPoussettesCBS");
   if(pPorte){ pPorte.disabled = on; pPorte.style.opacity = on ? ".35" : "1"; }
