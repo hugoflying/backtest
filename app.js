@@ -2004,3 +2004,70 @@ window.clearVolCard = function(n) {
     panel.querySelectorAll('.cvd-opt').forEach(o => o.classList.remove('selected'));
   }
 };
+
+
+/* ===== Écran de connexion : horloge LOCALE / ZULU ===== */
+(function(){
+  function tick(){
+    const lt = document.getElementById('homeClockLT');
+    const z  = document.getElementById('homeClockZ');
+    if(!lt && !z) return;
+    const d = new Date(), p = n => String(n).padStart(2,'0');
+    if(lt) lt.textContent = p(d.getHours())+':'+p(d.getMinutes())+':'+p(d.getSeconds());
+    if(z)  z.textContent  = p(d.getUTCHours())+':'+p(d.getUTCMinutes())+':'+p(d.getUTCSeconds());
+  }
+  setInterval(tick, 1000); tick();
+})();
+
+
+/* ===== Écran de connexion : diaporama de fond (fondu aléatoire, hors-ligne) =====
+   Déposez home-bg-1.jpg … home-bg-10.jpg (ou juste home-bg-1.jpg) à côté de index.html.
+   S'il n'y a aucune image, l'écran reste sur un fond sombre uni. */
+(function(){
+  const CANDIDATES = [];
+  for(let i=1;i<=10;i++) CANDIDATES.push('./home-bg-'+i+'.jpg');
+  const INTERVAL = 10000;              // 10 s par photo
+  let pool = [];
+  let cur = 'A', timer = null, ready = false, activeSrc = null;
+
+  function show(src){
+    const a = document.getElementById('homeSlideA'), b = document.getElementById('homeSlideB');
+    if(!a || !b || !src || src === activeSrc) return;
+    const nextEl = (cur==='A') ? b : a, curEl = (cur==='A') ? a : b;
+    nextEl.style.backgroundImage = 'url("' + src + '")';
+    nextEl.classList.add('is-active');
+    curEl.classList.remove('is-active');
+    cur = (cur==='A') ? 'B' : 'A';
+    activeSrc = src;
+  }
+  function randomSrc(){
+    if(pool.length <= 1) return pool[0] || null;
+    let s; do { s = pool[Math.floor(Math.random()*pool.length)]; } while(s === activeSrc);
+    return s;
+  }
+  function next(){ show(randomSrc()); }
+  function schedule(){ clearInterval(timer); if(pool.length > 1) timer = setInterval(next, INTERVAL); }
+
+  window.homeKickSlideshow = function(){
+    if(!ready || !pool.length) return;
+    next(); schedule();
+  };
+
+  function preload(){
+    let pending = CANDIDATES.length;
+    const loaded = [];
+    CANDIDATES.forEach(src => {
+      const im = new Image();
+      im.onload  = () => { loaded.push(src); if(--pending === 0) done(loaded); };
+      im.onerror = () => { if(--pending === 0) done(loaded); };
+      im.src = src;
+    });
+  }
+  function done(loaded){
+    ready = true;
+    pool = loaded;
+    if(pool.length){ next(); schedule(); }
+  }
+  if(document.readyState !== 'loading') preload();
+  else document.addEventListener('DOMContentLoaded', preload);
+})();
