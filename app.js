@@ -967,6 +967,9 @@ window._lirSiByVol      ||= { "1": "", "2": "" };
 window._lirPorteByVol   ||= { "1": "", "2": "" };
 window._lirCBSByVol     ||= { "1": "", "2": "" };
 window._lirManuelByVol  ||= { "1": false, "2": false };
+window._lirHoldByVol    ||= { "1": false, "2": false };
+// null = "auto" (pas encore touché par l'utilisateur) => défaut selon l'avion (B38M)
+window._lirMax5ByVol    ||= { "1": null, "2": null };
 
 function openSIModal(pending){
   _pendingSIPrint = pending;
@@ -985,12 +988,13 @@ function openSIModal(pending){
     setTimeout(()=> t.focus(), 0);
   }
 
-  // MAX5 default: coché si B38M
+  // MAX5 : reprend l'état sauvegardé s'il existe, sinon défaut auto (coché si B38M)
   const isB38M = upper(v?.dep?.type) === "B38M";
-  if(cbMax5) cbMax5.checked = isB38M;
+  const savedMax5 = window._lirMax5ByVol[vol];
+  if(cbMax5) cbMax5.checked = (savedMax5 === null || savedMax5 === undefined) ? isB38M : savedMax5;
 
-  // HOLD default: décoché
-  if(cbHold) cbHold.checked = false;
+  // HOLD : reprend l'état sauvegardé
+  if(cbHold) cbHold.checked = window._lirHoldByVol[vol] || false;
 
   // Poussettes : restaure les valeurs sauvegardées
   const pPorte = document.getElementById("siModalPoussettesPorte");
@@ -998,19 +1002,34 @@ function openSIModal(pending){
   if(pPorte) pPorte.value = window._lirPorteByVol[vol] || "";
   if(pCBS)   pCBS.value   = window._lirCBSByVol[vol]   || "";
 
-  // Restaure l'état du toggle manuel
+  // Restaure le mode poussettes (avec / sans nombre)
   const wasManuel = window._lirManuelByVol[vol] || false;
-  window._siPoussettesManuel = wasManuel;
-  const btn = document.getElementById("siPoussettesManuelBtn");
-  if(btn && btn.type === "checkbox") btn.checked = wasManuel;
-  if(pPorte){ pPorte.disabled = wasManuel; pPorte.style.opacity = wasManuel ? ".35" : "1"; }
-  if(pCBS)  { pCBS.disabled   = wasManuel; pCBS.style.opacity   = wasManuel ? ".35" : "1"; }
+  applyPoussettesMode(wasManuel);
 
   if(b) b.style.display = "block";
   if(m) m.style.display = "flex";
 }
 
+// Sauvegarde l'état courant du formulaire dans les variables persistantes,
+// pour le vol en cours d'édition. Appelé à chaque fermeture (Annuler, clic
+// extérieur, Échap, Imprimer) => les cases restent cochées si on rouvre.
+function snapshotSIModal(){
+  const p = _pendingSIPrint;
+  if(!p) return;
+  const vol = String(p.volTarget || "1");
+
+  window._lirSiByVol[vol]     = document.getElementById("siModalInput")?.value || "";
+  window._lirPorteByVol[vol]  = document.getElementById("siModalPoussettesPorte")?.value || "";
+  window._lirCBSByVol[vol]    = document.getElementById("siModalPoussettesCBS")?.value   || "";
+  window._lirManuelByVol[vol] = !!window._siPoussettesManuel;
+  window._lirHoldByVol[vol]   = !!document.getElementById("siModalHold")?.checked;
+  window._lirMax5ByVol[vol]   = !!document.getElementById("siModalMax5")?.checked;
+}
+
 function closeSIModal(keepPending){
+  // On mémorise l'état saisi avant de cacher le popup
+  snapshotSIModal();
+
   const b = document.getElementById("siBackdrop");
   const m = document.getElementById("siModal");
   if(b) b.style.display = "none";
@@ -1034,6 +1053,8 @@ async function submitSIModal(){
   window._lirPorteByVol[vol]  = document.getElementById("siModalPoussettesPorte")?.value || "";
   window._lirCBSByVol[vol]    = document.getElementById("siModalPoussettesCBS")?.value   || "";
   window._lirManuelByVol[vol] = window._siPoussettesManuel || false;
+  window._lirHoldByVol[vol]   = !!cbHold?.checked;
+  window._lirMax5ByVol[vol]   = !!cbMax5?.checked;
 
   // Poussettes
   let prefix = "";
@@ -1132,19 +1153,34 @@ window.openLaudaModal  = openLaudaModal;
 window.closeLaudaModal = closeLaudaModal;
 window.submitLaudaModal = submitLaudaModal;
 
-// ===== POUSSETTES MANUEL TOGGLE =====
+// ===== POUSSETTES : MODE "avec nombre" / "sans nombre" =====
 window._siPoussettesManuel = false;
 
-window.togglePoussettesManuel = function togglePoussettesManuel(){
-  const chk    = document.getElementById("siPoussettesManuelBtn");
-  const on     = chk ? chk.checked : (window._siPoussettesManuel = !window._siPoussettesManuel);
+// Applique l'affichage du mode sans changer l'intention utilisateur.
+// manuel = true  => "Sans le nombre" (champs grisés, mention seule)
+// manuel = false => "Indiquer le nombre" (champs actifs)
+function applyPoussettesMode(manuel){
+  const on = !!manuel;
   window._siPoussettesManuel = on;
+
+  const segCount = document.getElementById("siModeCount");
+  const segText  = document.getElementById("siModeText");
+  if(segCount) segCount.classList.toggle("is-active", !on);
+  if(segText)  segText.classList.toggle("is-active",  on);
 
   const pPorte = document.getElementById("siModalPoussettesPorte");
   const pCBS   = document.getElementById("siModalPoussettesCBS");
-
   if(pPorte){ pPorte.disabled = on; pPorte.style.opacity = on ? ".35" : "1"; }
   if(pCBS)  { pCBS.disabled   = on; pCBS.style.opacity   = on ? ".35" : "1"; }
+
+  const help = document.getElementById("siPoussettesHelp");
+  if(help) help.style.display = on ? "block" : "none";
+}
+window.applyPoussettesMode = applyPoussettesMode;
+
+// Appelé par les boutons du segmented control
+window.setPoussettesMode = function setPoussettesMode(manuel){
+  applyPoussettesMode(manuel);
 };
 
 function lirTypeX(acType){
@@ -1811,6 +1847,8 @@ function clearSIModalState(n) {
   if (window._lirPorteByVol)  window._lirPorteByVol[v]  = "";
   if (window._lirCBSByVol)    window._lirCBSByVol[v]    = "";
   if (window._lirManuelByVol) window._lirManuelByVol[v] = false;
+  if (window._lirHoldByVol)   window._lirHoldByVol[v]   = false;
+  if (window._lirMax5ByVol)   window._lirMax5ByVol[v]   = null; // retour au défaut auto
   // Même chose pour Lauda si applicable
   if (window._laudaSiByVol)       window._laudaSiByVol[v]       = "";
   if (window._laudaPorteByVol)    window._laudaPorteByVol[v]    = "";
