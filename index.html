@@ -338,6 +338,13 @@
     color: #ef4444;
     box-shadow: 0 2px 8px rgba(239,68,68,.15);
   }
+  /* Mode sombre : rouge aligné sur le reste du thème sombre */
+  html:not([data-theme="light"]) .cvd-opt-delay {
+    border-color: #f4476b;
+    background: rgba(244,71,107,.15);
+    color: #f4476b;
+    box-shadow: 0 2px 8px rgba(244,71,107,.15);
+  }
   .cvd-col-time  { color: inherit; font-weight: 700; }
   .cvd-col-flt   { color: inherit; padding-left: 8px; }
   .cvd-col-dest  { padding-left: 8px; opacity: .75; }
@@ -756,6 +763,21 @@
   #themeToggle:hover  { transform: scale(1.05); }
   #themeToggle:active { transform: scale(.95); }
 
+  #logoutBtn {
+    background: rgba(255,255,255,.10);
+    border: 1px solid rgba(255,255,255,.18);
+    border-radius: 999px; height: 36px; padding: 0 14px;
+    font-size: 13px; font-weight: 700; cursor: pointer;
+    display: flex; align-items: center; gap: 5px;
+    color: rgba(255,255,255,.85);
+    backdrop-filter: blur(8px);
+    box-shadow: 0 2px 8px rgba(0,0,0,.25);
+    transition: transform .15s, background .15s, border-color .15s, color .15s;
+    font-family: "Inter", system-ui, sans-serif;
+  }
+  #logoutBtn:hover  { transform: scale(1.05); background: rgba(239,68,68,.22); border-color: rgba(239,68,68,.55); color: #fff; }
+  #logoutBtn:active { transform: scale(.95); }
+
   /* ================================================
      MODE SOMBRE (défaut) — fond noir, glass buttons
      ================================================ */
@@ -925,6 +947,12 @@
   html[data-theme="light"] #utcToggle {
     background: rgba(0,0,0,.08) !important; border-color: rgba(0,0,0,.15) !important;
     color: rgba(0,0,0,.7) !important;
+  }
+  html[data-theme="light"] #logoutBtn {
+    background: rgba(0,0,0,.08); border-color: rgba(0,0,0,.15); color: rgba(0,0,0,.7);
+  }
+  html[data-theme="light"] #logoutBtn:hover {
+    background: rgba(239,68,68,.14); border-color: rgba(239,68,68,.5); color: #b91c1c;
   }
 
   /* ════════════════════════════════════════════════════════════
@@ -1335,7 +1363,7 @@
 })();
 </script>
 
-<!-- Groupe flottant : Thème + UTC -->
+<!-- Groupe flottant : Thème + UTC + Déconnexion -->
 <div id="topControls">
   <button id="themeToggle" title="Thème : Auto (soleil) / Clair / Sombre">
     🌙 <span id="themeBadge">Sombre</span>
@@ -1343,7 +1371,19 @@
   <button id="utcToggle" title="Mode Local — cliquer pour UTC">
     🕐 <span id="utcBadge">LT</span>
   </button>
+  <button id="logoutBtn" title="Se déconnecter" onclick="pvLogout()">
+    ⎋ <span>Quitter</span>
+  </button>
 </div>
+<script>
+  // Déconnexion manuelle : revient à l'écran de connexion.
+  function pvLogout(){
+    if(!confirm("Se déconnecter et revenir à l'écran de connexion ?")) return;
+    try { sessionStorage.removeItem("pv_auth"); } catch(e){}
+    location.reload();
+  }
+  window.pvLogout = pvLogout;
+</script>
 
 <section class="section">
   <div class="container">
