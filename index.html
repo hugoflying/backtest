@@ -1337,7 +1337,7 @@
 
 <!-- Groupe flottant : Thème + UTC -->
 <div id="topControls">
-  <button id="themeToggle" title="Basculer thème clair/sombre">
+  <button id="themeToggle" title="Thème : Auto (soleil) / Clair / Sombre">
     🌙 <span id="themeBadge">Sombre</span>
   </button>
   <button id="utcToggle" title="Mode Local — cliquer pour UTC">
@@ -1845,27 +1845,84 @@
   var btn   = document.getElementById("themeToggle");
   var badge = document.getElementById("themeBadge");
 
-  function applyTheme(theme) {
-    if (theme === "light") {
-      html.setAttribute("data-theme", "light");
-      badge.textContent = "Clair";
-      btn.childNodes[0].textContent = "☀️ ";
-    } else {
-      html.removeAttribute("data-theme");
-      badge.textContent = "Sombre";
-      btn.childNodes[0].textContent = "🌙 ";
-    }
-    localStorage.setItem("pv_theme", theme);
+  // Coordonnées utilisées pour le calcul soleil (par défaut : Beauvais-Tillé / BVA).
+  // Modifie ces valeurs si l'appli est utilisée ailleurs.
+  var GEO = { lat: 49.4544, lng: 2.1128 };
+  var MARGIN_MIN = 45; // sombre entre coucher +45 min et lever −45 min
+
+  // Calcul lever/coucher (algorithme NOAA compact, sans dépendance ni réseau).
+  function sunTimes(date, lat, lng){
+    var rad=Math.PI/180, J1970=2440588, J2000=2451545, dayMs=86400000;
+    function toJ(d){ return d.valueOf()/dayMs - 0.5 + J1970; }
+    function fromJ(j){ return new Date((j + 0.5 - J1970)*dayMs); }
+    var lw=-lng*rad, phi=lat*rad;
+    var d=toJ(date)-J2000;
+    var M=rad*(357.5291+0.98560028*d);
+    var C=rad*(1.9148*Math.sin(M)+0.02*Math.sin(2*M)+0.0003*Math.sin(3*M));
+    var L=M+C+rad*102.9372+Math.PI;
+    var n=Math.round(d-0.0009-lw/(2*Math.PI));
+    var Jstar=0.0009+lw/(2*Math.PI)+n;
+    var Jtransit=J2000+Jstar+0.0053*Math.sin(M)-0.0069*Math.sin(2*L);
+    var dec=Math.asin(Math.sin(L)*Math.sin(rad*23.4397));
+    var cosw=(Math.sin(-0.833*rad)-Math.sin(phi)*Math.sin(dec))/(Math.cos(phi)*Math.cos(dec));
+    if(cosw>1)  return { polar:"night" };  // soleil ne se lève pas
+    if(cosw<-1) return { polar:"day" };    // soleil ne se couche pas
+    var w0=Math.acos(cosw);
+    var Jset=J2000+(0.0009+(w0+lw)/(2*Math.PI)+n)+0.0053*Math.sin(M)-0.0069*Math.sin(2*L);
+    var Jrise=Jtransit-(Jset-Jtransit);
+    return { sunrise:fromJ(Jrise), sunset:fromJ(Jset) };
   }
 
-  btn.addEventListener("click", function() {
-    var current = html.getAttribute("data-theme") === "light" ? "light" : "dark";
-    applyTheme(current === "light" ? "dark" : "light");
+  // Thème résolu par le soleil : "dark" ou "light".
+  function autoTheme(){
+    var now=new Date();
+    var t=sunTimes(now, GEO.lat, GEO.lng);
+    if(t.polar) return t.polar==="night" ? "dark" : "light";
+    var m=MARGIN_MIN*60000;
+    var dawn=new Date(t.sunrise.getTime()-m);   // lever − 45 min
+    var dusk=new Date(t.sunset.getTime()+m);    // coucher + 45 min
+    return (now<dawn || now>dusk) ? "dark" : "light";
+  }
+
+  // Applique un thème résolu ("light"/"dark") au DOM, sans toucher au mode mémorisé.
+  function paint(resolved){
+    if(resolved==="light") html.setAttribute("data-theme","light");
+    else                    html.removeAttribute("data-theme");
+  }
+
+  // mode = "auto" | "light" | "dark"
+  function applyMode(mode){
+    if(mode==="light"){
+      paint("light"); badge.textContent="Clair"; btn.childNodes[0].textContent="☀️ ";
+    } else if(mode==="dark"){
+      paint("dark");  badge.textContent="Sombre"; btn.childNodes[0].textContent="🌙 ";
+    } else { // auto
+      var r=autoTheme(); paint(r);
+      badge.textContent="Auto";
+      btn.childNodes[0].textContent = (r==="dark" ? "🌙 " : "☀️ ");
+    }
+    localStorage.setItem("pv_theme", mode);
+  }
+
+  function currentMode(){
+    var m=localStorage.getItem("pv_theme");
+    return (m==="light"||m==="dark"||m==="auto") ? m : "auto";
+  }
+
+  // Clic : cycle Auto → Clair → Sombre → Auto
+  btn.addEventListener("click", function(){
+    var m=currentMode();
+    applyMode(m==="auto" ? "light" : m==="light" ? "dark" : "auto");
   });
 
-  // Restaure le thème sauvegardé, sinon light par défaut
-  var saved = localStorage.getItem("pv_theme") || "light";
-  applyTheme(saved);
+  // En mode Auto, réévalue régulièrement et au retour sur l'onglet
+  function refreshAuto(){ if(currentMode()==="auto") applyMode("auto"); }
+  setInterval(refreshAuto, 10*60*1000);
+  document.addEventListener("visibilitychange", function(){ if(!document.hidden) refreshAuto(); });
+  window.addEventListener("focus", refreshAuto);
+
+  // Défaut : Auto (basé sur le soleil)
+  applyMode(currentMode());
 })();
 </script>
 
