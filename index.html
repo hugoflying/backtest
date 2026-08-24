@@ -1167,7 +1167,7 @@
   /* Horloge en haut, centrée */
   .home-topclock{
     position:absolute; z-index:3;
-    top: max(18px, calc(env(safe-area-inset-top, 0px) + 10px));
+    top: max(38px, calc(env(safe-area-inset-top, 0px) + 30px));
     left:50%; transform:translateX(-50%);
   }
   .home-clock{ display:flex; gap:24px; align-items:center; }
@@ -1233,7 +1233,7 @@
   /* METAR + TAF brut (haut-droite) */
   .home-metar{
     position:absolute; z-index:3;
-    top: max(14px, calc(env(safe-area-inset-top, 0px) + 12px)); right:14px;
+    top: max(34px, calc(env(safe-area-inset-top, 0px) + 26px)); right:14px;
     max-width:min(42vw, 340px); text-align:right;
     color:rgba(255,255,255,.94);
     font-family: "JetBrains Mono", ui-monospace, "SF Mono", Menlo, Consolas, monospace;
@@ -1296,7 +1296,6 @@
 
   <div class="home-content">
     <div class="home-weather">
-      <div class="hw-now" id="homeWeatherNow" style="display:none;"></div>
       <div class="hw-hours" id="homeWeatherHours" style="display:none;"></div>
     </div>
     <div class="home-login">
