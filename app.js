@@ -2129,38 +2129,42 @@ window.clearVolCard = function(n) {
   function el(tag, cls, txt){ const e=document.createElement(tag); if(cls)e.className=cls; if(txt!=null)e.textContent=txt; return e; }
 
   function render(now, hours){
-    const box = document.getElementById('homeWeather');
-    if(!box) return;
-    box.innerHTML = '';
-    box.style.display = 'flex';
+    const nowBox = document.getElementById('homeWeatherNow');
+    const hrsBox = document.getElementById('homeWeatherHours');
+    const srcBox = document.getElementById('homeWeatherSrc');
 
-    // Conditions actuelles
-    const nowRow = el('div','hw-now');
-    nowRow.appendChild(el('span','hw-ic', now.icon));
-    nowRow.appendChild(el('span','hw-temp', Math.round(now.temp) + '°'));
-    const meta = el('div','hw-meta');
-    meta.appendChild(el('span','hw-desc', now.desc));
-    meta.appendChild(el('span','hw-place', GEO.name));
-    nowRow.appendChild(meta);
-    box.appendChild(nowRow);
-
-    // Bande horaire
-    const strip = el('div','hw-hours');
-    hours.forEach(h=>{
-      const c = el('div','hw-h');
-      c.appendChild(el('span','hh-time', h.hour + 'h'));
-      c.appendChild(el('span','hh-ic', h.icon));
-      c.appendChild(el('span','hh-t', Math.round(h.temp) + '°'));
-      strip.appendChild(c);
-    });
-    box.appendChild(strip);
-
-    box.appendChild(el('div','hw-src', 'Modèle AROME · Météo-France'));
+    if(nowBox){
+      nowBox.innerHTML = '';
+      nowBox.appendChild(el('span','hw-ic', now.icon));
+      nowBox.appendChild(el('span','hw-temp', Math.round(now.temp) + '°'));
+      const meta = el('div','hw-meta');
+      meta.appendChild(el('span','hw-desc', now.desc));
+      meta.appendChild(el('span','hw-place', GEO.name));
+      nowBox.appendChild(meta);
+      nowBox.style.display = 'flex';
+    }
+    if(hrsBox){
+      hrsBox.innerHTML = '';
+      hours.forEach(h=>{
+        const c = el('div','hw-h');
+        c.appendChild(el('span','hh-time', h.hour + 'h'));
+        c.appendChild(el('span','hh-ic', h.icon));
+        c.appendChild(el('span','hh-t', Math.round(h.temp) + '°'));
+        hrsBox.appendChild(c);
+      });
+      hrsBox.style.display = 'flex';
+    }
+    if(srcBox) srcBox.style.display = 'block';
   }
 
+  function hideAll(){
+    ['homeWeatherNow','homeWeatherHours','homeWeatherSrc'].forEach(id=>{
+      const e = document.getElementById(id); if(e) e.style.display = 'none';
+    });
+  }
   async function load(){
-    const box = document.getElementById('homeWeather');
-    if(!box) return;
+    const anchor = document.getElementById('homeWeatherNow');
+    if(!anchor) return;
     const url = 'https://api.open-meteo.com/v1/meteofrance'
       + '?latitude='  + GEO.lat
       + '&longitude=' + GEO.lng
@@ -2194,9 +2198,9 @@ window.clearVolCard = function(n) {
       const now = items[idx];
       const hours = items.slice(idx + 1, idx + 1 + HOURS_AHEAD);
       if(now) render(now, hours);
-      else box.style.display = 'none';
+      else hideAll();
     }catch(e){
-      box.style.display = 'none';   // repli silencieux
+      hideAll();   // repli silencieux
     }
   }
 
@@ -2215,23 +2219,43 @@ window.clearVolCard = function(n) {
   const ICAO  = 'LFOB';
   const TOKEN = 'wWkBCGbZKxdLizF7FgzOgeuQzqrWk_IBIJsTXn-DeoE';
 
+  async function fetchRaw(kind){
+    const url = 'https://avwx.rest/api/' + kind + '/' + ICAO
+              + '?token=' + encodeURIComponent(TOKEN)
+              + '&onfail=cache';
+    const r = await fetch(url, { cache:'no-store' });
+    if(!r.ok) throw new Error('HTTP ' + r.status);
+    const j = await r.json();
+    return (j && (j.raw || j.sanitized)) || '';
+  }
+
   async function load(){
-    const box = document.getElementById('homeMetar');
+    const box   = document.getElementById('homeMetar');
     if(!box) return;
-    const rawEl = box.querySelector('.hm-raw');
-    try{
-      const url = 'https://avwx.rest/api/metar/' + ICAO
-                + '?token=' + encodeURIComponent(TOKEN)
-                + '&onfail=cache';
-      const r = await fetch(url, { cache:'no-store' });
-      if(!r.ok) throw new Error('HTTP ' + r.status);
-      const j = await r.json();
-      const raw = j && (j.raw || j.sanitized);
-      if(!raw) throw new Error('no raw');
-      rawEl.textContent = raw;
-      box.style.display = 'block';
-    }catch(e){
-      box.style.display = 'none';   // repli silencieux
+    const mEl   = document.getElementById('hmMetar');
+    const tEl   = document.getElementById('hmTaf');
+    const tLbl  = document.getElementById('hmTafLabel');
+
+    // METAR (obligatoire pour afficher la boîte)
+    let metar = '';
+    try { metar = await fetchRaw('metar'); } catch(e){ metar = ''; }
+    if(!metar){ box.style.display = 'none'; return; }
+    if(mEl) mEl.textContent = metar;
+    box.style.display = 'block';
+
+    // TAF (optionnel)
+    try {
+      const taf = await fetchRaw('taf');
+      if(taf){
+        if(tEl)  tEl.textContent = taf;
+        if(tLbl) tLbl.style.display = 'block';
+      } else {
+        if(tEl)  tEl.textContent = '';
+        if(tLbl) tLbl.style.display = 'none';
+      }
+    } catch(e){
+      if(tEl)  tEl.textContent = '';
+      if(tLbl) tLbl.style.display = 'none';
     }
   }
 
