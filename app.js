@@ -2128,21 +2128,8 @@ window.clearVolCard = function(n) {
 
   function el(tag, cls, txt){ const e=document.createElement(tag); if(cls)e.className=cls; if(txt!=null)e.textContent=txt; return e; }
 
-  function render(now, hours){
-    const nowBox = document.getElementById('homeWeatherNow');
+  function render(hours){
     const hrsBox = document.getElementById('homeWeatherHours');
-    const srcBox = document.getElementById('homeWeatherSrc');
-
-    if(nowBox){
-      nowBox.innerHTML = '';
-      nowBox.appendChild(el('span','hw-ic', now.icon));
-      nowBox.appendChild(el('span','hw-temp', Math.round(now.temp) + '°'));
-      const meta = el('div','hw-meta');
-      meta.appendChild(el('span','hw-desc', now.desc));
-      meta.appendChild(el('span','hw-place', GEO.name));
-      nowBox.appendChild(meta);
-      nowBox.style.display = 'flex';
-    }
     if(hrsBox){
       hrsBox.innerHTML = '';
       hours.forEach(h=>{
@@ -2154,16 +2141,13 @@ window.clearVolCard = function(n) {
       });
       hrsBox.style.display = 'flex';
     }
-    if(srcBox) srcBox.style.display = 'block';
   }
 
   function hideAll(){
-    ['homeWeatherNow','homeWeatherHours','homeWeatherSrc'].forEach(id=>{
-      const e = document.getElementById(id); if(e) e.style.display = 'none';
-    });
+    const e = document.getElementById('homeWeatherHours'); if(e) e.style.display = 'none';
   }
   async function load(){
-    const anchor = document.getElementById('homeWeatherNow');
+    const anchor = document.getElementById('homeWeatherHours');
     if(!anchor) return;
     const url = 'https://api.open-meteo.com/v1/meteofrance'
       + '?latitude='  + GEO.lat
@@ -2195,9 +2179,8 @@ window.clearVolCard = function(n) {
       if(idx > 0) idx -= 1;          // inclut l'heure en cours comme "maintenant"
       if(idx < 0) idx = 0;
 
-      const now = items[idx];
-      const hours = items.slice(idx + 1, idx + 1 + HOURS_AHEAD);
-      if(now) render(now, hours);
+      const hours = items.slice(idx, idx + HOURS_AHEAD);
+      if(hours.length) render(hours);
       else hideAll();
     }catch(e){
       hideAll();   // repli silencieux
