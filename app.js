@@ -2006,15 +2006,20 @@ window.clearVolCard = function(n) {
 };
 
 
-/* ===== Écran de connexion : horloge LOCALE / ZULU ===== */
+/* ===== Écran de connexion : horloge LOCALE / ZULU + date en toutes lettres ===== */
 (function(){
   function tick(){
     const lt = document.getElementById('homeClockLT');
     const z  = document.getElementById('homeClockZ');
-    if(!lt && !z) return;
+    const dt = document.getElementById('homeDate');
     const d = new Date(), p = n => String(n).padStart(2,'0');
     if(lt) lt.textContent = p(d.getHours())+':'+p(d.getMinutes())+':'+p(d.getSeconds());
     if(z)  z.textContent  = p(d.getUTCHours())+':'+p(d.getUTCMinutes())+':'+p(d.getUTCSeconds());
+    if(dt){
+      // ex. « Lundi 24 août 2026 »
+      let s = d.toLocaleDateString('fr-FR', { weekday:'long', day:'numeric', month:'long', year:'numeric' });
+      dt.textContent = s.charAt(0).toUpperCase() + s.slice(1);
+    }
   }
   setInterval(tick, 1000); tick();
 })();
@@ -2028,6 +2033,7 @@ window.clearVolCard = function(n) {
   for(let i=1;i<=10;i++) CANDIDATES.push('./home-bg-'+i+'.jpg');
   const INTERVAL = 10000;              // 10 s par photo
   let pool = [];
+  let bag  = [];                         // sac mélangé : chaque photo une fois par cycle
   let cur = 'A', timer = null, ready = false, activeSrc = null;
 
   function show(src){
@@ -2040,12 +2046,21 @@ window.clearVolCard = function(n) {
     cur = (cur==='A') ? 'B' : 'A';
     activeSrc = src;
   }
-  function randomSrc(){
-    if(pool.length <= 1) return pool[0] || null;
-    let s; do { s = pool[Math.floor(Math.random()*pool.length)]; } while(s === activeSrc);
-    return s;
+  function reshuffle(){
+    bag = pool.slice();
+    for(let i=bag.length-1; i>0; i--){        // Fisher-Yates
+      const j = Math.floor(Math.random()*(i+1));
+      const t = bag[i]; bag[i] = bag[j]; bag[j] = t;
+    }
+    // évite que la 1re du nouveau cycle soit la dernière déjà affichée
+    if(bag.length>1 && bag[0]===activeSrc){ const t=bag[0]; bag[0]=bag[1]; bag[1]=t; }
   }
-  function next(){ show(randomSrc()); }
+  function nextSrc(){
+    if(pool.length <= 1) return pool[0] || null;
+    if(!bag.length) reshuffle();
+    return bag.shift();
+  }
+  function next(){ show(nextSrc()); }
   function schedule(){ clearInterval(timer); if(pool.length > 1) timer = setInterval(next, INTERVAL); }
 
   window.homeKickSlideshow = function(){
@@ -2065,9 +2080,162 @@ window.clearVolCard = function(n) {
   }
   function done(loaded){
     ready = true;
-    pool = loaded;
+    // ordre numérique stable (l'ordre d'affichage vient du sac mélangé)
+    pool = loaded.sort((x,y)=>x.localeCompare(y, undefined, {numeric:true}));
+    bag = [];
     if(pool.length){ next(); schedule(); }
   }
   if(document.readyState !== 'loading') preload();
   else document.addEventListener('DOMContentLoaded', preload);
+})();
+
+
+/* ===== Écran de connexion : météo horaire (modèle AROME de Météo-France, via Open-Meteo) =====
+   AROME = modèle haute résolution de Météo-France (courte échéance, horaire).
+   Servi par Open-Meteo (models=arome_france), sans clé API, CORS ouvert.
+   Repli silencieux si l'appel échoue. Coordonnées : Beauvais-Tillé / BVA. */
+(function(){
+  const GEO = { lat: 49.4544, lng: 2.1128, name: 'Beauvais' };
+  const HOURS_AHEAD = 8;
+
+  // Codes météo WMO -> icône + libellé FR
+  function wmo(code){
+    const m = {
+      0:['☀️','Ciel clair'], 1:['🌤️','Peu nuageux'], 2:['⛅','Nuageux'], 3:['☁️','Couvert'],
+      45:['🌫️','Brouillard'], 48:['🌫️','Brouillard givrant'],
+      51:['🌦️','Bruine légère'], 53:['🌦️','Bruine'], 55:['🌦️','Bruine forte'],
+      56:['🌧️','Bruine verglaçante'], 57:['🌧️','Bruine verglaçante'],
+      61:['🌧️','Pluie faible'], 63:['🌧️','Pluie'], 65:['🌧️','Pluie forte'],
+      66:['🌧️','Pluie verglaçante'], 67:['🌧️','Pluie verglaçante'],
+      71:['🌨️','Neige faible'], 73:['🌨️','Neige'], 75:['❄️','Neige forte'], 77:['🌨️','Grésil'],
+      80:['🌦️','Averses'], 81:['🌦️','Averses'], 82:['⛈️','Fortes averses'],
+      85:['🌨️','Averses de neige'], 86:['❄️','Averses de neige'],
+      95:['⛈️','Orage'], 96:['⛈️','Orage grêle'], 99:['⛈️','Orage grêle']
+    };
+    return m[code] || ['🌡️','—'];
+  }
+  // Repli si weather_code absent (selon disponibilité AROME)
+  function deriveCode(precip, cloud){
+    if(precip != null && precip >= 0.4) return 61;
+    if(cloud  != null){
+      if(cloud >= 85) return 3;
+      if(cloud >= 40) return 2;
+      if(cloud >= 15) return 1;
+      return 0;
+    }
+    return 1;
+  }
+
+  function el(tag, cls, txt){ const e=document.createElement(tag); if(cls)e.className=cls; if(txt!=null)e.textContent=txt; return e; }
+
+  function render(now, hours){
+    const box = document.getElementById('homeWeather');
+    if(!box) return;
+    box.innerHTML = '';
+    box.style.display = 'flex';
+
+    // Conditions actuelles
+    const nowRow = el('div','hw-now');
+    nowRow.appendChild(el('span','hw-ic', now.icon));
+    nowRow.appendChild(el('span','hw-temp', Math.round(now.temp) + '°'));
+    const meta = el('div','hw-meta');
+    meta.appendChild(el('span','hw-desc', now.desc));
+    meta.appendChild(el('span','hw-place', GEO.name));
+    nowRow.appendChild(meta);
+    box.appendChild(nowRow);
+
+    // Bande horaire
+    const strip = el('div','hw-hours');
+    hours.forEach(h=>{
+      const c = el('div','hw-h');
+      c.appendChild(el('span','hh-time', h.hour + 'h'));
+      c.appendChild(el('span','hh-ic', h.icon));
+      c.appendChild(el('span','hh-t', Math.round(h.temp) + '°'));
+      strip.appendChild(c);
+    });
+    box.appendChild(strip);
+
+    box.appendChild(el('div','hw-src', 'Modèle AROME · Météo-France'));
+  }
+
+  async function load(){
+    const box = document.getElementById('homeWeather');
+    if(!box) return;
+    const url = 'https://api.open-meteo.com/v1/meteofrance'
+      + '?latitude='  + GEO.lat
+      + '&longitude=' + GEO.lng
+      + '&models=arome_france'
+      + '&hourly=temperature_2m,weather_code,precipitation,cloud_cover'
+      + '&forecast_days=2'
+      + '&timezone=Europe%2FParis';
+    try{
+      const r = await fetch(url, { cache:'no-store' });
+      if(!r.ok) throw new Error('HTTP ' + r.status);
+      const j = await r.json();
+      const H = j && j.hourly;
+      if(!H || !H.time || !H.time.length) throw new Error('no data');
+
+      const codeOf = (i)=>{
+        let c = H.weather_code ? H.weather_code[i] : null;
+        if(c == null) c = deriveCode(H.precipitation && H.precipitation[i], H.cloud_cover && H.cloud_cover[i]);
+        return c;
+      };
+      const items = H.time.map((t,i)=>{
+        const [ic,desc] = wmo(codeOf(i));
+        return { hour: parseInt(t.slice(11,13),10), temp: H.temperature_2m[i], icon: ic, desc: desc };
+      });
+
+      // Repère l'heure courante (les données peuvent commencer à minuit)
+      const nowD = new Date();
+      let idx = H.time.findIndex(t => new Date(t) >= nowD);
+      if(idx > 0) idx -= 1;          // inclut l'heure en cours comme "maintenant"
+      if(idx < 0) idx = 0;
+
+      const now = items[idx];
+      const hours = items.slice(idx + 1, idx + 1 + HOURS_AHEAD);
+      if(now) render(now, hours);
+      else box.style.display = 'none';
+    }catch(e){
+      box.style.display = 'none';   // repli silencieux
+    }
+  }
+
+  // Charge quand le DOM est prêt, puis rafraîchit toutes les 30 min
+  function start(){ load(); setInterval(load, 30*60*1000); }
+  if(document.readyState !== 'loading') start();
+  else document.addEventListener('DOMContentLoaded', start);
+})();
+
+
+/* ===== Écran de connexion : METAR brut de LFOB (API AVWX) =====
+   NOTE SÉCURITÉ : ce token est visible dans le code de la page (écran affiché
+   avant le mot de passe). Pour le protéger, passer par un proxy serveur.
+   L'appel utilise ?token= pour éviter une requête preflight CORS. */
+(function(){
+  const ICAO  = 'LFOB';
+  const TOKEN = 'wWkBCGbZKxdLizF7FgzOgeuQzqrWk_IBIJsTXn-DeoE';
+
+  async function load(){
+    const box = document.getElementById('homeMetar');
+    if(!box) return;
+    const rawEl = box.querySelector('.hm-raw');
+    try{
+      const url = 'https://avwx.rest/api/metar/' + ICAO
+                + '?token=' + encodeURIComponent(TOKEN)
+                + '&onfail=cache';
+      const r = await fetch(url, { cache:'no-store' });
+      if(!r.ok) throw new Error('HTTP ' + r.status);
+      const j = await r.json();
+      const raw = j && (j.raw || j.sanitized);
+      if(!raw) throw new Error('no raw');
+      rawEl.textContent = raw;
+      box.style.display = 'block';
+    }catch(e){
+      box.style.display = 'none';   // repli silencieux
+    }
+  }
+
+  function start(){ load(); setInterval(load, 10*60*1000); }  // rafraîchi toutes les 10 min
+  if(document.readyState !== 'loading') start();
+  else document.addEventListener('DOMContentLoaded', start);
 })();
